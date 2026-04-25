@@ -1,0 +1,274 @@
+package com.chesko.stream_pro_tv.ui.screens
+
+import android.content.res.Configuration
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.tv.material3.*
+import com.chesko.stream_pro_tv.R
+import com.google.accompanist.permissions.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun TvSplashScreen(onNextScreen: () -> Unit) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+
+    val storagePermissionState = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(android.Manifest.permission.READ_MEDIA_VIDEO)
+    } else {
+        rememberPermissionState(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+    }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "ambient")
+    
+    val bgOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 2000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(40000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "bgOffset"
+    )
+
+    val scale = remember { Animatable(0.6f) }
+    val alpha = remember { Animatable(0f) }
+    val textAlpha = remember { Animatable(0f) }
+    val logoRotate = remember { Animatable(-15f) }
+    val glowAlpha = remember { Animatable(0f) }
+    val barWidth = remember { Animatable(0f) }
+    
+    LaunchedEffect(Unit) {
+        launch {
+            scale.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow))
+        }
+        launch {
+            alpha.animateTo(1f, tween(1500, easing = EaseOutQuart))
+        }
+        launch {
+            logoRotate.animateTo(0f, tween(2000, easing = EaseOutBack))
+        }
+        launch {
+            delay(500)
+            glowAlpha.animateTo(1f, tween(2500, easing = LinearEasing))
+        }
+        launch {
+            delay(1200)
+            textAlpha.animateTo(1f, tween(1800, easing = FastOutSlowInEasing))
+        }
+        launch {
+            delay(2000)
+            barWidth.animateTo(1f, tween(2000, easing = FastOutSlowInEasing))
+        }
+        
+        if (!storagePermissionState.status.isGranted) {
+            storagePermissionState.launchPermissionRequest()
+        }
+    }
+
+    LaunchedEffect(storagePermissionState.status.isGranted) {
+        delay(5000)
+        onNextScreen()
+    }
+
+    // Standardized Branding Sizes (Uniform across all devices)
+    val logoSize = 110.dp
+    val logoPadding = 22.dp
+    val titleSize = 48.sp
+    val subtitleSize = 11.sp
+    val subtitleSpacing = 4.sp
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF020202)),
+        contentAlignment = Alignment.Center
+    ) {
+        // 1. DYNAMIC AMBIENT BACKGROUND (Same as Home/Settings for seamless transition)
+        Canvas(modifier = Modifier.fillMaxSize().blur(100.dp)) {
+            drawRect(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        primaryColor.copy(alpha = 0.15f * glowAlpha.value),
+                        Color.Transparent
+                    ),
+                    center = center.copy(
+                        x = center.x + (bgOffset % 1000 - 500), 
+                        y = center.y + (bgOffset % 800 - 400)
+                    ),
+                    radius = size.minDimension * 1.5f
+                )
+            )
+            drawRect(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color(0xFF2979FF).copy(alpha = 0.12f * glowAlpha.value),
+                        Color.Transparent
+                    ),
+                    center = center.copy(
+                        x = center.x - (bgOffset % 1200 - 600), 
+                        y = center.y - (bgOffset % 600 - 300)
+                    ),
+                    radius = size.minDimension * 1.2f
+                )
+            )
+        }
+
+        // 2. MAIN CONTENT (Logo + Branding + Loading)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Logo Container with Outer Glow
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.graphicsLayer(
+                    scaleX = scale.value,
+                    scaleY = scale.value,
+                    alpha = alpha.value,
+                    rotationZ = logoRotate.value
+                )
+            ) {
+                // Pulsing Logo Glow
+                val pulseScale by infiniteTransition.animateFloat(
+                    initialValue = 1.5f,
+                    targetValue = 2.2f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(3000, easing = FastOutSlowInEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "pulse"
+                )
+
+                Canvas(modifier = Modifier.size(logoSize * pulseScale)) {
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(primaryColor.copy(alpha = 0.2f * glowAlpha.value), Color.Transparent)
+                        ),
+                        radius = size.minDimension / 2
+                    )
+                }
+
+                // The actual Logo Surface
+                Box(
+                    modifier = Modifier
+                        .size(logoSize)
+                        .clip(CircleShape)
+                        .background(Color(0xFF0A0A0A))
+                        .border(
+                            1.5.dp,
+                            Brush.linearGradient(listOf(primaryColor, primaryColor.copy(alpha = 0.3f))),
+                            CircleShape
+                        )
+                        .padding(logoPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.app_icon_androidtv),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Text Branding Section
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.graphicsLayer(alpha = textAlpha.value)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "STREAM",
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            fontSize = titleSize,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = (-2).sp
+                        ),
+                        color = Color.White
+                    )
+                    Text(
+                        text = "PRO",
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            fontSize = titleSize,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = (-2).sp
+                        ),
+                        color = primaryColor
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color.White.copy(alpha = 0.05f))
+                        .padding(horizontal = 12.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "THE ULTIMATE TV EXPERIENCE",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontSize = subtitleSize,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = subtitleSpacing,
+                            textAlign = TextAlign.Center
+                        ),
+                        color = Color.White.copy(alpha = 0.6f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // 3. LOADING INDICATOR
+            LinearProgressIndicator(
+                progress = { barWidth.value },
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(4.dp)
+                    .clip(CircleShape)
+                    .graphicsLayer(alpha = textAlpha.value),
+                color = primaryColor,
+                trackColor = Color.White.copy(alpha = 0.05f)
+            )
+        }
+
+        // 4. FOOTER (Credit)
+        Text(
+            text = "BY CHESKO",
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 32.dp)
+                .graphicsLayer(alpha = textAlpha.value),
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.3f),
+            letterSpacing = 6.sp,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}

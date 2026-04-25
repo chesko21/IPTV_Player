@@ -1,0 +1,17 @@
+<resources>
+    <!-- Tema Utama Aplikasi -->
+    <style name="Theme.IPTV_Player" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" ifTarget="p">shortEdges</item>
+    </style>
+
+    <!-- Tema Splash Screen Sistem -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#000000</item>
+        <item name="windowSplashScreenAnimatedIcon">@android:color/transparent</item>
+        <item name="postSplashScreenTheme">@style/Theme.IPTV_Player</item>
+    </style>
+</resources>

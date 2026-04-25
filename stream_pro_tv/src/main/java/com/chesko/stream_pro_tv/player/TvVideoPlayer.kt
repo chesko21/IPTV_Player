@@ -1,0 +1,416 @@
+package com.chesko.stream_pro_tv.player
+
+import android.media.audiofx.LoudnessEnhancer
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import androidx.annotation.OptIn
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Text
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.drm.DefaultDrmSessionManagerProvider
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.media3.ui.PlayerView
+import com.chesko.stream_pro.core.data.model.IptvChannel
+import com.chesko.stream_pro.core.utils.PlayerUtils
+import kotlinx.coroutines.delay
+
+@OptIn(UnstableApi::class)
+@Composable
+fun TvVideoPlayer(
+    channel: IptvChannel,
+    modifier: Modifier = Modifier,
+    autoPlay: Boolean = true,
+    resizeMode: Int = AspectRatioFrameLayout.RESIZE_MODE_FIT,
+    hwAcceleration: Boolean = true,
+    autoQuality: Boolean = true,
+    audioBoost: Boolean = false,
+    maxVideoHeight: Int = 0,
+    bufferSize: Int = 15,
+    onPlayerInit: ((ExoPlayer) -> Unit)? = null,
+    onError: ((String) -> Unit)? = null
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    var retryCount by remember { mutableIntStateOf(0) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var retryStatus by remember { mutableStateOf<String?>(null) }
+
+    var isBuffering by remember { mutableStateOf(false) }
+    var loudnessEnhancer by remember { mutableStateOf<LoudnessEnhancer?>(null) }
+
+    val exoPlayer = remember(hwAcceleration, autoQuality, bufferSize) {
+
+        val minBufferMs = bufferSize * 1000
+        val maxBufferMs = (bufferSize * 3000).coerceAtLeast(30000)
+        val bufferForPlaybackMs = (bufferSize * 100).coerceIn(1000, 5000)
+        val bufferForPlaybackAfterRebufferMs = (bufferSize * 200).coerceIn(2000, 10000)
+
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                minBufferMs,
+                maxBufferMs,
+                bufferForPlaybackMs,
+                bufferForPlaybackAfterRebufferMs
+            )
+            .setPrioritizeTimeOverSizeThresholds(true)
+            .build()
+
+        val trackSelector = DefaultTrackSelector(context).apply {
+            setParameters(buildUponParameters()
+                .setAllowVideoMixedMimeTypeAdaptiveness(true)
+                .setMaxVideoSize(
+                    if (maxVideoHeight > 0) Int.MAX_VALUE else Int.MAX_VALUE,
+                    if (maxVideoHeight > 0) maxVideoHeight else Int.MAX_VALUE
+                )
+                .setForceLowestBitrate(false)
+                .setExceedRendererCapabilitiesIfNecessary(true))
+        }
+
+        val renderersFactory = androidx.media3.exoplayer.DefaultRenderersFactory(context)
+            .setExtensionRendererMode(
+                if (hwAcceleration) 
+                    androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
+                else 
+                    androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+            )
+
+        val audioAttributes = AudioAttributes.Builder()
+            .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MOVIE)
+            .setUsage(androidx.media3.common.C.USAGE_MEDIA)
+            .build()
+
+        ExoPlayer.Builder(context, renderersFactory)
+            .setTrackSelector(trackSelector)
+            .setLoadControl(loadControl)
+            .setAudioAttributes(audioAttributes, true)
+            .setHandleAudioBecomingNoisy(true)
+            .build().apply {
+                repeatMode = Player.REPEAT_MODE_OFF
+                playWhenReady = autoPlay
+
+                addListener(object : Player.Listener {
+                    override fun onAudioSessionIdChanged(audioSessionId: Int) {
+                        try {
+                            loudnessEnhancer?.release()
+                            if (audioSessionId != android.media.AudioDeviceInfo.TYPE_UNKNOWN) {
+                                val enhancer = LoudnessEnhancer(audioSessionId)
+                                if (audioBoost) {
+                                    enhancer.setTargetGain(3000)
+                                    enhancer.enabled = true
+                                }
+                                loudnessEnhancer = enhancer
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+
+                    override fun onPlaybackStateChanged(playbackState: Int) {
+                        isBuffering = playbackState == Player.STATE_BUFFERING
+                        when (playbackState) {
+                            Player.STATE_BUFFERING -> {
+                                errorMessage = null
+                            }
+                            Player.STATE_READY -> {
+                                retryCount = 0
+                                errorMessage = null
+                                retryStatus = null
+                            }
+                            Player.STATE_IDLE -> {}
+                            Player.STATE_ENDED -> {}
+                        }
+                    }
+
+                    override fun onPlayerError(error: PlaybackException) {
+                        isBuffering = false
+                        if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
+                            seekToDefaultPosition()
+                            prepare()
+                            return
+                        }
+
+                        val cause = error.cause
+                        val errorMsg = if (cause is androidx.media3.datasource.HttpDataSource.InvalidResponseCodeException) {
+                            when (cause.responseCode) {
+                                404 -> "Saluran tidak ditemukan (404)"
+                                403 -> "Akses ditolak oleh server (403)"
+                                401 -> "Token akses kadaluarsa (401)"
+                                504 -> "Server Timeout (504) - Server sedang sibuk"
+                                500, 502, 503 -> "Masalah pada Server (${cause.responseCode})"
+                                else -> "Gagal memuat: Kode ${cause.responseCode}"
+                            }
+                        } else {
+                            when (error.errorCode) {
+                                PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> "Masalah koneksi server (HTTP Error)"
+                                PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> "Koneksi internet terputus"
+                                PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> "Waktu koneksi habis (Timeout)"
+                                PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED -> "Kesalahan protokol (HTTP vs HTTPS)"
+                                PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND -> "File video tidak ditemukan"
+                                PlaybackException.ERROR_CODE_DECODING_FAILED -> "Gagal memproses video (Codec Error)"
+                                PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED -> "Format video tidak didukung"
+                                PlaybackException.ERROR_CODE_REMOTE_ERROR -> "Server tidak merespon"
+                                else -> "Gagal memuat (${error.errorCodeName})"
+                            }
+                        }
+
+                        if (retryCount < 3) {
+                            retryCount++
+                            retryStatus = "Koneksi bermasalah, mencoba kembali ($retryCount/3)..."
+                        } else {
+                            retryStatus = null
+                            errorMessage = errorMsg
+                            onError?.invoke(errorMsg)
+                        }
+                    }
+                })
+            }
+    }
+
+    LaunchedEffect(audioBoost) {
+        try {
+            loudnessEnhancer?.let { enhancer ->
+                if (audioBoost) {
+                    enhancer.setTargetGain(3000) // 30dB boost
+                    enhancer.enabled = true
+                } else {
+                    enhancer.enabled = false
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    LaunchedEffect(retryCount) {
+        if (retryCount in 1..3) {
+            delay(5000)
+            exoPlayer.stop()
+            exoPlayer.prepare()
+            exoPlayer.play()
+        }
+    }
+
+    LaunchedEffect(exoPlayer) {
+        onPlayerInit?.invoke(exoPlayer)
+    }
+
+    LaunchedEffect(channel.url) {
+        retryCount = 0
+        errorMessage = null
+        retryStatus = null
+        
+        exoPlayer.stop()
+        exoPlayer.clearMediaItems()
+
+        val mediaItem = PlayerUtils.buildMediaItem(channel)
+        val allHeaders = PlayerUtils.getHeadersFromChannel(channel)
+        
+        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+            .setAllowCrossProtocolRedirects(true)
+            .setDefaultRequestProperties(allHeaders)
+
+        val dataSourceFactory = DefaultDataSource.Factory(context, httpDataSourceFactory)
+
+        val drmSessionManagerProvider = DefaultDrmSessionManagerProvider()
+        drmSessionManagerProvider.setDrmHttpDataSourceFactory(dataSourceFactory)
+
+        val mediaSourceFactory = DefaultMediaSourceFactory(context)
+            .setDataSourceFactory(dataSourceFactory)
+            .setDrmSessionManagerProvider(drmSessionManagerProvider)
+
+        val mediaSource = mediaSourceFactory.createMediaSource(mediaItem)
+
+        exoPlayer.setMediaSource(mediaSource)
+        exoPlayer.prepare()
+        exoPlayer.play()
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> exoPlayer.pause()
+                Lifecycle.Event.ON_RESUME -> exoPlayer.play()
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            loudnessEnhancer?.release()
+            loudnessEnhancer = null
+            exoPlayer.stop()
+            exoPlayer.release()
+        }
+    }
+
+    val configuration = LocalConfiguration.current
+    val isSmallScreen = configuration.screenWidthDp < 600
+
+    Box(modifier = modifier.fillMaxSize().background(Color.Black)) {
+        AndroidView(
+            factory = { ctx ->
+                PlayerView(ctx).apply {
+                    player = exoPlayer
+                    useController = false
+                    this.resizeMode = resizeMode
+                    keepScreenOn = true
+                    layoutParams = FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                }
+            },
+            update = { view -> 
+                if (view.resizeMode != resizeMode) {
+                    view.resizeMode = resizeMode
+                }
+            },
+            onRelease = { view -> view.player = null },
+            modifier = Modifier.fillMaxSize()
+        )
+
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+
+            AnimatedVisibility(
+                visible = (isBuffering || retryStatus != null) && errorMessage == null,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(if (isSmallScreen) 52.dp else 64.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                        strokeWidth = if (isSmallScreen) 3.dp else 4.dp
+                    )
+                     Text(
+                        text = retryStatus ?: "Menghubungkan...",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = if (isSmallScreen) 10.sp else 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.offset(y = if (isSmallScreen) 45.dp else 55.dp)
+                    )
+                }
+            }
+
+            // Error State
+            errorMessage?.let { msg ->
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = 32.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.Black.copy(alpha = 0.75f))
+                        .padding(horizontal = 24.dp, vertical = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ErrorOutline,
+                        contentDescription = null,
+                        tint = Color.Red.copy(alpha = 0.8f),
+                        modifier = Modifier.size(if (isSmallScreen) 32.dp else 40.dp)
+                    )
+                    
+                    Text(
+                        text = msg,
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = if (isSmallScreen) 12.sp else 14.sp
+                    )
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                        modifier = Modifier.alpha(0.5f)
+                    ) {
+                        Text(
+                            text = "Gunakan tombol tengah untuk memuat ulang",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            fontSize = if (isSmallScreen) 9.sp else 10.sp,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = "atau Link Sudah Mati!",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            fontSize = if (isSmallScreen) 8.sp else 9.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+        }
+
+        // Logo & Text Watermark Overlay (Minimalist)
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(if (isSmallScreen) 24.dp else 32.dp)
+                .alpha(0.8f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Image(
+                painter = painterResource(id = com.chesko.stream_pro_tv.R.drawable.app_icon_androidtv),
+                contentDescription = null,
+                modifier = Modifier.size(if (isSmallScreen) 32.dp else 48.dp)
+            )
+            Text(
+                text = "StreamPro TV",
+                color = Color.White,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                fontSize = if (isSmallScreen) 12.sp else 14.sp
+            )
+        }
+    }
+}
