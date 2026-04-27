@@ -438,6 +438,56 @@ fun UrlInputSection(
             modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
         )
 
+        // Preset Demo URLs Section
+        Column(modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)) {
+            TvText(
+                text = "PRESET DEMO URLS",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.3f),
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val labels = listOf("SERVER 1", "SERVER 2", "SERVER 3", "SERVER 4", "SERVER 5")
+                MainViewModel.DEMO_URLS.forEachIndexed { index, demoUrl ->
+                    val label = labels.getOrElse(index) { "SERVER ${index + 1}" }
+                    val isSelected = url == demoUrl
+                    
+                    Surface(
+                        onClick = { onUrlChange(demoUrl) },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(38.dp),
+                        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(10.dp)),
+                        colors = ClickableSurfaceDefaults.colors(
+                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.05f),
+                            focusedContainerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.5f),
+                            focusedContentColor = Color.White
+                        ),
+                        border = ClickableSurfaceDefaults.border(
+                            focusedBorder = Border(BorderStroke(2.dp, Color.White)),
+                            border = Border(BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.05f)))
+                        ),
+                        scale = ClickableSurfaceDefaults.scale(focusedScale = 1.1f)
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            TvText(
+                                text = label,
+                                fontSize = 10.sp,
+                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
+                                letterSpacing = 0.5.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         if (!isEditingUrl) {
             Surface(
                 onClick = { onEditingChange(true) },
