@@ -5,11 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -17,9 +13,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,13 +24,13 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -43,14 +38,18 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
-import androidx.compose.foundation.Image
-import androidx.compose.ui.res.painterResource
 import com.chesko.stream_pro.R
 import com.chesko.stream_pro.core.ui.MainViewModel
+import com.chesko.stream_pro.core.utils.NetworkObserver
 import com.chesko.stream_pro.ui.components.shimmerEffect
 import kotlinx.coroutines.launch
 
+/**
+ * Universal Cinematic LoginScreen
+ * Implements high-end glassmorphism and cosmic animations
+ */
 @Composable
 fun LoginScreen(
     viewModel: MainViewModel,
@@ -61,16 +60,24 @@ fun LoginScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val networkStatus by viewModel.networkStatus.collectAsState()
+    val isOffline = networkStatus is NetworkObserver.NetworkStatus.Lost
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    // Cinematic Entrance state
+    val entranceAlpha = remember { Animatable(0f) }
+    val entranceScale = remember { Animatable(0.95f) }
+
+    LaunchedEffect(Unit) {
+        launch { entranceAlpha.animateTo(1f, tween(1500, easing = EaseOutQuart)) }
+        launch { entranceScale.animateTo(1f, spring(Spring.DampingRatioLowBouncy, Spring.StiffnessLow)) }
+    }
+
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
-            snackbarHostState.showSnackbar(
-                message = it,
-                duration = SnackbarDuration.Short
-            )
+            snackbarHostState.showSnackbar(message = it, duration = SnackbarDuration.Short)
             viewModel.clearError()
         }
     }
@@ -99,117 +106,158 @@ fun LoginScreen(
             SnackbarHost(hostState = snackbarHostState) { data ->
                 Snackbar(
                     containerColor = if (errorMessage != null) MaterialTheme.colorScheme.error else Color(0xFF2E7D32),
-                    contentColor = MaterialTheme.colorScheme.onError,
+                    contentColor = Color.White,
                     snackbarData = data,
                     shape = RoundedCornerShape(12.dp)
                 )
             }
         },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+    ) { _ ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            // 1. COSMIC BACKGROUND LAYERS
             MovingPosterWall()
-            // Semi-transparent overlay to keep text readable while letting posters show through
-            Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background.copy(alpha = 0.85f)))
-
+            
+            // Atmospheric Radial Glows
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.radialGradient(
+                            0f to MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            0.7f to Color.Transparent,
+                            center = androidx.compose.ui.geometry.Offset(0f, 0f)
+                        )
+                    )
+            )
+
+            // 2. MAIN CONTENT
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .systemBarsPadding()
+                    .graphicsLayer {
+                        alpha = entranceAlpha.value
+                        scaleX = entranceScale.value
+                        scaleY = entranceScale.value
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 24.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 28.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     LogoSection()
-                    Spacer(modifier = Modifier.height(30.dp))
+                    
+                    Spacer(modifier = Modifier.height(40.dp))
 
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .graphicsLayer { shadowElevation = 20f; shape = RoundedCornerShape(24.dp); clip = true }
-                            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.1f), RoundedCornerShape(24.dp)),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(24.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(
+                                    1.dp, 
+                                    Brush.linearGradient(
+                                        listOf(MaterialTheme.colorScheme.onSurface.copy(0.1f), Color.Transparent)
+                                    ), 
+                                    RoundedCornerShape(24.dp)
+                                ),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f),
+                            shape = RoundedCornerShape(24.dp),
+                            tonalElevation = 0.dp
+                        ) {
+                            Box {
+                                Column(
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .blur(if (isLoading) 2.dp else 0.dp), 
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    // Custom Tab Switcher
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(bottom = 16.dp)
+                                            .background(MaterialTheme.colorScheme.onSurface.copy(0.05f), CircleShape)
+                                            .padding(4.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        LoginMethodTab(
+                                            text = "REMOTE URL",
+                                            isSelected = selectedTab == 0,
+                                            modifier = Modifier.weight(1f),
+                                            onClick = { selectedTab = 0 }
+                                        )
+                                        LoginMethodTab(
+                                            text = "LOCAL FILE",
+                                            isSelected = selectedTab == 1,
+                                            modifier = Modifier.weight(1f),
+                                            onClick = { selectedTab = 1 }
+                                        )
+                                    }
 
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 24.dp)
-                                    .background(MaterialTheme.colorScheme.surface.copy(0.3f), CircleShape)
-                                    .padding(4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                LoginMethodTab(
-                                    text = "URL M3U",
-                                    isSelected = selectedTab == 0,
-                                    modifier = Modifier.weight(1f),
-                                    onClick = { selectedTab = 0 }
-                                )
-                                LoginMethodTab(
-                                    text = "FILE LOKAL",
-                                    isSelected = selectedTab == 1,
-                                    modifier = Modifier.weight(1f),
-                                    onClick = { selectedTab = 1 }
-                                )
-                            }
-
-                            AnimatedContent(
-                                targetState = selectedTab,
-                                transitionSpec = {
-                                    if (targetState > initialState) {
-                                        slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it } + fadeOut()
-                                    } else {
-                                        slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it } + fadeOut()
-                                    }.using(SizeTransform(clip = false))
-                                },
-                                label = "LoginSlide"
-                            ) { target ->
-                                when (target) {
-                                    0 -> UrlSlide(
-                                        url = url,
-                                        onUrlChange = { url = it },
-                                        isLoading = isLoading,
-                                        onConnect = {
-                                            if (!url.startsWith("http")) {
-                                                scope.launch { snackbarHostState.showSnackbar("URL harus diawali http:// atau https://") }
-                                                return@UrlSlide
-                                            }
-                                            keyboardController?.hide()
-                                            viewModel.loadPlaylist(url, onSuccess = {
-                                                scope.launch { snackbarHostState.showSnackbar("Playlist Berhasil Dimuat!") }
-                                                onNavigateToHome()
-                                            })
+                                    AnimatedContent(
+                                        targetState = selectedTab,
+                                        transitionSpec = {
+                                            fadeIn(tween(400)) + scaleIn(initialScale = 0.95f) togetherWith fadeOut(tween(400))
                                         },
-                                        onDemo = { demoUrl ->
-                                            url = demoUrl
-                                            keyboardController?.hide()
-                                            viewModel.loadPlaylist(demoUrl, onSuccess = {
-                                                scope.launch { snackbarHostState.showSnackbar("Playlist Demo Berhasil Dimuat!") }
-                                                onNavigateToHome()
-                                            })
+                                        label = "LoginMode"
+                                    ) { target ->
+                                        when (target) {
+                                            0 -> UrlSlide(
+                                                url = url,
+                                                onUrlChange = { url = it },
+                                                isLoading = isLoading,
+                                                isOffline = isOffline,
+                                                onConnect = {
+                                                    if (!url.startsWith("http")) {
+                                                        scope.launch { snackbarHostState.showSnackbar("Invalid URL protocol") }
+                                                        return@UrlSlide
+                                                    }
+                                                    keyboardController?.hide()
+                                                    viewModel.loadPlaylist(url, onSuccess = {
+                                                        onNavigateToHome()
+                                                    })
+                                                },
+                                                onDemo = { demoUrl ->
+                                                    url = demoUrl
+                                                    keyboardController?.hide()
+                                                    viewModel.loadPlaylist(demoUrl, onSuccess = {
+                                                        onNavigateToHome()
+                                                    })
+                                                }
+                                            )
+                                            1 -> FileSlide(
+                                                isLoading = isLoading,
+                                                onPickFile = { filePickerLauncher.launch("*/*") }
+                                            )
                                         }
-                                    )
-                                    1 -> FileSlide(
-                                        isLoading = isLoading,
-                                        onPickFile = { filePickerLauncher.launch("*/*") }
-                                    )
+                                    }
+                                }
+                                
+                                if (isLoading) {
+                                    Box(
+                                        modifier = Modifier.matchParentSize().background(Color.Black.copy(0.2f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(20.dp))
-                    if (selectedTab == 0) {
-                        Text(
-                            text = "Masukkan URL playlist M3U atau gunakan demo",
-                            color = MaterialTheme.colorScheme.onBackground.copy(0.4f),
-                            style = MaterialTheme.typography.labelSmall,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-                    }
+                    Spacer(modifier = Modifier.height(32.dp))
+                    
+                    Text(
+                        text = "SECURE ENCRYPTED CONNECTION",
+                        color = MaterialTheme.colorScheme.onSurface.copy(0.3f),
+                        style = MaterialTheme.typography.labelSmall,
+                        letterSpacing = 2.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 9.sp
+                    )
                 }
             }
         }
@@ -218,16 +266,30 @@ fun LoginScreen(
 
 @Composable
 fun LoginMethodTab(text: String, isSelected: Boolean, modifier: Modifier, onClick: () -> Unit) {
-    val backgroundColor by animateColorAsState(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
+    val backgroundColor by animateColorAsState(
+        if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+        animationSpec = tween(400)
+    )
+    val contentColor by animateColorAsState(
+        if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(0.4f),
+        animationSpec = tween(400)
+    )
+    
     Box(
         modifier = modifier
-            .height(40.dp)
+            .height(38.dp)
             .clip(CircleShape)
             .background(backgroundColor)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Text(text, color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(0.6f), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+        Text(
+            text = text, 
+            color = contentColor, 
+            fontWeight = FontWeight.Black, 
+            fontSize = 11.sp,
+            letterSpacing = 1.sp
+        )
     }
 }
 
@@ -236,124 +298,133 @@ fun UrlSlide(
     url: String,
     onUrlChange: (String) -> Unit,
     isLoading: Boolean,
+    isOffline: Boolean = false,
     onConnect: () -> Unit,
     onDemo: (String) -> Unit
 ) {
     var showDemoDialog by remember { mutableStateOf(false) }
 
     if (showDemoDialog) {
-        AlertDialog(
-            onDismissRequest = { showDemoDialog = false },
-            modifier = Modifier
-                .fillMaxWidth(0.85f)
-                .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(24.dp)),
-            title = { 
-                Text(
-                    "Pilih Playlist Demo", 
-                    fontWeight = FontWeight.Bold, 
-                    fontSize = 18.sp,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                ) 
-            },
-            text = {
+        Dialog(onDismissRequest = { showDemoDialog = false }) {
+            Surface(
+                modifier = Modifier.width(260.dp),
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 8.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.1f))
+            ) {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    MainViewModel.DEMO_URLS.forEachIndexed { index, demoUrl ->
-                        Button(
-                            onClick = {
-                                showDemoDialog = false
-                                onDemo(demoUrl)
-                            },
-                            modifier = Modifier.fillMaxWidth().height(44.dp),
-                            shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues(0.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                                contentColor = MaterialTheme.colorScheme.primary
-                            )
-                        ) {
-                            Text("Demo Playlist ${index + 1}", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(
+                        "EXPLORE DEMO", 
+                        fontWeight = FontWeight.Black, 
+                        letterSpacing = 1.sp, 
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        MainViewModel.DEMO_URLS.forEachIndexed { index, demoUrl ->
+                            Surface(
+                                onClick = { showDemoDialog = false; onDemo(demoUrl) },
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.onSurface.copy(0.04f),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.06f))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp).fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(Icons.Default.Dns, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                                    Spacer(Modifier.width(10.dp))
+                                    Text("Playlist Demo ${index + 1}", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                }
+                            }
                         }
                     }
+
+                    TextButton(
+                        onClick = { showDemoDialog = false },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("CLOSE", color = MaterialTheme.colorScheme.onSurface.copy(0.5f), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                    }
                 }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(
-                    onClick = { showDemoDialog = false },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Batal", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            },
-            shape = RoundedCornerShape(24.dp),
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+            }
+        }
     }
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("URL Playlist", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-        Text("Masukkan tautan M3U remote Anda", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 20.dp))
+    val displayUrl = remember(url) {
+        val demoIndex = MainViewModel.DEMO_URLS.indexOf(url)
+        if (demoIndex != -1) "Universal Playlist ${demoIndex + 1}" else url
+    }
+
+    Column(horizontalAlignment = Alignment.Start) {
+        Text(
+            "M3U PLAYLIST ENDPOINT", 
+            color = MaterialTheme.colorScheme.primary, 
+            fontWeight = FontWeight.Black,
+            letterSpacing = 1.sp,
+            style = MaterialTheme.typography.labelSmall
+        )
+        Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
-            value = url,
-            onValueChange = onUrlChange,
-            placeholder = { Text("https://contoh.com/playlist.m3u", fontSize = 14.sp) },
+            value = displayUrl,
+            onValueChange = { newValue ->
+                if (MainViewModel.DEMO_URLS.contains(url)) {
+                    onUrlChange(newValue)
+                } else {
+                    onUrlChange(newValue)
+                }
+            },
+            placeholder = { Text("https://your-provider.com/playlist.m3u", color = MaterialTheme.colorScheme.onSurface.copy(0.3f), fontSize = 13.sp) },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
+            textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp),
             shape = RoundedCornerShape(12.dp),
-            leadingIcon = { Icon(Icons.Default.Link, null, tint = MaterialTheme.colorScheme.primary) },
+            leadingIcon = { Icon(Icons.Default.Language, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.5f), modifier = Modifier.size(18.dp)) },
             trailingIcon = {
                 if (url.isNotEmpty()) {
                     IconButton(onClick = { onUrlChange("") }) {
-                        Icon(Icons.Default.Clear, null, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.5f))
                     }
                 }
             },
-            maxLines = 2,
-            visualTransformation = VisualTransformation.None,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Uri,
-                imeAction = ImeAction.Done
-            ),
+            readOnly = MainViewModel.DEMO_URLS.contains(url),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(0.1f),
                 cursorColor = MaterialTheme.colorScheme.primary,
-                focusedContainerColor = MaterialTheme.colorScheme.surface.copy(0.3f),
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(0.3f)
+                focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(0.05f),
+                unfocusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(0.05f)
             )
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Dua tombol dengan style yang sama persis
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Tombol LOGIN
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             ShimmerButton(
-                text = "LOGIN",
+                text = "CONNECT",
                 isLoading = isLoading,
-                enabled = !isLoading,
+                enabled = !isLoading && !isOffline,
                 onClick = onConnect,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1.5f)
             )
 
-            // Tombol DEMO
-            ShimmerButton(
-                text = "DEMO",
-                isLoading = isLoading,
-                enabled = !isLoading,
+            Button(
                 onClick = { showDemoDialog = true },
-                modifier = Modifier.weight(1f)
-            )
+                modifier = Modifier.height(42.dp).weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onSurface.copy(0.05f), contentColor = MaterialTheme.colorScheme.onSurface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.1f))
+            ) {
+                Text("DEMO", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            }
         }
     }
 }
@@ -361,29 +432,36 @@ fun UrlSlide(
 @Composable
 fun FileSlide(isLoading: Boolean, onPickFile: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(vertical = 10.dp)) {
-        Icon(Icons.Default.UploadFile, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp))
-        Spacer(modifier = Modifier.height(12.dp))
-        Text("Playlist Lokal", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-        Text("Pilih file M3U dari penyimpanan perangkat", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .background(MaterialTheme.colorScheme.primary.copy(0.1f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Default.CloudUpload, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("LOCAL REPOSITORY", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Black, letterSpacing = 1.sp, fontSize = 14.sp)
+        Text(
+            "Import .m3u or .m3u8 files from your device storage", 
+            style = MaterialTheme.typography.bodySmall, 
+            color = MaterialTheme.colorScheme.onSurface.copy(0.4f), 
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+        )
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = onPickFile,
             enabled = !isLoading,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
+            modifier = Modifier.fillMaxWidth().height(42.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            if (isLoading) CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.primary)
-            else {
-                Icon(Icons.Default.FileOpen, null)
-                Spacer(modifier = Modifier.width(12.dp))
-                Text("PILIH FILE", fontWeight = FontWeight.Black)
-            }
+            Icon(Icons.Default.FolderZip, null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(12.dp))
+            Text("BROWSE FILES", fontWeight = FontWeight.Bold, fontSize = 12.sp)
         }
     }
 }
@@ -391,15 +469,38 @@ fun FileSlide(isLoading: Boolean, onPickFile: () -> Unit) {
 @Composable
 fun LogoSection() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Image(
-            painter = painterResource(id = R.drawable.app_icon_android),
-            contentDescription = "Logo",
-            modifier = Modifier.size(80.dp)
-        )
+        Surface(
+            modifier = Modifier.size(80.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.onSurface.copy(0.05f),
+            border = BorderStroke(1.5.dp, Brush.sweepGradient(listOf(MaterialTheme.colorScheme.primary, Color.Transparent, MaterialTheme.colorScheme.primary)))
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(18.dp)) {
+                Image(
+                    painter = painterResource(id = R.drawable.app_icon_android),
+                    contentDescription = "Logo",
+                    modifier = Modifier.fillMaxSize()
+                )
+
+            }
+        }
         Spacer(modifier = Modifier.height(16.dp))
-        Row {
-            Text("STREAM", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onBackground)
-            Text("PRO", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "STREAM", 
+                style = MaterialTheme.typography.headlineSmall, 
+                fontWeight = FontWeight.Black, 
+                color = MaterialTheme.colorScheme.onSurface,
+                letterSpacing = (-1).sp
+            )
+            Text(
+                "PRO", 
+                style = MaterialTheme.typography.headlineSmall, 
+                fontWeight = FontWeight.Black, 
+                color = MaterialTheme.colorScheme.primary,
+                letterSpacing = (-1).sp,
+                modifier = Modifier.shimmerEffect()
+            )
         }
     }
 }
@@ -421,15 +522,19 @@ fun MovingPosterWall() {
         initialValue = 0f,
         targetValue = -3000f,
         animationSpec = infiniteRepeatable(
-            animation = tween(60000, easing = LinearEasing),
+            animation = tween(80000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "scroll"
     )
     Box(modifier = Modifier
         .fillMaxSize()
-        .rotate(-5f)
-        .scale(1.4f)) {
+        .rotate(-8f)
+        .graphicsLayer {
+            scaleX = 1.5f
+            scaleY = 1.5f
+        }
+    ) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(5),
             modifier = Modifier
@@ -438,8 +543,8 @@ fun MovingPosterWall() {
                 .graphicsLayer { translationY = scrollOffset },
             userScrollEnabled = false,
             contentPadding = PaddingValues(8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             items(200) { index ->
                 AsyncImage(
@@ -448,9 +553,9 @@ fun MovingPosterWall() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(0.7f)
-                        .alpha(0.15f)
+                        .alpha(0.12f) // Increased from 0.05f for better visibility
                         .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)),
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)),
                     contentScale = ContentScale.Crop
                 )
             }
@@ -466,21 +571,20 @@ fun ShimmerButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val buttonHeight = 56.dp
-    val fontSize = 14.sp
+    val buttonHeight = 42.dp
     
     if (isLoading) {
         Box(
             modifier = modifier
                 .height(buttonHeight)
-                .clip(RoundedCornerShape(14.dp))
+                .clip(RoundedCornerShape(12.dp))
                 .shimmerEffect(),
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(20.dp),
                 color = MaterialTheme.colorScheme.onPrimary,
-                strokeWidth = 3.dp
+                strokeWidth = 2.dp
             )
         }
     } else {
@@ -497,40 +601,39 @@ fun ShimmerButton(
             modifier = modifier
                 .height(buttonHeight)
                 .fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
+            shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (text == "DEMO") MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f) else MaterialTheme.colorScheme.primary,
-                contentColor = if (text == "DEMO") MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 disabledContainerColor = MaterialTheme.colorScheme.primary.copy(0.3f)
             ),
             contentPadding = PaddingValues(0.dp)
         ) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                if (enabled && text != "DEMO") {
+                if (enabled) {
                     Box(
                         modifier = Modifier
                             .fillMaxHeight()
-                            .width(100.dp)
+                            .width(120.dp)
                             .graphicsLayer {
                                 translationX = shimmerTranslate
                                 rotationZ = 45f
                             }
                             .background(
                                 Brush.linearGradient(
-                                    listOf(Color.Transparent, Color.White.copy(0.2f), Color.Transparent)
+                                    listOf(Color.Transparent, MaterialTheme.colorScheme.onPrimary.copy(0.2f), Color.Transparent)
                                 )
                             )
                     )
                 }
                 Text(
                     text,
-                    style = MaterialTheme.typography.labelLarge.copy(fontSize = fontSize),
-                    fontWeight = FontWeight.Black,
-                    maxLines = 1
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
+                    fontSize = 12.sp
                 )
             }
         }
     }
 }
-
-fun Modifier.scale(scale: Float) = graphicsLayer(scaleX = scale, scaleY = scale)

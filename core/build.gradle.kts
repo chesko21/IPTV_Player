@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.common)
+    implementation(libs.androidx.media3.ui)
     implementation(libs.moshi.kotlin)
     ksp(libs.androidx.room.compiler)
 
@@ -64,4 +65,8 @@ dependencies {
     
     // Coil
     implementation(libs.coil.compose)
+
+    // LibVLC
+    implementation(libs.libvlc.all)
+    implementation(libs.androidx.compose.foundation)
 }

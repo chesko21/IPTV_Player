@@ -103,6 +103,7 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.material)
+    implementation(libs.libvlc.all)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)

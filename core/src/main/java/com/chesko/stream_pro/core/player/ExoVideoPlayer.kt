@@ -1,15 +1,23 @@
-package com.chesko.stream_pro.player
+package com.chesko.stream_pro.core.player
 
 import android.media.audiofx.LoudnessEnhancer
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.annotation.OptIn
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -27,8 +35,10 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import com.chesko.stream_pro.core.R
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.utils.PlayerUtils
+import kotlinx.coroutines.delay
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -41,12 +51,20 @@ fun VideoPlayer(
     hwAcceleration: Boolean = true,
     bufferSize: Int = 15,
     maxVideoHeight: Int = 0,
-    onPlayerInit: ((ExoPlayer) -> Unit)? = null,
-    onError: ((String) -> Unit)? = null
+    onPlayerInit: ((ExoPlayer?) -> Unit)? = null,
+    onSuccess: (() -> Unit)? = null,
+    onError: ((String) -> Unit)? = null,
+    onEngineSwitch: ((String) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    val currentOnPlayerInit by rememberUpdatedState(onPlayerInit)
+    val currentOnSuccess by rememberUpdatedState(onSuccess)
+    val currentOnError by rememberUpdatedState(onError)
+    val currentOnEngineSwitch by rememberUpdatedState(onEngineSwitch)
+
+    var retryCount by remember { mutableIntStateOf(0) }
     var loudnessEnhancer by remember { mutableStateOf<LoudnessEnhancer?>(null) }
 
     val exoPlayer = remember(hwAcceleration, bufferSize) {
@@ -67,7 +85,6 @@ fun VideoPlayer(
                 .setExceedRendererCapabilitiesIfNecessary(true)
             
             if (maxVideoHeight > 0) {
-                // Set max video size based on height, width can be large to not limit aspect ratio
                 parametersBuilder.setMaxVideoSize(Int.MAX_VALUE, maxVideoHeight)
             }
             
@@ -110,72 +127,91 @@ fun VideoPlayer(
                         }
                     }
 
+                    override fun onPlaybackStateChanged(playbackState: Int) {
+                        if (playbackState == Player.STATE_READY) {
+                            retryCount = 0
+                            currentOnSuccess?.invoke()
+                        }
+                    }
+
                     override fun onPlayerError(error: PlaybackException) {
-                        val errorCode = error.errorCode
-                        val errorString = error.errorCodeName
-                        
-                        if (errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
+                        if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
                             seekToDefaultPosition()
                             prepare()
                             return
                         }
 
-                        val detailedMessage = when (errorCode) {
-                            PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> {
-                                "LINK MATI (404)"
-                            }
-                            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> {
-                                "KONEKSI GAGAL"
-                            }
-                            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> {
-                                "TIMEOUT"
-                            }
-                            PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED -> {
-                                "SSL ERROR (Gunakan HTTPS)"
-                            }
-                            PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND -> {
-                                "FILE TIDAK DITEMUKAN"
-                            }
-                            PlaybackException.ERROR_CODE_DRM_CONTENT_ERROR -> {
-                                "DRM CONTENT ERROR"
-                            }
-                            PlaybackException.ERROR_CODE_DRM_PROVISIONING_FAILED -> {
-                                "DRM PROVISIONING ERROR"
-                            }
-                            PlaybackException.ERROR_CODE_DRM_LICENSE_ACQUISITION_FAILED -> {
-                                "DRM ERROR"
-                            }
-                            PlaybackException.ERROR_CODE_DRM_SYSTEM_ERROR -> {
-                                "DRM SYSTEM ERROR"
-                            }
-                            PlaybackException.ERROR_CODE_DECODING_FAILED -> {
-                                "DECODE ERROR"
-                            }
-                            PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED -> {
-                                "FORMAT TIDAK DIDUKUNG"
-                            }
-                            PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED -> {
-                                "PARSING ERROR"
-                            }
-                            PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW -> {
-                                "LIVE STREAM ERROR"
-                            }
-                            PlaybackException.ERROR_CODE_REMOTE_ERROR -> {
-                                "SERVER ERROR"
-                            }
-                            else -> "ERROR ($errorString)"
+                        if (retryCount < 3) {
+                            retryCount++
+                            prepare()
+                            play()
+                            return
                         }
-                        onError?.invoke(detailedMessage)
+
+                        if (currentOnEngineSwitch != null) {
+                            currentOnEngineSwitch?.invoke("VLC")
+                            return
+                        }
+
+                        val detailedMessage = when (error.errorCode) {
+                            PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> "LINK MATI (404)"
+                            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> "KONEKSI GAGAL"
+                            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> "TIMEOUT"
+                            PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED -> "SSL ERROR (Gunakan HTTPS)"
+                            PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND -> "FILE TIDAK DITEMUKAN"
+                            PlaybackException.ERROR_CODE_DECODING_FAILED -> "DECODE ERROR"
+                            PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED -> "FORMAT TIDAK DIDUKUNG"
+                            else -> "ERROR (${error.errorCodeName})"
+                        }
+                        currentOnError?.invoke(detailedMessage)
                     }
                 })
             }
+    }
+
+    LaunchedEffect(exoPlayer) {
+        var bufferingStartTime = 0L
+        while (true) {
+            if (exoPlayer.playbackState == Player.STATE_BUFFERING) {
+                if (bufferingStartTime == 0L) {
+                    bufferingStartTime = System.currentTimeMillis()
+                } else if (System.currentTimeMillis() - bufferingStartTime > 10000) { // 10 seconds timeout
+                    currentOnEngineSwitch?.invoke("VLC")
+                    break
+                }
+            } else {
+                bufferingStartTime = 0L
+            }
+            delay(1000)
+        }
+    }
+
+    DisposableEffect(exoPlayer, lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> exoPlayer.pause()
+                Lifecycle.Event.ON_RESUME -> exoPlayer.play()
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        currentOnPlayerInit?.invoke(exoPlayer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            loudnessEnhancer?.release()
+            loudnessEnhancer = null
+            exoPlayer.stop()
+            exoPlayer.release()
+            currentOnPlayerInit?.invoke(null)
+        }
     }
 
     LaunchedEffect(audioBoost) {
         try {
             loudnessEnhancer?.let { enhancer ->
                 if (audioBoost) {
-                    enhancer.setTargetGain(3000) // 30dB boost
+                    enhancer.setTargetGain(3000)
                     enhancer.enabled = true
                 } else {
                     enhancer.enabled = false
@@ -187,8 +223,7 @@ fun VideoPlayer(
     }
 
     LaunchedEffect(maxVideoHeight) {
-        val player = exoPlayer
-        val trackSelector = player.trackSelector as? DefaultTrackSelector
+        val trackSelector = exoPlayer.trackSelector as? DefaultTrackSelector
         trackSelector?.let { selector ->
             val parametersBuilder = selector.buildUponParameters()
             if (maxVideoHeight > 0) {
@@ -200,11 +235,8 @@ fun VideoPlayer(
         }
     }
 
-    LaunchedEffect(exoPlayer) {
-        onPlayerInit?.invoke(exoPlayer)
-    }
-
-    LaunchedEffect(channel.url) {
+    LaunchedEffect(channel.url, exoPlayer) {
+        retryCount = 0
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
 
@@ -231,24 +263,6 @@ fun VideoPlayer(
         exoPlayer.play()
     }
 
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_PAUSE -> exoPlayer.pause()
-                Lifecycle.Event.ON_RESUME -> exoPlayer.play()
-                else -> {}
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-            loudnessEnhancer?.release()
-            loudnessEnhancer = null
-            exoPlayer.stop()
-            exoPlayer.release()
-        }
-    }
-
     Box(modifier = modifier.fillMaxSize().background(Color(0xFF0A0A0A))) {
         AndroidView(
             factory = { ctx ->
@@ -270,5 +284,27 @@ fun VideoPlayer(
             onRelease = { view -> view.player = null },
             modifier = Modifier.fillMaxSize()
         )
+
+        // Watermark
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 24.dp, top = 48.dp)
+                .alpha(0.5f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.app_icon_android),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "StreamPro",
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }

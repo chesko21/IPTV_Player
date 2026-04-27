@@ -157,7 +157,7 @@ fun TvChannelGrid(
             contentPadding = PaddingValues(bottom = 32.dp),
             modifier = modifier.fillMaxSize()
         ) {
-            items(channels) { channel ->
+            items(channels, key = { it.url }) { channel ->
                 ChannelTvGridItem(channel, onChannelClick)
             }
         }

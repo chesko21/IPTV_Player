@@ -92,10 +92,14 @@ object M3uParser {
                 }
 
                 !trimmedLine.startsWith("#") -> {
-                    // Ini adalah baris URL
                     val name = currentName ?: ""
-                    val isBlocked = name.contains("001 TRAKTIR KOPI", ignoreCase = true) || 
-                                   name.contains("KBTRTV", ignoreCase = true)
+                    val isBlocked = name.contains("001 TRAKTIR KOPI", ignoreCase = true) ||
+                                    name.contains("! 01 TV GEULIS PISAN", ignoreCase = true)||
+                                    name.contains("! 01 JOIN GROUP" , ignoreCase = true)||
+                                    name.contains("! 02 JOIN GROUP" , ignoreCase = true)||
+                                    name.contains("! 03 JANGAN DIBUKA" , ignoreCase = true)||
+                                    name.contains("! 02 TRAKTIR NGOPI" , ignoreCase = true)||
+                                    name.contains("KBTRTV", ignoreCase = true)
 
                     if (!name.isBlank() && !isBlocked && !isSeparator(name, trimmedLine)) {
                         var finalUrl = trimmedLine.trim()
@@ -104,7 +108,6 @@ object M3uParser {
                         var finalCookie = currentCookie
                         var finalDrmConfig = currentDrmConfig
 
-                        // Tangani format Pipe di URL: URL|key1=val1&key2=val2
                         if (finalUrl.contains("|")) {
                             val parts = finalUrl.split("|", limit = 2)
                             finalUrl = parts[0].trim()

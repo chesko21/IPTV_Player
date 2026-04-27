@@ -27,6 +27,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "iptv_database"
                 )
+                    .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
                     .fallbackToDestructiveMigration(true)
                     .build()
                 INSTANCE = instance

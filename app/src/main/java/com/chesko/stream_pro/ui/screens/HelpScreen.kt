@@ -131,7 +131,7 @@ fun HelpScreen(onBack: () -> Unit) {
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            "Hubungi tim dukungan kami melalui email di support@streampro.com untuk bantuan lebih lanjut.",
+                            "Hubungi tim dukungan kami melalui email di https://chesko-25.vercel.app untuk bantuan lebih lanjut.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

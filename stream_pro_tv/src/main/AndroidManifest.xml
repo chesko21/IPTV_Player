@@ -26,6 +26,7 @@
         android:required="true" />
 
     <application
+        android:name=".StreamProTvApp"
         android:allowBackup="true"
         android:icon="@drawable/app_icon_androidtv"
         android:banner="@drawable/tv_banner"

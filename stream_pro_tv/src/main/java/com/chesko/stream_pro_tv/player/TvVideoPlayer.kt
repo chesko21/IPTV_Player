@@ -1,5 +1,6 @@
 package com.chesko.stream_pro_tv.player
 
+import android.media.AudioDeviceInfo
 import android.media.audiofx.LoudnessEnhancer
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -41,12 +42,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.drm.DefaultDrmSessionManagerProvider
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -56,12 +60,14 @@ import androidx.media3.ui.PlayerView
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.utils.PlayerUtils
 import kotlinx.coroutines.delay
+import org.videolan.libvlc.MediaPlayer
 
 @OptIn(UnstableApi::class)
 @Composable
 fun TvVideoPlayer(
     channel: IptvChannel,
     modifier: Modifier = Modifier,
+    engine: String = "EXO",
     autoPlay: Boolean = true,
     resizeMode: Int = AspectRatioFrameLayout.RESIZE_MODE_FIT,
     hwAcceleration: Boolean = true,
@@ -70,8 +76,26 @@ fun TvVideoPlayer(
     maxVideoHeight: Int = 0,
     bufferSize: Int = 15,
     onPlayerInit: ((ExoPlayer) -> Unit)? = null,
-    onError: ((String) -> Unit)? = null
+    onVlcInit: ((MediaPlayer?) -> Unit)? = null,
+    onError: ((String) -> Unit)? = null,
+    onEngineSwitch: ((String) -> Unit)? = null
 ) {
+    if (engine == "VLC") {
+        com.chesko.stream_pro.core.player.VlcVideoPlayer(
+            channel = channel,
+            modifier = modifier,
+            hwAcceleration = hwAcceleration,
+            resizeMode = if (resizeMode == AspectRatioFrameLayout.RESIZE_MODE_FILL) 3 else 0,
+            onPlayerInit = onVlcInit,
+            onBuffering = { },
+            onPlayingChanged = { },
+            onError = { errorString: String ->
+                onError?.invoke(errorString)
+            }
+        )
+        return
+    }
+
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -110,17 +134,17 @@ fun TvVideoPlayer(
                 .setExceedRendererCapabilitiesIfNecessary(true))
         }
 
-        val renderersFactory = androidx.media3.exoplayer.DefaultRenderersFactory(context)
+        val renderersFactory = DefaultRenderersFactory(context)
             .setExtensionRendererMode(
                 if (hwAcceleration) 
-                    androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
+                    DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
                 else 
-                    androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+                    DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
             )
 
         val audioAttributes = AudioAttributes.Builder()
-            .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MOVIE)
-            .setUsage(androidx.media3.common.C.USAGE_MEDIA)
+            .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+            .setUsage(C.USAGE_MEDIA)
             .build()
 
         ExoPlayer.Builder(context, renderersFactory)
@@ -136,7 +160,7 @@ fun TvVideoPlayer(
                     override fun onAudioSessionIdChanged(audioSessionId: Int) {
                         try {
                             loudnessEnhancer?.release()
-                            if (audioSessionId != android.media.AudioDeviceInfo.TYPE_UNKNOWN) {
+                            if (audioSessionId != AudioDeviceInfo.TYPE_UNKNOWN) {
                                 val enhancer = LoudnessEnhancer(audioSessionId)
                                 if (audioBoost) {
                                     enhancer.setTargetGain(3000)
@@ -174,7 +198,7 @@ fun TvVideoPlayer(
                         }
 
                         val cause = error.cause
-                        val errorMsg = if (cause is androidx.media3.datasource.HttpDataSource.InvalidResponseCodeException) {
+                        val errorMsg = if (cause is HttpDataSource.InvalidResponseCodeException) {
                             when (cause.responseCode) {
                                 404 -> "Saluran tidak ditemukan (404)"
                                 403 -> "Akses ditolak oleh server (403)"
@@ -201,6 +225,11 @@ fun TvVideoPlayer(
                             retryCount++
                             retryStatus = "Koneksi bermasalah, mencoba kembali ($retryCount/3)..."
                         } else {
+                            // Fallback to VLC if Exo fails
+                            if (engine == "EXO" && onEngineSwitch != null) {
+                                onEngineSwitch("VLC")
+                                return
+                            }
                             retryStatus = null
                             errorMessage = errorMsg
                             onError?.invoke(errorMsg)
@@ -269,7 +298,7 @@ fun TvVideoPlayer(
         exoPlayer.play()
     }
 
-    DisposableEffect(lifecycleOwner) {
+    DisposableEffect(exoPlayer, lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_PAUSE -> exoPlayer.pause()
@@ -388,29 +417,6 @@ fun TvVideoPlayer(
                     }
                 }
             }
-        }
-
-        // Logo & Text Watermark Overlay (Minimalist)
-        Row(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(if (isSmallScreen) 24.dp else 32.dp)
-                .alpha(0.8f),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Image(
-                painter = painterResource(id = com.chesko.stream_pro_tv.R.drawable.app_icon_androidtv),
-                contentDescription = null,
-                modifier = Modifier.size(if (isSmallScreen) 32.dp else 48.dp)
-            )
-            Text(
-                text = "StreamPro TV",
-                color = Color.White,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                fontSize = if (isSmallScreen) 12.sp else 14.sp
-            )
         }
     }
 }

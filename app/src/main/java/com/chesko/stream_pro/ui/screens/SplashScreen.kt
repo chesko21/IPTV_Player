@@ -7,8 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -25,151 +23,176 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.chesko.stream_pro.R
+import com.chesko.stream_pro.ui.components.shimmerEffect
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.cos
+import kotlin.math.sin
 
+/**
+ * Universal Cinematic SplashScreen
+ * Implements the "Universe" aesthetic with cosmic depth and orbital animations
+ */
 @Composable
-fun SplashScreen(onNextScreen: () -> Unit) {
+fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextScreen: (String) -> Unit) {
     val primaryColor = MaterialTheme.colorScheme.primary
+    val infiniteTransition = rememberInfiniteTransition(label = "universe_ambient")
     
-    val infiniteTransition = rememberInfiniteTransition(label = "ambient")
-    
+    // Cosmic Background Motion
     val bgOffset1 by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(15000, easing = LinearEasing),
+            animation = tween(20000, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
         ),
-        label = "bgOffset1"
+        label = "nebula_1"
     )
 
     val bgOffset2 by infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 0f,
         animationSpec = infiniteRepeatable(
-            animation = tween(20000, easing = LinearEasing),
+            animation = tween(25000, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
         ),
-        label = "bgOffset2"
+        label = "nebula_2"
     )
 
-    val scale = remember { Animatable(0.5f) }
-    val alpha = remember { Animatable(0f) }
-    val textAlpha = remember { Animatable(0f) }
-    val logoRotate = remember { Animatable(-20f) }
-    val glowAlpha = remember { Animatable(0f) }
-    
+    // Cinematic Entrance Animations
+    val logoScale = remember { Animatable(0.3f) }
+    val logoAlpha = remember { Animatable(0f) }
+    val contentAlpha = remember { Animatable(0f) }
+    val logoRotation = remember { Animatable(-30f) }
+    val loadingProgress = remember { Animatable(0.1f) } // Start at 10%
+    val starAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.2f,
+        targetValue = 0.8f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "star_twinkle"
+    )
+
     LaunchedEffect(Unit) {
         launch {
-            scale.animateTo(1f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow))
+            // Overshoot spring for cinematic pop
+            logoScale.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow))
         }
         launch {
-            alpha.animateTo(1f, tween(1200, easing = EaseOutQuart))
+            logoAlpha.animateTo(1f, tween(1500, easing = EaseOutQuart))
         }
         launch {
-            logoRotate.animateTo(0f, tween(1800, easing = EaseOutBack))
+            logoRotation.animateTo(0f, tween(2000, easing = EaseOutBack))
         }
         launch {
-            delay(400)
-            glowAlpha.animateTo(1f, tween(2000, easing = LinearEasing))
+            delay(800)
+            contentAlpha.animateTo(1f, tween(1500, easing = FastOutSlowInEasing))
         }
         launch {
             delay(1000)
-            textAlpha.animateTo(1f, tween(1500, easing = FastOutSlowInEasing))
+            // Animate loading from 10% to 100%
+            loadingProgress.animateTo(1f, tween(2500, easing = LinearOutSlowInEasing))
         }
         
-        delay(5000)
-        onNextScreen()
+        // Navigation Logic
+        delay(4000) // Adjusted delay to sync with progress
+        val currentPlaylist = viewModel.lastUrl.value
+        if (currentPlaylist.isNotEmpty()) {
+            onNextScreen("home")
+        } else {
+            onNextScreen("login")
+        }
     }
-
-    // Standardized Branding Sizes (Uniform across all devices)
-    val logoSize = 110.dp
-    val logoPadding = 22.dp
-    val titleSize = 48.sp
-    val subtitleSize = 11.sp
-    val subtitleSpacing = 4.sp
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(Color(0xFF020205)), // Deep Space Black
         contentAlignment = Alignment.Center
     ) {
-        // 1. DYNAMIC AMBIENT BACKGROUND
-        Canvas(modifier = Modifier.fillMaxSize().blur(100.dp)) {
-            // First Glow
+        // 1. COSMIC LAYERS (Nebulas & Stars)
+        Canvas(modifier = Modifier.fillMaxSize().blur(80.dp)) {
+            // Primary Nebula
             drawCircle(
                 brush = Brush.radialGradient(
-                    colors = listOf(primaryColor.copy(alpha = 0.12f * glowAlpha.value), Color.Transparent)
+                    colors = listOf(primaryColor.copy(alpha = 0.15f), Color.Transparent)
                 ),
-                radius = size.maxDimension * 0.9f,
+                radius = size.maxDimension * 0.8f,
                 center = center.copy(
-                    x = center.x + (bgOffset1 * 200) - 100,
-                    y = center.y + (bgOffset2 * 100) - 50
+                    x = center.x + (bgOffset1 * 300) - 150,
+                    y = center.y + (bgOffset2 * 150) - 75
                 )
             )
-            // Second Glow (Opposite)
+            // Secondary Nebula (Cyan/Tertiary)
             drawCircle(
                 brush = Brush.radialGradient(
-                    colors = listOf(primaryColor.copy(alpha = 0.08f * glowAlpha.value), Color.Transparent)
+                    colors = listOf(Color(0xFF00E5FF).copy(alpha = 0.1f), Color.Transparent)
                 ),
-                radius = size.maxDimension * 0.7f,
+                radius = size.maxDimension * 0.6f,
                 center = center.copy(
-                    x = center.x - (bgOffset2 * 150) + 75,
-                    y = center.y - (bgOffset1 * 150) + 75
+                    x = center.x - (bgOffset2 * 250) + 125,
+                    y = center.y - (bgOffset1 * 200) + 100
                 )
             )
         }
 
-        // 2. MAIN CONTENT (Logo + Branding + Loading)
+        // Starfield Particles
+        StarField(starAlpha)
+
+        // 2. MAIN LOGO COMPONENT
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            // Logo Container with Outer Glow
+            // Logo with Atmospheric Glow
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.graphicsLayer(
-                    scaleX = scale.value,
-                    scaleY = scale.value,
-                    alpha = alpha.value,
-                    rotationZ = logoRotate.value
-                )
+                modifier = Modifier.graphicsLayer {
+                    scaleX = logoScale.value
+                    scaleY = logoScale.value
+                    alpha = logoAlpha.value
+                    rotationZ = logoRotation.value
+                }
             ) {
-                // Pulsing Logo Glow
+                // Pulsing Aura
                 val pulseScale by infiniteTransition.animateFloat(
-                    initialValue = 1.5f,
-                    targetValue = 2.2f,
+                    initialValue = 1.2f,
+                    targetValue = 1.8f,
                     animationSpec = infiniteRepeatable(
-                        animation = tween(3000, easing = FastOutSlowInEasing),
+                        animation = tween(4000, easing = FastOutSlowInEasing),
                         repeatMode = RepeatMode.Reverse
                     ),
-                    label = "pulse"
+                    label = "logo_aura"
                 )
 
-                Canvas(modifier = Modifier.size(logoSize * pulseScale)) {
-                    drawCircle(
-                        brush = Brush.radialGradient(
-                            colors = listOf(primaryColor.copy(alpha = 0.15f * glowAlpha.value), Color.Transparent)
-                        ),
-                        radius = size.minDimension / 2
-                    )
-                }
-
-                // The actual Logo Surface
                 Box(
                     modifier = Modifier
-                        .size(logoSize)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surface)
-                        .border(
-                            1.5.dp,
-                            Brush.linearGradient(listOf(primaryColor, primaryColor.copy(alpha = 0.3f))),
+                        .size(120.dp * pulseScale)
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(primaryColor.copy(alpha = 0.12f), Color.Transparent)
+                            ),
                             CircleShape
                         )
-                        .padding(logoPadding),
+                )
+
+                // High-End Logo Surface
+                Box(
+                    modifier = Modifier
+                        .size(110.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF0D0D14))
+                        .border(
+                            1.5.dp,
+                            Brush.sweepGradient(
+                                listOf(primaryColor, Color.Transparent, primaryColor)
+                            ),
+                            CircleShape
+                        )
+                        .padding(24.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
@@ -180,80 +203,144 @@ fun SplashScreen(onNextScreen: () -> Unit) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
-            // Text Branding Section
+            // Branding Section
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.graphicsLayer(alpha = textAlpha.value)
+                modifier = Modifier.graphicsLayer { alpha = contentAlpha.value }
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "STREAM",
                         style = MaterialTheme.typography.displayMedium.copy(
-                            fontSize = titleSize,
+                            fontSize = 42.sp,
                             fontWeight = FontWeight.Black,
-                            letterSpacing = (-2).sp
+                            letterSpacing = (-1).sp
                         ),
-                        color = MaterialTheme.colorScheme.onBackground
+                        color = Color.White
                     )
                     Text(
                         text = "PRO",
                         style = MaterialTheme.typography.displayMedium.copy(
-                            fontSize = titleSize,
+                            fontSize = 42.sp,
                             fontWeight = FontWeight.Black,
-                            letterSpacing = (-2).sp
+                            letterSpacing = (-1).sp
                         ),
-                        color = primaryColor
+                        color = primaryColor,
+                        modifier = Modifier.shimmerEffect() // Adding universe shimmer to PRO
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Universe Subtitle
+                Text(
+                    text = "EXPLORE THE DIGITAL UNIVERSE",
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 6.sp,
+                        textAlign = TextAlign.Center
+                    ),
+                    color = Color.White.copy(alpha = 0.4f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(64.dp))
+
+            // Percentage Loading Section
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .graphicsLayer { alpha = contentAlpha.value }
+                    .width(200.dp)
+            ) {
+                // Glow behind percentage
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "${(loadingProgress.value * 100).toInt()}%",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 2.sp,
+                            fontSize = 24.sp
+                        ),
+                        color = Color.White
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Sleek Cosmic Progress Bar
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(2.dp)
+                        .background(Color.White.copy(alpha = 0.05f), CircleShape)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(loadingProgress.value)
+                            .fillMaxHeight()
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(primaryColor.copy(alpha = 0.5f), primaryColor)
+                                ),
+                                CircleShape
+                            )
+                            // Progress Glow
+                            .blur(if (loadingProgress.value > 0) 4.dp else 0.dp)
                     )
                 }
                 
                 Spacer(modifier = Modifier.height(12.dp))
                 
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f))
-                        .padding(horizontal = 12.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = "THE ULTIMATE TV EXPERIENCE",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontSize = subtitleSize,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = subtitleSpacing,
-                            textAlign = TextAlign.Center
-                        ),
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                    )
-                }
+                Text(
+                    text = "INITIALIZING SYSTEMS",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 4.sp,
+                        fontSize = 8.sp
+                    ),
+                    color = primaryColor.copy(alpha = 0.7f)
+                )
             }
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // 3. LOADING INDICATOR
-            LinearProgressIndicator(
-                modifier = Modifier
-                    .width(160.dp)
-                    .height(4.dp)
-                    .clip(CircleShape)
-                    .graphicsLayer(alpha = textAlpha.value),
-                color = primaryColor,
-                trackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)
-            )
         }
 
-        // 4. FOOTER (Credit)
+        // 3. FOOTER
         Text(
-            text = "BY CHESKO",
+            text = "DESIGNED BY CHESKO",
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp)
-                .graphicsLayer(alpha = textAlpha.value),
+                .padding(bottom = 40.dp)
+                .graphicsLayer { alpha = contentAlpha.value * 0.5f },
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f),
-            letterSpacing = 6.sp,
+            color = Color.White,
+            letterSpacing = 8.sp,
             fontWeight = FontWeight.Medium
         )
+    }
+}
+
+@Composable
+fun StarField(alpha: Float) {
+    val starCount = 40
+    val starCoords = remember {
+        List(starCount) {
+            Pair(Math.random().toFloat(), Math.random().toFloat())
+        }
+    }
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        starCoords.forEach { (x, y) ->
+            drawCircle(
+                color = Color.White.copy(alpha = alpha * (0.2f + (Math.random().toFloat() * 0.8f))),
+                radius = 1.dp.toPx(),
+                center = center.copy(
+                    x = x * size.width,
+                    y = y * size.height
+                )
+            )
+        }
     }
 }

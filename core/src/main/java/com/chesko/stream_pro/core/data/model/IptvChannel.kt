@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -29,7 +30,11 @@ import com.chesko.stream_pro.core.R
 
 @Entity(
     tableName = "channels",
-    indices = [Index(value = ["url"], unique = true)]
+    indices = [
+        Index(value = ["url"], unique = true),
+        Index(value = ["group_name"]),
+        Index(value = ["name"])
+    ]
 )
 data class IptvChannel(
     @PrimaryKey(autoGenerate = true)
@@ -46,6 +51,10 @@ data class IptvChannel(
     val referrer: String? = null,
     val cookie: String? = null,
     val drmConfig: String? = null,
+    val drmType: String? = null,
+    val drmKey: String? = null,
+    val drmKeyId: String? = null,
+    val drmLicenseUrl: String? = null,
     @ColumnInfo(name = "is_favorite")
     val isFavorite: Boolean = false,
     @ColumnInfo(name = "last_played")
@@ -134,6 +143,26 @@ fun ChannelPosterItem(
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White,
                             modifier = Modifier.padding(horizontal = 4.dp)
+                        )
+                    }
+                }
+
+                // DRM Lock Indicator
+                if (!channel.drmConfig.isNullOrBlank()) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(4.dp),
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            Icons.Default.Lock,
+                            contentDescription = "DRM",
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .padding(4.dp)
                         )
                     }
                 }

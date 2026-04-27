@@ -1,5 +1,6 @@
 package com.chesko.stream_pro.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -21,12 +23,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import coil.compose.AsyncImage
+import com.chesko.stream_pro.R
 import com.chesko.stream_pro.core.data.model.EpgProgram
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.ui.MainViewModel
@@ -56,9 +63,19 @@ fun EpgScreen(
     
     val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { groups.size.coerceAtLeast(1) })
     val scope = rememberCoroutineScope()
-
-    // Shared horizontal scroll state for synchronization
     val horizontalScrollState = rememberScrollState()
+    
+    LaunchedEffect(pagerState.currentPage, groups, allChannels) {
+        if (groups.isNotEmpty()) {
+            val group = groups[pagerState.currentPage]
+            val filteredChannels = if (group == "Other") {
+                allChannels.filter { it.group.isNullOrBlank() }
+            } else {
+                allChannels.filter { it.group == group }
+            }
+            viewModel.prefetchEpgForChannels(filteredChannels.take(50))
+        }
+    }
     
     val startTime = currentTime - (2 * 60 * 60 * 1000)
     val endTime = startTime + (24 * 60 * 60 * 1000)
@@ -75,17 +92,27 @@ fun EpgScreen(
 
     val channelColumnWidth = 100.dp
     val slotWidth = 200.dp
+    val density = androidx.compose.ui.platform.LocalDensity.current.density
+
+    LaunchedEffect(timeSlots) {
+        val firstSlot = timeSlots.firstOrNull() ?: return@LaunchedEffect
+        val timeDiff = currentTime - firstSlot
+        val slotDurationMs = 30 * 60 * 1000L
+        val scrollPositionPx = (timeDiff.toFloat() / slotDurationMs * slotWidth.value * density).toInt()
+        val peekOffset = (50 * density).toInt()
+        horizontalScrollState.scrollTo((scrollPositionPx - peekOffset).coerceAtLeast(0))
+    }
 
     Scaffold(
         topBar = {
-            Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+            Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
                 if (isSearchActive) {
                     TopAppBar(
                         title = {
                             TextField(
                                 value = searchQuery,
                                 onValueChange = { searchQuery = it },
-                                placeholder = { Text("Cari saluran...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                placeholder = { Text("Cari saluran...", color = MaterialTheme.colorScheme.onSurface.copy(0.4f)) },
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = TextFieldDefaults.colors(
                                     focusedContainerColor = Color.Transparent,
@@ -104,25 +131,29 @@ fun EpgScreen(
                                 isSearchActive = false
                                 searchQuery = ""
                             }) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ArrowBack, 
-                                    contentDescription = "Kembali", 
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = MaterialTheme.colorScheme.onSurface)
                             }
                         },
                         actions = {
                             if (searchQuery.isNotEmpty()) {
                                 IconButton(onClick = { searchQuery = "" }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Hapus", tint = MaterialTheme.colorScheme.onSurface)
+                                    Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.onSurface)
                                 }
                             }
                         },
-                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
                     )
                 } else {
                     TopAppBar(
-                        title = { Text("Panduan TV", fontWeight = FontWeight.Black) },
+                        title = { 
+                            Text(
+                                "JADWAL TV", 
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 2.sp,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            ) 
+                        },
                         navigationIcon = {
                             IconButton(onClick = {
                                 if (!isBackInvoked) {
@@ -130,37 +161,35 @@ fun EpgScreen(
                                     onBack()
                                 }
                             }) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ArrowBack, 
-                                    contentDescription = "Kembali", 
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = MaterialTheme.colorScheme.onSurface)
                             }
                         },
                         actions = {
                             IconButton(onClick = { isSearchActive = true }) {
-                                Icon(Icons.Default.Search, contentDescription = "Cari", tint = MaterialTheme.colorScheme.onSurface)
+                                Icon(Icons.Default.Search, null, tint = MaterialTheme.colorScheme.onSurface)
                             }
                         },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            titleContentColor = MaterialTheme.colorScheme.onSurface
-                        )
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
                     )
                 }
 
                 if (groups.isNotEmpty() && !isSearchActive) {
                     ScrollableTabRow(
                         selectedTabIndex = pagerState.currentPage,
-                        containerColor = MaterialTheme.colorScheme.surface,
+                        containerColor = MaterialTheme.colorScheme.background,
                         contentColor = MaterialTheme.colorScheme.primary,
                         edgePadding = 16.dp,
                         divider = {},
                         indicator = { tabPositions ->
                             if (tabPositions.isNotEmpty()) {
-                                TabRowDefaults.SecondaryIndicator(
-                                    modifier = Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
-                                    color = MaterialTheme.colorScheme.primary
+                                Box(
+                                    modifier = Modifier
+                                        .tabIndicatorOffset(tabPositions[pagerState.currentPage])
+                                        .fillMaxWidth()
+                                        .height(3.dp)
+                                        .padding(horizontal = 12.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary)
                                 )
                             }
                         }
@@ -171,9 +200,11 @@ fun EpgScreen(
                                 onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
                                 text = { 
                                     Text(
-                                        group, 
-                                        color = if (pagerState.currentPage == index) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        style = MaterialTheme.typography.labelLarge
+                                        group.uppercase(), 
+                                        color = if (pagerState.currentPage == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(0.5f),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = if (pagerState.currentPage == index) FontWeight.Black else FontWeight.Bold,
+                                        letterSpacing = 1.sp
                                     ) 
                                 }
                             )
@@ -184,78 +215,111 @@ fun EpgScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            // Horizontal Header for Time
-            Row(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))) {
-                Box(modifier = Modifier.width(channelColumnWidth).height(40.dp).background(MaterialTheme.colorScheme.surface))
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)
+            .background(MaterialTheme.colorScheme.background)
+        ) {
+            Column {
+                // Time Header with Universe Style
                 Row(
-                    modifier = Modifier.horizontalScroll(horizontalScrollState).height(40.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                 ) {
-                    timeSlots.forEach { time ->
-                        Box(modifier = Modifier.width(slotWidth), contentAlignment = Alignment.Center) {
-                            Text(
-                                text = timeFormatter.format(Date(time)), 
-                                color = MaterialTheme.colorScheme.onSurfaceVariant, 
-                                fontSize = 11.sp, 
-                                fontWeight = FontWeight.Bold
-                            )
+                    Box(
+                        modifier = Modifier
+                            .width(channelColumnWidth)
+                            .height(44.dp)
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+                    )
+                    Row(
+                        modifier = Modifier
+                            .horizontalScroll(horizontalScrollState)
+                            .height(44.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        timeSlots.forEach { time ->
+                            Box(modifier = Modifier.width(slotWidth), contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = timeFormatter.format(Date(time)), 
+                                    color = MaterialTheme.colorScheme.primary, 
+                                    fontSize = 11.sp, 
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 1.sp
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (groups.isEmpty() && allChannels.isEmpty()) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
+                } else {
+                    if (isSearchActive) {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(filteredAllChannels, key = { it.url }) { channel ->
+                                EpgChannelRow(
+                                    channel = channel,
+                                    viewModel = viewModel,
+                                    horizontalScrollState = horizontalScrollState,
+                                    startTime = startTime,
+                                    endTime = endTime,
+                                    slotWidth = slotWidth,
+                                    channelColumnWidth = channelColumnWidth,
+                                    currentTime = currentTime,
+                                    timeFormatter = timeFormatter,
+                                    onSelectChannel = onSelectChannel
+                                )
+                            }
+                        }
+                    } else {
+                        androidx.compose.foundation.pager.HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier.fillMaxSize(),
+                            verticalAlignment = Alignment.Top
+                        ) { pageIndex ->
+                            val group = groups.getOrNull(pageIndex) ?: return@HorizontalPager
+                            val filteredChannels = remember(allChannels, group) {
+                                if (group == "Other") allChannels.filter { it.group.isNullOrBlank() }
+                                else allChannels.filter { it.group == group }
+                            }
+
+                            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                items(filteredChannels, key = { it.url }) { channel ->
+                                    EpgChannelRow(
+                                        channel = channel,
+                                        viewModel = viewModel,
+                                        horizontalScrollState = horizontalScrollState,
+                                        startTime = startTime,
+                                        endTime = endTime,
+                                        slotWidth = slotWidth,
+                                        channelColumnWidth = channelColumnWidth,
+                                        currentTime = currentTime,
+                                        timeFormatter = timeFormatter,
+                                        onSelectChannel = onSelectChannel
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
-
-            if (groups.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                }
-            } else if (isSearchActive) {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(filteredAllChannels, key = { it.id }) { channel ->
-                        EpgChannelRow(
-                            channel = channel,
-                            viewModel = viewModel,
-                            horizontalScrollState = horizontalScrollState,
-                            startTime = startTime,
-                            endTime = endTime,
-                            slotWidth = slotWidth,
-                            channelColumnWidth = channelColumnWidth,
-                            currentTime = currentTime,
-                            timeFormatter = timeFormatter,
-                            onSelectChannel = onSelectChannel
+            
+            // Bottom shadow for better depth
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .align(Alignment.TopCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Black.copy(0.2f), Color.Transparent)
                         )
-                    }
-                }
-            } else {
-                androidx.compose.foundation.pager.HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.fillMaxSize(),
-                    verticalAlignment = Alignment.Top
-                ) { pageIndex ->
-                    val group = groups[pageIndex]
-                    val filteredChannels = remember(allChannels, group) {
-                        if (group == "Other") allChannels.filter { it.group.isNullOrBlank() }
-                        else allChannels.filter { it.group == group }
-                    }
-
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(filteredChannels, key = { it.id }) { channel ->
-                            EpgChannelRow(
-                                channel = channel,
-                                viewModel = viewModel,
-                                horizontalScrollState = horizontalScrollState,
-                                startTime = startTime,
-                                endTime = endTime,
-                                slotWidth = slotWidth,
-                                channelColumnWidth = channelColumnWidth,
-                                currentTime = currentTime,
-                                timeFormatter = timeFormatter,
-                                onSelectChannel = onSelectChannel
-                            )
-                        }
-                    }
-                }
-            }
+                    )
+            )
         }
     }
 }
@@ -273,32 +337,49 @@ fun EpgChannelRow(
     timeFormatter: SimpleDateFormat,
     onSelectChannel: (IptvChannel) -> Unit
 ) {
-    val programsState = viewModel.getProgramsForChannel(channel.tvgId).collectAsState(initial = emptyList())
+    val programsState = viewModel.getProgramsForChannel(channel).collectAsState(initial = emptyList())
     val programs = programsState.value
     
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(70.dp)
-            .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+            .height(72.dp)
+            .border(0.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
     ) {
         // Channel Column
         Column(
             modifier = Modifier
                 .width(channelColumnWidth)
                 .fillMaxHeight()
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f))
                 .clickable { onSelectChannel(channel) }
-                .padding(4.dp),
+                .padding(6.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(0.5f),
+                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.onSurface.copy(0.1f))
+            ) {
+                AsyncImage(
+                    model = channel.logo,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(34.dp)
+                        .padding(4.dp),
+                    contentScale = ContentScale.Fit,
+                    error = painterResource(R.drawable.app_icon_android),
+                    placeholder = painterResource(R.drawable.app_icon_android)
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = channel.name,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 2,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.ExtraBold,
+                maxLines = 1,
                 textAlign = TextAlign.Center,
                 overflow = TextOverflow.Ellipsis
             )
@@ -310,6 +391,7 @@ fun EpgChannelRow(
                 .fillMaxHeight()
                 .weight(1f)
                 .horizontalScroll(horizontalScrollState)
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
         ) {
             Row(modifier = Modifier.fillMaxHeight()) {
                 val filteredPrograms = remember(programs, startTime, endTime) {
@@ -317,49 +399,68 @@ fun EpgChannelRow(
                 }
                 
                 if (filteredPrograms.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxHeight().width(2000.dp).padding(8.dp), contentAlignment = Alignment.CenterStart) {
-                        Text("Tidak ada jadwal tersedia", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f), fontSize = 11.sp)
+                    Box(modifier = Modifier.fillMaxHeight().width(2000.dp).padding(16.dp), contentAlignment = Alignment.CenterStart) {
+                        Text(
+                            "Tidak ada jadwal siaran tersedia", 
+                            color = MaterialTheme.colorScheme.onSurface.copy(0.2f), 
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 } else {
                     filteredPrograms.forEach { program ->
+                        val isCurrent = currentTime in program.startTime..program.endTime
                         val durationMs = program.endTime - program.startTime
                         val width = (durationMs / (30 * 60 * 1000f) * slotWidth.value).dp
                         
-                        Box(
+                        Card(
                             modifier = Modifier
                                 .width(width)
                                 .fillMaxHeight()
-                                .padding(2.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(
-                                    if (currentTime in program.startTime..program.endTime)
-                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f)
-                                    else
-                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                                )
-                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.1f), RoundedCornerShape(4.dp))
-                                .clickable { onSelectChannel(channel) }
-                                .padding(6.dp)
+                                .padding(3.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isCurrent) 
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                else 
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                            ),
+                            border = BorderStroke(
+                                1.dp, 
+                                if (isCurrent) MaterialTheme.colorScheme.primary.copy(0.4f)
+                                else MaterialTheme.colorScheme.onSurface.copy(0.05f)
+                            )
                         ) {
-                            Column {
-                                Text(
-                                    text = program.title,
-                                    color = if (currentTime in program.startTime..program.endTime)
-                                        MaterialTheme.colorScheme.onPrimaryContainer
-                                    else
-                                        MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clickable { onSelectChannel(channel) }
+                                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    if (isCurrent) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(6.dp)
+                                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                    }
+                                    Text(
+                                        text = program.title,
+                                        color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Black,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "${timeFormatter.format(Date(program.startTime))} - ${timeFormatter.format(Date(program.endTime))}",
-                                    color = if (currentTime in program.startTime..program.endTime)
-                                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                                    else
-                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                    fontSize = 9.sp
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }

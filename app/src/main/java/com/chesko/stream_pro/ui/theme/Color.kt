@@ -2,29 +2,47 @@ package com.chesko.stream_pro.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Primary Colors
-val VibrantBlue = Color(0xFF2979FF)
-val DeepBlue = Color(0xFF004ECB)
-val LightBlue = Color(0xFFD1E4FF)
+/**
+ * Universal Modern Universe Color Palette
+ * Designed for High-End Cinematic Experience
+ */
 
-// Dark Theme Colors
-val DarkBackground = Color(0xFF121212)
-val DarkSurface = Color(0xFF1E1E1E)
-val DarkSurfaceVariant = Color(0xFF2C2C2C)
-val DarkOnSurface = Color(0xFFE1E1E1)
-val DarkOnSurfaceVariant = Color(0xFFBDBDBD)
+// --- BRAND COLORS ---
+val PrimaryBlue = Color(0xFF2979FF)
+val PrimaryBlueDark = Color(0xFF004ECB)
+val PrimaryBlueLight = Color(0xFFD1E4FF)
 
-// Light Theme Colors
-val LightBackground = Color(0xFFF8F9FA)
+val SecondaryBlue = Color(0xFF448AFF)
+val TertiaryCyan = Color(0xFF00E5FF)
+
+// --- DARK THEME (CINEMATIC) ---
+val DarkBackground = Color(0xFF05050A) // Deep Space Black
+val DarkSurface = Color(0xFF0D0D14)
+val DarkSurfaceVariant = Color(0xFF1B1B26)
+val DarkSurfaceContainer = Color(0xFF14141E)
+
+val DarkOnSurface = Color(0xFFF0F0F5)
+val DarkOnSurfaceVariant = Color(0xFFBCBCC9)
+val DarkOutline = Color(0xFF454552)
+
+// --- LIGHT THEME (CLEAN) ---
+val LightBackground = Color(0xFFFBFBFF)
 val LightSurface = Color(0xFFFFFFFF)
-val LightSurfaceVariant = Color(0xFFF1F3F4)
-val LightOnSurface = Color(0xFF202124)
-val LightOnSurfaceVariant = Color(0xFF44474E)
+val LightSurfaceVariant = Color(0xFFE2E2F0)
+val LightSurfaceContainer = Color(0xFFF0F0F9)
 
-// Status Colors
-val ErrorRed = Color(0xFFBA1A1A)
-val SuccessGreen = Color(0xFF2E7D32)
-val WarningOrange = Color(0xFFFF8F00)
+val LightOnSurface = Color(0xFF191921)
+val LightOnSurfaceVariant = Color(0xFF454552)
+val LightOutline = Color(0xFF757585)
 
-// Helper Colors for Soft Text
-val OffWhiteText = Color(0xFFF5F5F5)
+// --- STATUS & FUNCTIONAL ---
+val CosmicError = Color(0xFFFF5252)
+val CosmicSuccess = Color(0xFF00E676)
+val CosmicWarning = Color(0xFFFFD740)
+val CosmicInfo = Color(0xFF40C4FF)
+
+// --- OVERLAYS & SPECIAL ---
+val ScrimColor = Color(0x99000000)
+val GlassHighlight = Color(0x1AFFFFFF)
+val CinematicBlack = Color(0xFF000000)
+val PureWhite = Color(0xFFFFFFFF)

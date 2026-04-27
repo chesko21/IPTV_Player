@@ -93,7 +93,12 @@ object PlayerUtils {
     fun getHeadersFromChannel(channel: IptvChannel): Map<String, String> {
         val headers = mutableMapOf<String, String>()
         
-        headers["User-Agent"] = channel.userAgent ?: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        // Priority to parsed M3U User-Agent, fallback to standard browser UA
+        headers["User-Agent"] = if (!channel.userAgent.isNullOrBlank()) {
+            channel.userAgent
+        } else {
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
         channel.referrer?.let { 
             headers["Referer"] = it 
             try {

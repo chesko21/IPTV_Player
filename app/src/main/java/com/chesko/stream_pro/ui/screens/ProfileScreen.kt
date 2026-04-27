@@ -24,11 +24,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import coil.compose.AsyncImage
 import com.chesko.stream_pro.R
 import com.chesko.stream_pro.core.ui.MainViewModel
@@ -49,10 +52,14 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
     var tempEmail by remember { mutableStateOf("") }
     var isBackInvoked by remember { mutableStateOf(false) }
 
+    val clipboardManager = LocalClipboardManager.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
-        uri?.let { viewModel.updateProfile(userName, userEmail, it.toString()) }
+        uri?.let { viewModel.saveProfileImage(it) }
     }
 
     if (showEditNameDialog) {
@@ -107,7 +114,8 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 )
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -141,7 +149,9 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                         model = profileImageUri,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        error = painterResource(id = R.drawable.app_icon_android),
+                        placeholder = painterResource(id = R.drawable.app_icon_android)
                     )
                 } else {
                     Image(
@@ -269,7 +279,17 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                         showEditEmailDialog = true
                     }
                 )
-                ProfileDetailItem(Icons.Default.Devices, "Device ID", deviceId)
+                ProfileDetailItem(
+                    icon = Icons.Default.Devices,
+                    label = "Device ID",
+                    value = deviceId,
+                    onClick = {
+                        clipboardManager.setText(AnnotatedString(deviceId))
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Device ID berhasil disalin!")
+                        }
+                    }
+                )
                 ProfileDetailItem(Icons.Default.DateRange, "Member Sejak", memberSince)
             }
             

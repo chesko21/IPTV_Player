@@ -5,7 +5,12 @@ import com.chesko.stream_pro.core.data.model.EpgProgram
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.withContext
 
 class ChannelRepository(
     private val channelDao: ChannelDao,
@@ -97,17 +102,66 @@ class ChannelRepository(
         channelDao.clearRecentlyPlayed()
     }
 
+    suspend fun clearFavorites() {
+        channelDao.clearFavorites()
+    }
+
     // EPG Logic
-    fun getProgramsForChannel(tvgId: String): Flow<List<EpgProgram>> {
-        return epgDao.getProgramsForChannel(tvgId, System.currentTimeMillis())
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun getProgramsForChannel(tvgId: String?, name: String? = null): Flow<List<EpgProgram>> {
+        val currentTime = System.currentTimeMillis()
+        val namePattern = if (!name.isNullOrBlank()) "${name.trim().lowercase()}%" else "_____"
+        val normalizedName = name?.replace(" ", "")?.replace(".", "")?.lowercase() ?: "_____"
+
+        return if (!tvgId.isNullOrBlank()) {
+            epgDao.getProgramsForChannelById(tvgId, currentTime).flatMapLatest { programs ->
+                if (programs.isEmpty()) {
+                    epgDao.getProgramsForChannelByName(namePattern, normalizedName, currentTime)
+                } else {
+                    flowOf(programs)
+                }
+            }
+        } else {
+            epgDao.getProgramsForChannelByName(namePattern, normalizedName, currentTime)
+        }
     }
 
-    fun getCurrentProgram(tvgId: String): Flow<EpgProgram?> {
-        return epgDao.getCurrentProgram(tvgId, System.currentTimeMillis())
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun getCurrentProgram(tvgId: String?, name: String? = null): Flow<EpgProgram?> {
+        val currentTime = System.currentTimeMillis()
+        val namePattern = if (!name.isNullOrBlank()) "${name.trim().lowercase()}%" else "_____"
+        val normalizedName = name?.replace(" ", "")?.replace(".", "")?.lowercase() ?: "_____"
+
+        return if (!tvgId.isNullOrBlank()) {
+            epgDao.getCurrentProgramById(tvgId, currentTime).flatMapLatest { program ->
+                if (program == null) {
+                    epgDao.getCurrentProgramByName(namePattern, normalizedName, currentTime)
+                } else {
+                    flowOf(program)
+                }
+            }
+        } else {
+            epgDao.getCurrentProgramByName(namePattern, normalizedName, currentTime)
+        }
     }
 
-    fun getNextProgram(tvgId: String): Flow<EpgProgram?> {
-        return epgDao.getNextProgram(tvgId, System.currentTimeMillis())
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun getNextProgram(tvgId: String?, name: String? = null): Flow<EpgProgram?> {
+        val currentTime = System.currentTimeMillis()
+        val namePattern = if (!name.isNullOrBlank()) "${name.trim().lowercase()}%" else "_____"
+        val normalizedName = name?.replace(" ", "")?.replace(".", "")?.lowercase() ?: "_____"
+
+        return if (!tvgId.isNullOrBlank()) {
+            epgDao.getNextProgramById(tvgId, currentTime).flatMapLatest { program ->
+                if (program == null) {
+                    epgDao.getNextProgramByName(namePattern, normalizedName, currentTime)
+                } else {
+                    flowOf(program)
+                }
+            }
+        } else {
+            epgDao.getNextProgramByName(namePattern, normalizedName, currentTime)
+        }
     }
 
     suspend fun syncEpg(programs: List<EpgProgram>) {

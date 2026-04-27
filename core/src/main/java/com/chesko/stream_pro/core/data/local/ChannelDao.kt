@@ -34,6 +34,7 @@ interface ChannelDao {
     @Query("SELECT * FROM channels WHERE TRIM(url) = TRIM(:url) LIMIT 1")
     suspend fun getChannelByUrl(url: String): IptvChannel?
 
+    @Transaction
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChannels(channels: List<IptvChannel>)
 
@@ -66,4 +67,7 @@ interface ChannelDao {
 
     @Query("UPDATE channels SET last_played = NULL")
     suspend fun clearRecentlyPlayed()
+
+    @Query("UPDATE channels SET is_favorite = 0")
+    suspend fun clearFavorites()
 }

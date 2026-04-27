@@ -23,6 +23,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.toArgb
 import com.chesko.stream_pro.core.ui.MainViewModel
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,9 +114,9 @@ fun SettingsScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                     onClick = { showQualityDialog = true }
                 )
                 SettingsToggleItem(
-                    icon = Icons.Default.SlowMotionVideo,
-                    title = "Hardware Acceleration",
-                    subtitle = "Meningkatkan performa pemutaran",
+                    icon = if (hwAcceleration) Icons.Default.Bolt else Icons.Default.SettingsSuggest,
+                    title = "Hardware Decoder",
+                    subtitle = if (hwAcceleration) "Mode: Hardware (Performa Tinggi)" else "Mode: Software (Lebih Stabil)",
                     checked = hwAcceleration,
                     onCheckedChange = { viewModel.setHwAcceleration(it) },
                     accentColor = accentColor
@@ -432,99 +434,90 @@ fun ColorPickerDialog(onDismiss: () -> Unit, onColorSelected: (Color) -> Unit) {
     }
     
     val selectedColor = remember(hsv) { Color.hsv(hsv[0], hsv[1], hsv[2]) }
-
+    
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier
-                .width(320.dp)
+                .width(340.dp)
                 .wrapContentHeight(),
-            shape = RoundedCornerShape(32.dp),
+            shape = RoundedCornerShape(28.dp),
             color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 6.dp,
-            shadowElevation = 12.dp
+            tonalElevation = 6.dp
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
+                // Header
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        "Warna Aksen",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = (-0.5).sp
-                    )
-                    
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
+                    Column {
                         Text(
-                            text = "#${Integer.toHexString(selectedColor.toArgb()).uppercase().takeLast(6)}",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            "Warna Aksen",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black
+                        )
+                        Text(
+                            "Personalisasi tema aplikasi",
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                SaturationValuePicker(
-                    hue = hsv[0],
-                    saturation = hsv[1],
-                    value = hsv[2],
-                    onValueChange = { s, v ->
-                        hsv = floatArrayOf(hsv[0], s, v)
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                HuePicker(
-                    hue = hsv[0],
-                    onHueChange = { h ->
-                        hsv = floatArrayOf(h, hsv[1], hsv[2])
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+                    
                     Surface(
-                        modifier = Modifier.size(52.dp),
+                        modifier = Modifier.size(48.dp),
                         shape = CircleShape,
                         color = selectedColor,
-                        border = androidx.compose.foundation.BorderStroke(4.dp, Color.White.copy(0.2f)),
-                        shadowElevation = 4.dp
+                        border = androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.outlineVariant)
                     ) {}
+                }
 
-                    Spacer(modifier = Modifier.weight(1f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
+                // Custom Pickers
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        "Custom Warna",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    
+                    SaturationValuePicker(
+                        hue = hsv[0],
+                        saturation = hsv[1],
+                        value = hsv[2],
+                        onValueChange = { s, v -> hsv = floatArrayOf(hsv[0], s, v) }
+                    )
+
+                    HuePicker(
+                        hue = hsv[0],
+                        onHueChange = { h -> hsv = floatArrayOf(h, hsv[1], hsv[2]) }
+                    )
+                }
+
+                // Actions
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     TextButton(onClick = onDismiss) {
                         Text("Batal", fontWeight = FontWeight.SemiBold)
                     }
-
+                    Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = { onColorSelected(selectedColor) },
-                        colors = ButtonDefaults.buttonColors(containerColor = selectedColor),
-                        shape = RoundedCornerShape(16.dp),
-                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
-                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = selectedColor)
                     ) {
                         val isLightColor = hsv[2] > 0.7f && hsv[1] < 0.4f
                         Text(
-                            "Terapkan", 
-                            fontWeight = FontWeight.ExtraBold,
+                            "Terapkan",
+                            fontWeight = FontWeight.Bold,
                             color = if (isLightColor) Color.Black else Color.White
                         )
                     }

@@ -6,12 +6,22 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.compose.animation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -31,6 +41,7 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -40,7 +51,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+        windowInsetsController.show(WindowInsetsCompat.Type.statusBars())
+        windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
@@ -67,17 +79,28 @@ class MainActivity : ComponentActivity() {
                 val errorMessage by viewModel.errorMessage.collectAsState()
                 val scope = rememberCoroutineScope()
 
+                var topNotifMessage by remember { mutableStateOf<String?>(null) }
+                var topNotifIcon by remember { mutableStateOf(Icons.Default.Wifi) }
+                var topNotifColor by remember { mutableStateOf(Color(0xFF4CAF50)) }
+                var isTopNotifVisible by remember { mutableStateOf(false) }
+
                 LaunchedEffect(networkStatus) {
-                    if (networkStatus is NetworkObserver.NetworkStatus.Lost) {
-                        snackbarHostState.showSnackbar(
-                            message = "Koneksi internet terputus",
-                            duration = SnackbarDuration.Indefinite,
-                            actionLabel = "OK"
-                        )
-                    } else {
-                        if (snackbarHostState.currentSnackbarData?.visuals?.message == "Koneksi internet terputus") {
-                            snackbarHostState.currentSnackbarData?.dismiss()
-                            snackbarHostState.showSnackbar("Koneksi internet terhubung kembali")
+                    when (networkStatus) {
+                        is NetworkObserver.NetworkStatus.Lost -> {
+                            topNotifMessage = "Koneksi internet terputus"
+                            topNotifIcon = Icons.Default.CloudOff
+                            topNotifColor = Color(0xFFE53935)
+                            isTopNotifVisible = true
+                        }
+                        is NetworkObserver.NetworkStatus.Available -> {
+                            if (topNotifMessage == "Koneksi internet terputus") {
+                                topNotifMessage = "Koneksi internet terhubung kembali"
+                                topNotifIcon = Icons.Default.Wifi
+                                topNotifColor = Color(0xFF4CAF50)
+                                isTopNotifVisible = true
+                                delay(3000)
+                                isTopNotifVisible = false
+                            }
                         }
                     }
                 }
@@ -121,22 +144,22 @@ class MainActivity : ComponentActivity() {
                     Scaffold(
                         snackbarHost = { SnackbarHost(snackbarHostState) },
                         containerColor = MaterialTheme.colorScheme.background,
-                        contentWindowInsets = WindowInsets(0, 0, 0, 0)
-                    ) { innerPadding ->
+                        contentWindowInsets = WindowInsets(0,0,0,0) // Abaikan insets global agar NavHost full screen
+                    ) { _ ->
                         Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(innerPadding)
+                            modifier = Modifier.fillMaxSize()
                         ) {
                             NavHost(
                                 navController = navController,
                                 startDestination = "splash",
                                 modifier = Modifier.fillMaxSize()
                             ) {
+                                // ... (rest of NavHost remains the same)
                                 composable("splash") {
                                     SplashScreen(
-                                        onNextScreen = {
-                                            navController.navigate("login") {
+                                        viewModel = viewModel,
+                                        onNextScreen = { route ->
+                                            navController.navigate(route) {
                                                 popUpTo("splash") { inclusive = true }
                                             }
                                         }
@@ -164,22 +187,9 @@ class MainActivity : ComponentActivity() {
                                     HomeScreen(
                                         viewModel = viewModel,
                                         onLogout = {
-                                            val currentTime = System.currentTimeMillis()
-                                            if (currentTime - lastNavigationTime > navigationDebounce) {
-                                                lastNavigationTime = currentTime
-                                                viewModel.deleteCurrentPlaylist()
-                                                navController.navigate("login") {
-                                                    popUpTo("home") { inclusive = true }
-                                                }
-                                            }
-                                        },
-                                        onNavigateBack = {
-                                            val currentTime = System.currentTimeMillis()
-                                            if (currentTime - lastNavigationTime > navigationDebounce) {
-                                                lastNavigationTime = currentTime
-                                                navController.navigate("login") {
-                                                    popUpTo("home") { inclusive = true }
-                                                }
+                                            viewModel.deleteCurrentPlaylist()
+                                            navController.navigate("login") {
+                                                popUpTo("home") { inclusive = true }
                                             }
                                         },
                                         onOpenEpg = { safeNavigate("epg") },
@@ -187,7 +197,6 @@ class MainActivity : ComponentActivity() {
                                         onOpenSettings = { safeNavigate("settings") },
                                         onOpenAbout = { safeNavigate("about") },
                                         onOpenHelp = { safeNavigate("help") },
-                                        onOpenFavorites = { safeNavigate("favorites") },
                                         onSelectChannel = { channel ->
                                             val currentTime = System.currentTimeMillis()
                                             if (currentTime - lastNavigationTime > navigationDebounce) {
@@ -197,7 +206,9 @@ class MainActivity : ComponentActivity() {
                                                     channelJson,
                                                     StandardCharsets.UTF_8.toString()
                                                 )
-                                                navController.navigate("player/$encodedJson")
+                                                navController.navigate("player/$encodedJson") {
+                                                    popUpTo("home")
+                                                }
                                             }
                                         }
                                     )
@@ -219,29 +230,6 @@ class MainActivity : ComponentActivity() {
                                     HelpScreen(onBack = safeBack)
                                 }
 
-                                composable("favorites") {
-                                    FavoritesScreen(
-                                        viewModel = viewModel,
-                                        onBack = safeBack,
-                                        onSelectChannel = { channel ->
-                                            val currentTime = System.currentTimeMillis()
-                                            if (currentTime - lastNavigationTime > navigationDebounce) {
-                                                lastNavigationTime = currentTime
-                                                val moshi =
-                                                    Moshi.Builder().add(KotlinJsonAdapterFactory())
-                                                        .build()
-                                                val adapter = moshi.adapter(IptvChannel::class.java)
-                                                val channelJson = adapter.toJson(channel)
-                                                val encodedJson = URLEncoder.encode(
-                                                    channelJson,
-                                                    StandardCharsets.UTF_8.toString()
-                                                )
-                                                navController.navigate("player/$encodedJson")
-                                            }
-                                        }
-                                    )
-                                }
-
                                 composable("epg") {
                                     val moshi = remember {
                                         Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
@@ -260,7 +248,9 @@ class MainActivity : ComponentActivity() {
                                                     channelJson,
                                                     StandardCharsets.UTF_8.toString()
                                                 )
-                                                navController.navigate("player/$encodedJson")
+                                                navController.navigate("player/$encodedJson") {
+                                                    popUpTo("home")
+                                                }
                                             }
                                         }
                                     )
@@ -299,6 +289,47 @@ class MainActivity : ComponentActivity() {
                                                     )
                                                 }
                                             }
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Top Notification Overlay
+                            AnimatedVisibility(
+                                visible = isTopNotifVisible,
+                                enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+                                exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .padding(top = 16.dp)
+                                    .statusBarsPadding()
+                            ) {
+                                Card(
+                                    modifier = Modifier
+                                        .padding(horizontal = 24.dp)
+                                        .clip(RoundedCornerShape(12.dp)),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = topNotifColor.copy(alpha = 0.95f)
+                                    ),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = topNotifIcon,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Text(
+                                            text = topNotifMessage ?: "",
+                                            color = Color.White,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold
                                         )
                                     }
                                 }

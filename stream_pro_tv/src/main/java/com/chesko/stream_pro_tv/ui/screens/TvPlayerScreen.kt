@@ -66,6 +66,18 @@ fun TvPlayerScreen(
     var showZappingInfo by remember { mutableStateOf(false) }
     var zappingJob by remember { mutableStateOf<Job?>(null) }
     val scope = rememberCoroutineScope()
+    
+    val playerEngineSetting by viewModel.playerEngine.collectAsState()
+    var activeEngine by remember(playerEngineSetting, currentChannel.url) {
+        val url = currentChannel.url.lowercase()
+        val initialEngine = when {
+            url.startsWith("rtsp://") || url.startsWith("udp://") || url.startsWith("rtp://") -> "VLC"
+            url.contains(".mpd") || !currentChannel.drmType.isNullOrBlank() -> "EXO"
+            else -> playerEngineSetting
+        }
+        mutableStateOf(initialEngine)
+    }
+
     var exoPlayer by remember { mutableStateOf<ExoPlayer?>(null) }
     var isPlaying by remember { mutableStateOf(true) }
     var playbackState by remember { mutableIntStateOf(Player.STATE_BUFFERING) }
@@ -102,9 +114,9 @@ fun TvPlayerScreen(
         favoriteChannels.any { it.url == currentChannel.url }
     }
 
-    val currentProgram by viewModel.getCurrentProgram(currentChannel.tvgId)
+    val currentProgram by viewModel.getCurrentProgram(currentChannel)
         .collectAsState(initial = null)
-    val nextProgram by viewModel.getNextProgram(currentChannel.tvgId).collectAsState(initial = null)
+    val nextProgram by viewModel.getNextProgram(currentChannel).collectAsState(initial = null)
 
     val isAnyDialogOpen = showSettingsDialog
 
@@ -174,11 +186,23 @@ fun TvPlayerScreen(
         playbackState = player.playbackState
 
         try {
+            var bufferCount = 0
             while (true) {
                 if (showOverlay) {
                     playbackPosition = player.currentPosition
                     playbackDuration = player.duration
                 }
+                
+                if (player.playbackState == Player.STATE_BUFFERING) {
+                    bufferCount++
+                    if (bufferCount >= 15 && activeEngine == "EXO") {
+                        activeEngine = "VLC"
+                        bufferCount = 0
+                    }
+                } else {
+                    bufferCount = 0
+                }
+
                 delay(1000)
             }
         } finally {
@@ -207,6 +231,7 @@ fun TvPlayerScreen(
         playbackPosition = playbackPosition,
         playbackDuration = playbackDuration,
         exoPlayer = exoPlayer,
+        activeEngine = activeEngine,
         onBack = onBack,
         onToggleOverlay = { showOverlay = !showOverlay },
         onInteraction = resetTimerRef,
@@ -214,8 +239,10 @@ fun TvPlayerScreen(
         onToggleFavorite = { viewModel.toggleFavorite(currentChannel) },
         onReloadVideo = reloadVideo,
         onTogglePlayPause = {
-            exoPlayer?.let {
-                if (it.playWhenReady) it.pause() else it.play()
+            if (activeEngine == "EXO") {
+                exoPlayer?.let { if (it.playWhenReady) it.pause() else it.play() }
+            } else {
+                // VLC handling would go here if TvVideoPlayer supported it
             }
         },
         onSettingsClick = {
@@ -232,7 +259,14 @@ fun TvPlayerScreen(
         onDismissSettings = { showSettingsDialog = false },
         onPlayerInit = { exoPlayer = it },
         onPlayerError = { _ ->
-            playbackState = Player.STATE_IDLE
+            if (activeEngine == "EXO") {
+                activeEngine = "VLC"
+            } else {
+                playbackState = Player.STATE_IDLE
+            }
+        },
+        onSwitchEngine = {
+            activeEngine = if (activeEngine == "VLC") "EXO" else "VLC"
         },
         onSeek = { offsetMs ->
             exoPlayer?.let {
@@ -270,6 +304,7 @@ fun TvPlayerScreenContent(
     playbackPosition: Long,
     playbackDuration: Long,
     exoPlayer: ExoPlayer?,
+    activeEngine: String = "EXO",
     onBack: () -> Unit,
     onToggleOverlay: () -> Unit,
     onInteraction: () -> Unit,
@@ -283,6 +318,7 @@ fun TvPlayerScreenContent(
     onDismissSettings: () -> Unit,
     onPlayerInit: (ExoPlayer) -> Unit,
     onPlayerError: (String) -> Unit,
+    onSwitchEngine: () -> Unit = {},
     onSeek: (Long) -> Unit,
     hwAcceleration: Boolean = true,
     autoQuality: Boolean = true,
@@ -427,13 +463,15 @@ fun TvPlayerScreenContent(
         TvVideoPlayer(
             channel = currentChannel,
             modifier = Modifier.fillMaxSize(),
+            engine = activeEngine,
             hwAcceleration = hwAcceleration,
             autoQuality = autoQuality,
             audioBoost = audioBoost,
             maxVideoHeight = maxVideoHeight,
             bufferSize = bufferSize,
             onPlayerInit = onPlayerInit,
-            onError = onPlayerError
+            onError = onPlayerError,
+            onEngineSwitch = { onSwitchEngine() }
         )
 
         AnimatedVisibility(
@@ -535,6 +573,24 @@ fun TvPlayerScreenContent(
                         onInteraction = onInteraction,
                         onClick = onBack
                     )
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TvHeaderButton(
+                            icon = Icons.Default.SettingsInputComponent,
+                            label = activeEngine,
+                            onInteraction = onInteraction,
+                            onClick = onSwitchEngine
+                        )
+                        if (!isSmallScreen) {
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                activeEngine,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
 
                     Box(
                         modifier = Modifier.weight(1f),

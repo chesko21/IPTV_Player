@@ -459,16 +459,6 @@ fun NavHostContent(
                 }
             )
         }
-        composable("favorites") {
-            TvFavoritesScreen(
-                viewModel = viewModel,
-                onChannelClick = { channel ->
-                    viewModel.setSelectedChannel(channel)
-                    navController.navigate("player")
-                },
-                onBack = { navController.popBackStack() }
-            )
-        }
         composable("settings") {
             TvSettingsScreen(
                 viewModel = viewModel,

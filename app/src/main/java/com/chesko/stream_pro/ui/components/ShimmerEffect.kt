@@ -4,47 +4,68 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 
+/**
+ * Universal Modern Shimmer Effect
+ * Inspired by high-end glassmorphic designs with enhanced cinematic feel
+ */
 fun Modifier.shimmerEffect(): Modifier = composed {
-    val transition = rememberInfiniteTransition(label = "shimmer")
-    val translateAnim = transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 2000f,
+    val transition = rememberInfiniteTransition(label = "universe_shimmer")
+    
+    // Smooth translation animation (Optimized for premium feel)
+    val translateAnim by transition.animateFloat(
+        initialValue = -1500f,
+        targetValue = 1500f,
         animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 1500,
-                easing = LinearEasing
-            ),
+            animation = tween(durationMillis = 2500, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Restart
         ),
-        label = "shimmer"
+        label = "translation"
+    )
+
+    // Subtle pulsing alpha animation
+    val pulseAlpha by transition.animateFloat(
+        initialValue = 0.6f,
+        targetValue = 0.9f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1800, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse"
     )
 
     val shimmerColors = listOf(
-        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.25f), // Stronger primary tint
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
     )
 
-    val brush = Brush.linearGradient(
-        colors = shimmerColors,
-        start = Offset(x = translateAnim.value - 1000f, y = translateAnim.value - 1000f),
-        end = Offset(x = translateAnim.value, y = translateAnim.value)
-    )
-
-    background(brush)
+    this.graphicsLayer { alpha = pulseAlpha }
+        .background(
+            brush = Brush.linearGradient(
+                colors = shimmerColors,
+                start = Offset(translateAnim - 400f, translateAnim - 600f),
+                end = Offset(translateAnim + 400f, translateAnim + 600f)
+            )
+        )
 }
 
 @Composable
@@ -57,14 +78,14 @@ fun ShimmerEpgScreen() {
         Row(
             modifier = Modifier
                 .padding(vertical = 12.dp, horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             repeat(5) {
                 Box(
                     modifier = Modifier
-                        .width(100.dp)
-                        .height(40.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .width(110.dp)
+                        .height(44.dp)
+                        .clip(RoundedCornerShape(14.dp))
                         .shimmerEffect()
                 )
             }
@@ -79,25 +100,25 @@ fun ShimmerEpgScreen() {
             ) {
                 Box(
                     modifier = Modifier
-                        .size(50.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(16.dp))
                         .shimmerEffect()
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(0.6f)
-                            .height(16.dp)
-                            .clip(RoundedCornerShape(4.dp))
+                            .fillMaxWidth(0.7f)
+                            .height(18.dp)
+                            .clip(RoundedCornerShape(6.dp))
                             .shimmerEffect()
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(0.4f)
-                            .height(12.dp)
-                            .clip(RoundedCornerShape(4.dp))
+                            .fillMaxWidth(0.45f)
+                            .height(14.dp)
+                            .clip(RoundedCornerShape(6.dp))
                             .shimmerEffect()
                     )
                 }
@@ -116,18 +137,18 @@ fun ShimmerPosterItem() {
                 .clip(RoundedCornerShape(12.dp))
                 .shimmerEffect()
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(10.dp))
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.8f)
+                .fillMaxWidth(0.85f)
                 .height(14.dp)
                 .clip(RoundedCornerShape(4.dp))
                 .shimmerEffect()
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.5f)
+                .fillMaxWidth(0.55f)
                 .height(12.dp)
                 .clip(RoundedCornerShape(4.dp))
                 .shimmerEffect()
@@ -137,22 +158,21 @@ fun ShimmerPosterItem() {
 
 @Composable
 fun ShimmerContentRow() {
-    Column(modifier = Modifier.padding(vertical = 16.dp)) {
-        // Judul baris (Badge style)
+    Column(modifier = Modifier.padding(vertical = 20.dp)) {
         Box(
             modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
-                .width(150.dp)
-                .height(36.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .padding(start = 20.dp, end = 20.dp, bottom = 14.dp)
+                .width(160.dp)
+                .height(40.dp)
+                .clip(RoundedCornerShape(10.dp))
                 .shimmerEffect()
         )
         
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp),
+            modifier = Modifier.padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            repeat(4) {
+            repeat(3) {
                 ShimmerPosterItem()
             }
         }
@@ -167,41 +187,38 @@ fun ShimmerHomeScreen() {
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
     ) {
-        // Header Shimmer
         Spacer(modifier = Modifier.statusBarsPadding().height(64.dp))
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Hero Carousel Shimmer (Matching Height from HomeScreen)
+        
+        // Large Modern Hero Shimmer
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(240.dp) // Estimasi height dari screenHeight * 0.3
-                .padding(horizontal = 48.dp, vertical = 24.dp)
-                .clip(RoundedCornerShape(28.dp))
+                .height(280.dp)
+                .padding(horizontal = 24.dp, vertical = 20.dp)
+                .clip(RoundedCornerShape(32.dp))
                 .shimmerEffect()
         )
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Group Chips Shimmer
+        // Futuristic Tab/Chip Shimmer
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(horizontal = 20.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             repeat(4) {
                 Box(
                     modifier = Modifier
-                        .width(80.dp)
-                        .height(40.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .width(90.dp)
+                        .height(42.dp)
+                        .clip(RoundedCornerShape(16.dp))
                         .shimmerEffect()
                 )
             }
         }
         
-        // Content Rows Shimmer
         repeat(3) {
             ShimmerContentRow()
         }
