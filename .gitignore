@@ -1,0 +1,32 @@
+*.iml
+.gradle
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Project exclude paths
+/core/build/
+/app/build/
+/stream_pro_tv/build/
+
+# Local configuration and Secrets
+local.properties
+secrets.properties
+google-services.json
+
+# Signing files (IMPORTANT: Never upload these to GitHub)
+*.jks
+*.keystore
+*.p12
+*.google_play_track_details.json
+
+# Log files
+*.log
