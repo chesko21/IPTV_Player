@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -22,11 +24,26 @@ android {
     }
 
     signingConfigs {
+        val secretsFile = rootProject.file("secrets.properties")
+        val secrets = Properties()
+        if (secretsFile.exists()) {
+            val input = secretsFile.inputStream()
+            secrets.load(input)
+            input.close()
+        }
+
         create("release") {
-            storeFile = file("../app/my-release-key.jks")
-            storePassword = "chesko123"
-            keyAlias = "stream-pro-key"
-            keyPassword = "chesko123"
+            val storePath = secrets.getProperty("RELEASE_STORE_FILE") ?: "my-release-key.jks"
+
+            storeFile = if (storePath.contains("app/")) {
+                rootProject.file(storePath)
+            } else {
+                rootProject.file("app/$storePath")
+            }
+            
+            storePassword = secrets.getProperty("RELEASE_STORE_PASSWORD") ?: ""
+            keyAlias = secrets.getProperty("RELEASE_KEY_ALIAS") ?: ""
+            keyPassword = secrets.getProperty("RELEASE_KEY_PASSWORD") ?: ""
         }
     }
 
