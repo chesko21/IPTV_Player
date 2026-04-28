@@ -1,6 +1,11 @@
 # StreamPro - Hybrid IPTV Player
 
-![StreamPro Banner](stream_pro_tv/src/main/res/drawable/tv_banner.png)
+                                                                           
+                                                                           ![StreamPro Banner](stream_pro_tv/src/main/res/drawable/tv_banner.png)
+
+
+
+                                                                           
 
 StreamPro is a high-performance, modern IPTV player designed for Android Mobile and Android TV. It features a unique **Hybrid Engine** that automatically selects the best playback technology based on the stream protocol, ensuring maximum compatibility and stability.
 
