@@ -1,9 +1,5 @@
 # StreamPro - Hybrid IPTV Player
 
-                                                                           
-                                                                           ![StreamPro Banner](stream_pro_tv/src/main/res/drawable/tv_banner.png)
-
-
 
                                                                            
 
