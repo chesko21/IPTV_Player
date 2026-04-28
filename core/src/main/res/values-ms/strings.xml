@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vlc_error_discontinuity">Ralat Main Balik (Isu Diskontinuitas/Server)</string>
+    <string name="player_error_format">Ralat: %1$s</string>
+    <string name="exo_error_link_dead">PAUTAN MATI (404)</string>
+    <string name="exo_error_connection_failed">SAMBUNGAN GAGAL</string>
+    <string name="exo_error_timeout">TAMAT TEMPOH (TIMEOUT)</string>
+    <string name="exo_error_ssl">RALAT SSL (Guna HTTPS)</string>
+    <string name="exo_error_file_not_found">FAIL TIDAK DIJUMPAI</string>
+    <string name="exo_error_decode_failed">RALAT DEKOD</string>
+    <string name="exo_error_unsupported">FORMAT TIDAK DISOKONG</string>
+    <string name="exo_error_generic">RALAT (%1$s)</string>
+    <string name="brand_name">StreamPro</string>
+</resources>

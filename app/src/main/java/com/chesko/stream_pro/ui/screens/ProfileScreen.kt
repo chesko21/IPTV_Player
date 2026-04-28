@@ -32,6 +32,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
 import com.chesko.stream_pro.R
 import com.chesko.stream_pro.core.ui.MainViewModel
@@ -53,6 +55,7 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
     var isBackInvoked by remember { mutableStateOf(false) }
 
     val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -64,7 +67,7 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
 
     if (showEditNameDialog) {
         ModernEditDialog(
-            title = "Ubah Nama",
+            title = stringResource(R.string.edit_name),
             value = tempName,
             onValueChange = { tempName = it },
             onDismiss = { showEditNameDialog = false },
@@ -72,13 +75,13 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 viewModel.updateProfile(tempName, userEmail)
                 showEditNameDialog = false
             },
-            label = "Nama"
+            label = stringResource(R.string.label_name)
         )
     }
 
     if (showEditEmailDialog) {
         ModernEditDialog(
-            title = "Ubah Email",
+            title = stringResource(R.string.edit_email),
             value = tempEmail,
             onValueChange = { tempEmail = it },
             onDismiss = { showEditEmailDialog = false },
@@ -86,14 +89,14 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 viewModel.updateProfile(userName, tempEmail)
                 showEditEmailDialog = false
             },
-            label = "Email"
+            label = stringResource(R.string.label_email)
         )
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Profil Saya", fontWeight = FontWeight.Black) },
+                title = { Text(stringResource(R.string.profile_title), fontWeight = FontWeight.Black) },
                 navigationIcon = {
                     IconButton(onClick = {
                         if (!isBackInvoked) {
@@ -103,7 +106,7 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                     }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack, 
-                            contentDescription = "Kembali", 
+                            contentDescription = stringResource(R.string.btn_cancel), 
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -228,7 +231,7 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                     Icon(Icons.Default.Star, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "PREMIUM MEMBER",
+                        stringResource(R.string.premium_member),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontWeight = FontWeight.Black
@@ -250,11 +253,11 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                     modifier = Modifier.padding(vertical = 24.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    ProfileStatItem("Favorit", favoriteChannels.size.toString())
+                    ProfileStatItem(stringResource(R.string.stat_favorite), favoriteChannels.size.toString())
                     VerticalDivider(modifier = Modifier.height(40.dp).width(1.dp), color = MaterialTheme.colorScheme.outline.copy(0.1f))
-                    ProfileStatItem("Playlist", "1")
+                    ProfileStatItem(stringResource(R.string.stat_playlist), "1")
                     VerticalDivider(modifier = Modifier.height(40.dp).width(1.dp), color = MaterialTheme.colorScheme.outline.copy(0.1f))
-                    ProfileStatItem("Expired", "Never")
+                    ProfileStatItem(stringResource(R.string.stat_expired), stringResource(R.string.stat_expired_never))
                 }
             }
             
@@ -263,7 +266,7 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
             // Details Section
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    "Informasi Akun",
+                    stringResource(R.string.account_info),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
@@ -272,7 +275,7 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 
                 ProfileDetailItem(
                     icon = Icons.Default.Email,
-                    label = "Email",
+                    label = stringResource(R.string.label_email),
                     value = userEmail,
                     onClick = {
                         tempEmail = userEmail
@@ -281,16 +284,16 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 )
                 ProfileDetailItem(
                     icon = Icons.Default.Devices,
-                    label = "Device ID",
+                    label = stringResource(R.string.label_device_id),
                     value = deviceId,
                     onClick = {
                         clipboardManager.setText(AnnotatedString(deviceId))
                         scope.launch {
-                            snackbarHostState.showSnackbar("Device ID berhasil disalin!")
+                            snackbarHostState.showSnackbar(context.getString(R.string.msg_device_id_copied))
                         }
                     }
                 )
-                ProfileDetailItem(Icons.Default.DateRange, "Member Sejak", memberSince)
+                ProfileDetailItem(Icons.Default.DateRange, stringResource(R.string.label_member_since), memberSince)
             }
             
             Spacer(modifier = Modifier.height(32.dp))
@@ -306,7 +309,7 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.2f)),
                 contentPadding = PaddingValues(vertical = 16.dp)
             ) {
-                Text("Keluar dari Akun", fontWeight = FontWeight.Black, fontSize = 16.sp)
+                Text(stringResource(R.string.btn_logout_account), fontWeight = FontWeight.Black, fontSize = 16.sp)
             }
             
             Spacer(modifier = Modifier.height(40.dp))
@@ -350,12 +353,12 @@ fun ModernEditDialog(
         },
         confirmButton = {
             TextButton(onClick = onSave) {
-                Text("Simpan", fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.btn_save), fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Batal", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.btn_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )

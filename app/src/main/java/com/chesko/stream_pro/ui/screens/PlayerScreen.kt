@@ -42,6 +42,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import com.chesko.stream_pro.R
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -65,16 +66,16 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import com.chesko.stream_pro.core.ui.MainViewModel
 import com.chesko.stream_pro.core.utils.PlayerUtils
+import com.chesko.stream_pro.core.utils.NetworkObserver
 import com.chesko.stream_pro.core.player.VlcVideoPlayer
 import org.videolan.libvlc.MediaPlayer
 import com.chesko.stream_pro.ui.components.shimmerEffect
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.content.pm.ApplicationInfo
-import androidx.compose.ui.draw.scale
-
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 private fun isDebugMode(context: Context): Boolean {
     return (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
@@ -105,19 +106,14 @@ fun ChannelInfoBar(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = if (showFullControls) 80.dp else 24.dp)
+            .padding(bottom = if (showFullControls) 54.dp else 24.dp)
             .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)),
         color = Color.Transparent
     ) {
         Column(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f))
-                    )
-                )
-                .padding(16.dp)
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -125,8 +121,8 @@ fun ChannelInfoBar(
             ) {
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = Color.White.copy(alpha = 0.5f),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f))
+                    color = Color.White.copy(alpha = 0.2f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f))
                 ) {
                     AsyncImage(
                         model = currentChannel.logo,
@@ -151,7 +147,7 @@ fun ChannelInfoBar(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                "ON AIR",
+                                stringResource(R.string.player_on_air),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Black,
@@ -183,13 +179,12 @@ fun ChannelInfoBar(
             if (nextProgram != null) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Surface(
-                    color = Color.White.copy(alpha = 0.05f),
-                    shape = RoundedCornerShape(8.dp),
+                    color = Color.Transparent,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                        modifier = Modifier.padding(vertical = 4.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Schedule,
@@ -199,7 +194,7 @@ fun ChannelInfoBar(
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "NEXT: ${nextProgram.title}",
+                            text = stringResource(R.string.player_next, nextProgram.title),
                             color = Color.White.copy(0.6f),
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 11.sp,
@@ -218,10 +213,10 @@ fun ChannelInfoBar(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Progress Bar (VOD or EPG)
-            if (playbackDuration > 0 && playbackDuration != C.TIME_UNSET) {
+            if (playbackDuration > 0) {
                 Column {
                     LinearProgressIndicator(
                         progress = { (playbackPosition.toFloat() / playbackDuration.toFloat()).coerceIn(0f, 1f) },
@@ -351,20 +346,31 @@ fun PlayerScreenContent(
 
     val isDebug = remember { isDebugMode(context) }
 
+    DisposableEffect(Unit) {
+        activity?.window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        onDispose {
+            activity?.window?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
+
     val allChannels by viewModel.filteredChannels.collectAsState()
     var currentChannel by remember { mutableStateOf(channel) }
 
     val favoriteChannels by viewModel.favoriteChannels.collectAsState()
     val audioBoost by viewModel.audioBoost.collectAsState()
     val playerEngineSetting by viewModel.playerEngine.collectAsState()
+
     var activeEngine by remember(playerEngineSetting, currentChannel.url) { 
-        val url = currentChannel.url.lowercase()
+        val url = currentChannel.url.lowercase().trim()
         val initialEngine = when {
-            url.startsWith("rtsp://") || url.startsWith("udp://") || url.startsWith("rtp://") -> "VLC"
+            url.startsWith("rtsp://") || url.startsWith("rtmp://") || 
+            url.startsWith("udp://") || url.startsWith("rtp://") -> "VLC"
 
             url.contains(".ts") || url.contains("mpegts") -> "VLC"
 
-            url.contains(".mpd") || !currentChannel.drmType.isNullOrBlank() -> "EXO"
+            url.contains(".mpd") || 
+            !currentChannel.drmType.isNullOrBlank() || 
+            !currentChannel.drmConfig.isNullOrBlank() -> "EXO"
 
             url.contains(".m3u8") -> "EXO"
 
@@ -387,14 +393,13 @@ fun PlayerScreenContent(
     var isLocked by remember { mutableStateOf(false) }
     var showChannelList by remember { mutableStateOf(false) }
     var isFullscreen by remember { mutableStateOf(activity?.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) }
-    var resizeMode by remember { mutableStateOf(AspectRatioFrameLayout.RESIZE_MODE_FIT) }
-
+    
     var exoPlayer by remember { mutableStateOf<ExoPlayer?>(null) }
     var vlcPlayer by remember { mutableStateOf<org.videolan.libvlc.MediaPlayer?>(null) }
 
-    var brightness by remember { mutableStateOf(activity?.window?.attributes?.screenBrightness ?: 0.5f) }
+    var brightness by remember { mutableFloatStateOf(activity?.window?.attributes?.screenBrightness ?: 0.5f) }
     var volume by remember {
-        mutableStateOf(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() /
+        mutableFloatStateOf(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() /
                 audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC))
     }
     var gestureType by remember { mutableStateOf<String?>(null) }
@@ -403,15 +408,22 @@ fun PlayerScreenContent(
     var isPlaybackStuck by remember { mutableStateOf(false) }
     var isPlayingState by remember { mutableStateOf(false) }
 
-    // Explicitly stop unused player when engine switches to prevent concurrent execution
+    // Robust resource cleanup during engine switching
     LaunchedEffect(activeEngine) {
         if (activeEngine == "VLC") {
-            exoPlayer?.stop()
-            exoPlayer?.clearMediaItems()
+            exoPlayer?.let {
+                it.stop()
+                it.release()
+                exoPlayer = null
+            }
         } else {
-            try {
-                vlcPlayer?.stop()
-            } catch (_: Exception) {}
+            vlcPlayer?.let {
+                try {
+                    it.stop()
+                    it.detachViews()
+                } catch (_: Exception) {}
+                vlcPlayer = null
+            }
         }
     }
 
@@ -427,11 +439,24 @@ fun PlayerScreenContent(
     }
 
     var showAudioDialog by remember { mutableStateOf(false) }
+    var showSubtitleDialog by remember { mutableStateOf(false) }
     var showResolutionDialog by remember { mutableStateOf(false) }
     var showDebugDialog by remember { mutableStateOf(false) }
     var showChannelInfo by remember { mutableStateOf(false) }
 
+    var zappingJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+
     var lastInteractionTime by remember { mutableLongStateOf(0L) }
+
+    val changeChannel = { nextChan: IptvChannel ->
+        zappingJob?.cancel()
+        currentChannel = nextChan
+        viewModel.markAsPlayed(nextChan)
+        
+        zappingJob = scope.launch {
+            delay(1500)
+        }
+    }
 
     val reloadVideo: () -> Unit = {
         if (activeEngine == "VLC") {
@@ -439,7 +464,6 @@ fun PlayerScreenContent(
                 vlcPlayer?.stop()
                 vlcPlayer?.play()
             } catch (_: Exception) {
-                // If player is released, it will be recreated by AnimatedContent recomposition
             }
         } else {
             exoPlayer?.stop()
@@ -454,21 +478,28 @@ fun PlayerScreenContent(
         }
     }
 
-    var loadingStatus by remember { mutableStateOf("Menghubungkan...") }
+    val playerLoadingDefault = stringResource(R.string.player_loading_default)
+    var loadingStatus by remember { mutableStateOf(playerLoadingDefault) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val networkStatus by viewModel.networkStatus.collectAsState()
+    LaunchedEffect(networkStatus) {
+        if (networkStatus is NetworkObserver.NetworkStatus.Available && (isPlaybackStuck || errorMessage != null)) {
+            reloadVideo()
+        }
+    }
 
     LaunchedEffect(currentChannel.url, activeEngine) {
         errorMessage = null
         isPlaybackStuck = false
         isBuffering = true
-        loadingStatus = "Menghubungkan..."
+        loadingStatus = playerLoadingDefault
         
         showChannelInfo = true
         delay(5000)
         showChannelInfo = false
     }
 
-    // Force clear loading state when video starts playing
     LaunchedEffect(isPlayingState) {
         if (isPlayingState) {
             loadingStatus = ""
@@ -476,15 +507,22 @@ fun PlayerScreenContent(
         }
     }
 
+    val playerLoadingVideo = stringResource(R.string.player_loading_video)
+    val playerLoadingStream = stringResource(R.string.player_loading_stream)
+    val playerPreparing = stringResource(R.string.player_preparing)
+    val playerEnded = stringResource(R.string.player_ended)
+    val playerFallbackVlc = stringResource(R.string.player_fallback_vlc)
+    val playerErrorLoad = stringResource(R.string.player_error_load)
+
     DisposableEffect(exoPlayer, currentChannel) {
         val player = exoPlayer ?: return@DisposableEffect onDispose {}
         
         val listener = object : Player.Listener {
             override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
                 if (videoSize.width > 0 && videoSize.height > 0) {
-                    if (loadingStatus == "Memuat Video...") loadingStatus = ""
+                    if (loadingStatus == playerLoadingVideo) loadingStatus = ""
                 } else if (player.playbackState == Player.STATE_READY) {
-                    loadingStatus = "Memuat Video..."
+                    loadingStatus = playerLoadingVideo
                 }
             }
 
@@ -493,7 +531,7 @@ fun PlayerScreenContent(
                 when (playbackState) {
                     Player.STATE_BUFFERING -> {
                         isBuffering = true
-                        if (loadingStatus.isEmpty()) loadingStatus = "Loading Stream..."
+                        if (loadingStatus.isEmpty()) loadingStatus = playerLoadingStream
                     }
                     Player.STATE_READY -> {
                         isBuffering = false
@@ -504,11 +542,11 @@ fun PlayerScreenContent(
                     }
                     Player.STATE_IDLE -> {
                         isBuffering = false
-                        if (loadingStatus.isEmpty()) loadingStatus = "Menyiapkan..."
+                        if (loadingStatus.isEmpty()) loadingStatus = playerPreparing
                     }
                     Player.STATE_ENDED -> {
                         isBuffering = false
-                        loadingStatus = "Siaran Berakhir"
+                        loadingStatus = playerEnded
                     }
                 }
             }
@@ -529,14 +567,13 @@ fun PlayerScreenContent(
                     return
                 }
 
-                // Automatic Fallback to VLC
                 if (activeEngine == "EXO") {
-                    loadingStatus = "Fallback ke VLC..."
+                    loadingStatus = playerFallbackVlc
                     activeEngine = "VLC"
                     return
                 }
 
-                loadingStatus = "Stream Error: Gagal Memuat"
+                loadingStatus = playerErrorLoad
                 isBuffering = false
                 isPlaybackStuck = true
             }
@@ -553,11 +590,12 @@ fun PlayerScreenContent(
                 delay(2000)
                 if (player.playbackState == Player.STATE_BUFFERING) {
                     bufferCount++
-                    // First try to reload within Exo
+                    if (bufferCount >= 5) {
+                        isPlaybackStuck = true
+                    }
                     if (bufferCount == 8) {
                         reloadVideo()
                     }
-                    // If still buffering after 15 units (~30s total), try fallback to VLC
                     if (bufferCount >= 15 && activeEngine == "EXO") {
                         activeEngine = "VLC"
                         bufferCount = 0
@@ -601,7 +639,7 @@ fun PlayerScreenContent(
         }
     }
 
-    val handleResize = {
+    val toggleFullscreen = {
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastInteractionTime > 1000) {
             lastInteractionTime = currentTime
@@ -629,38 +667,41 @@ fun PlayerScreenContent(
         }
     }
 
-    LaunchedEffect(showControls, isLocked, isBuffering, loadingStatus, isPlaybackStuck, showChannelList, showAudioDialog, showResolutionDialog, showDebugDialog) {
-        if (showControls && !isLocked && !isBuffering && loadingStatus.isEmpty() && !isPlaybackStuck && !showChannelList && !showAudioDialog && !showResolutionDialog && !showDebugDialog) {
+    LaunchedEffect(showControls, isLocked, isBuffering, loadingStatus, isPlaybackStuck, showChannelList, showAudioDialog, showSubtitleDialog, showResolutionDialog, showDebugDialog) {
+        if (showControls && !isLocked && !isBuffering && loadingStatus.isEmpty() && !isPlaybackStuck && !showChannelList && !showAudioDialog && !showSubtitleDialog && !showResolutionDialog && !showDebugDialog) {
             delay(5000)
             showControls = false
         }
     }
 
-    // Use a fixed deep black background for the player to ensure best video contrast and eye comfort
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0A0A0A))) {
         AnimatedContent(
             targetState = currentChannel to activeEngine,
             transitionSpec = { fadeIn(tween(500)) togetherWith fadeOut(tween(500)) },
             label = "VideoTransition"
         ) { (targetChannel, engine) ->
+            val playerLoadingVlc = stringResource(R.string.player_loading_vlc)
+            val playerErrorVlc = stringResource(R.string.player_error_vlc)
+            val playerExoFallback = stringResource(R.string.player_exo_fallback)
+
             if (engine == "VLC") {
                 VlcVideoPlayer(
                     channel = targetChannel,
                     modifier = Modifier.fillMaxSize(),
                     hwAcceleration = hwAcceleration,
-                    resizeMode = resizeMode,
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT,
                     onPlayerInit = { player ->
                         if (player != null) vlcPlayer = player
                     },
                     onSuccess = {
-                        android.util.Log.d("PlayerAnalytics", "VLC Success: ${targetChannel.name} (${targetChannel.url})")
+                        android.util.Log.d("PlayerAnalytics", "VLC Success: ${targetChannel.name}")
                     },
                     onBuffering = { buffering -> 
                         isBuffering = buffering
                         if (!buffering) {
                             loadingStatus = ""
-                        } else if (loadingStatus == "Menghubungkan...") {
-                            loadingStatus = "Memuat Video..."
+                        } else if (loadingStatus.isEmpty() || loadingStatus == playerLoadingDefault) {
+                            loadingStatus = playerLoadingVlc
                         }
                     },
                     onPlayingChanged = { playing -> 
@@ -672,17 +713,16 @@ fun PlayerScreenContent(
                         }
                     },
                     onError = { 
-                        // If VLC fails after Exo fallback, or is the primary and fails
                         errorMessage = it
                         isPlaybackStuck = true 
-                        loadingStatus = "Error: $it"
+                        loadingStatus = context.getString(R.string.player_error_vlc, it)
                     }
                 )
             } else {
                 VideoPlayer(
                     channel = targetChannel,
                     modifier = Modifier.fillMaxSize(),
-                    resizeMode = resizeMode,
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT,
                     audioBoost = audioBoost,
                     hwAcceleration = hwAcceleration,
                     bufferSize = bufferSize,
@@ -691,11 +731,18 @@ fun PlayerScreenContent(
                         if (player != null) exoPlayer = player
                     },
                     onSuccess = {
-                        android.util.Log.d("PlayerAnalytics", "Exo Success: ${targetChannel.name} (${targetChannel.url})")
+                        loadingStatus = ""
+                        android.util.Log.d("PlayerAnalytics", "Exo Success: ${targetChannel.name}")
                     },
                     onError = { 
                         errorMessage = it
-                        isPlaybackStuck = true 
+                        // Auto-fallback to VLC if Exo fails
+                        if (activeEngine == "EXO") {
+                            loadingStatus = playerExoFallback
+                            activeEngine = "VLC"
+                        } else {
+                            isPlaybackStuck = true 
+                        }
                     },
                     onEngineSwitch = {
                         activeEngine = it
@@ -769,15 +816,6 @@ fun PlayerScreenContent(
             }
         }
 
-        if (isBuffering) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)),
-                contentAlignment = Alignment.Center
-            ) {
-            }
-        }
 
         if (isPlaybackStuck && !isBuffering) {
             Box(
@@ -806,18 +844,18 @@ fun PlayerScreenContent(
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = errorMessage ?: "Koneksi Terputus",
+                        text = errorMessage ?: stringResource(R.string.player_connection_lost),
                         color = Color.White,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = if (errorMessage != null) "LINK DEAD!." else "Video berhenti diputar.",
+                        text = if (errorMessage != null) stringResource(R.string.player_link_dead) else stringResource(R.string.player_stopped),
                         color = Color.White.copy(alpha = 0.7f),
                         style = MaterialTheme.typography.bodySmall,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        textAlign = TextAlign.Center
                     )
                 }
             }
@@ -872,22 +910,19 @@ fun PlayerScreenContent(
                 onPrev = {
                     val idx = currentGroupChannels.indexOfFirst { it.url == currentChannel.url }
                     if (idx > 0) {
-                        val nextChan = currentGroupChannels[idx - 1]
-                        currentChannel = nextChan
-                        viewModel.markAsPlayed(nextChan)
+                        changeChannel(currentGroupChannels[idx - 1])
                     }
                 },
                 onNext = {
                     val idx = currentGroupChannels.indexOfFirst { it.url == currentChannel.url }
                     if (idx < currentGroupChannels.size - 1) {
-                        val nextChan = currentGroupChannels[idx + 1]
-                        currentChannel = nextChan
-                        viewModel.markAsPlayed(nextChan)
+                        changeChannel(currentGroupChannels[idx + 1])
                     }
                 },
-                onResizeToggle = handleResize,
+                onFullscreenToggle = toggleFullscreen,
                 isFullscreen = isFullscreen,
                 onShowAudio = { showAudioDialog = true },
+                onShowSubtitle = { showSubtitleDialog = true },
                 onShowResolution = { showResolutionDialog = true },
                 onSwitchEngine = {
                     activeEngine = if (activeEngine == "VLC") "EXO" else "VLC"
@@ -907,17 +942,38 @@ fun PlayerScreenContent(
 
         GestureHUD(gestureType, brightness, volume)
 
-        if (showDebugDialog && isDebug) {
-            DebugInfoDialog(
-                channel = currentChannel,
-                onDismiss = { showDebugDialog = false }
+        // Floating Menus (Audio, CC, Quality) positioned above buttons
+        val menuModifier = Modifier
+            .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal))
+            .padding(bottom = 80.dp)
+
+        // Tap background to dismiss
+        if (showAudioDialog || showSubtitleDialog || showResolutionDialog) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {
+                            showAudioDialog = false
+                            showSubtitleDialog = false
+                            showResolutionDialog = false
+                        }
+                    )
             )
         }
 
-        if (showAudioDialog) {
-            TrackSelectionDialog(
-                title = "Opsi Audio",
+        AnimatedVisibility(
+            visible = showAudioDialog,
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { it } + fadeOut(),
+            modifier = Modifier.align(Alignment.BottomStart).then(menuModifier).padding(start = 24.dp)
+        ) {
+            TrackSelectionMenu(
+                title = stringResource(R.string.player_menu_audio),
                 exoPlayer = exoPlayer,
+                vlcPlayer = if (activeEngine == "VLC") vlcPlayer else null,
                 trackType = C.TRACK_TYPE_AUDIO,
                 onDismiss = { showAudioDialog = false },
                 showAudioBoost = true,
@@ -926,12 +982,40 @@ fun PlayerScreenContent(
             )
         }
 
-        if (showResolutionDialog) {
-            TrackSelectionDialog(
-                title = "Kualitas Video",
+        AnimatedVisibility(
+            visible = showSubtitleDialog,
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { it } + fadeOut(),
+            modifier = Modifier.align(Alignment.BottomStart).then(menuModifier).padding(start = 24.dp)
+        ) {
+            TrackSelectionMenu(
+                title = stringResource(R.string.player_menu_subtitle),
                 exoPlayer = exoPlayer,
+                vlcPlayer = if (activeEngine == "VLC") vlcPlayer else null,
+                trackType = C.TRACK_TYPE_TEXT,
+                onDismiss = { showSubtitleDialog = false }
+            )
+        }
+
+        AnimatedVisibility(
+            visible = showResolutionDialog,
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { it } + fadeOut(),
+            modifier = Modifier.align(Alignment.BottomEnd).then(menuModifier).padding(end = 24.dp)
+        ) {
+            TrackSelectionMenu(
+                title = stringResource(R.string.player_menu_quality),
+                exoPlayer = exoPlayer,
+                vlcPlayer = null,
                 trackType = C.TRACK_TYPE_VIDEO,
                 onDismiss = { showResolutionDialog = false }
+            )
+        }
+
+        if (showDebugDialog && isDebug) {
+            DebugInfoDialog(
+                channel = currentChannel,
+                onDismiss = { showDebugDialog = false }
             )
         }
 
@@ -1012,19 +1096,21 @@ fun GestureHUD(type: String?, brightness: Float, volume: Float) {
 
 @AndroidOptIn(UnstableApi::class)
 @Composable
-fun TrackSelectionDialog(
+fun TrackSelectionMenu(
     title: String,
     exoPlayer: ExoPlayer?,
+    vlcPlayer: org.videolan.libvlc.MediaPlayer?,
     trackType: Int,
     onDismiss: () -> Unit,
     showAudioBoost: Boolean = false,
     audioBoost: Boolean = false,
     onAudioBoostToggle: ((Boolean) -> Unit)? = null
 ) {
+    // Logic for ExoPlayer
     val tracks = exoPlayer?.currentTracks ?: Tracks.EMPTY
     val trackGroups = tracks.groups.filter { it.type == trackType }
 
-    val sortedTrackItems = remember(tracks, trackType) {
+    val exoTrackItems = remember(tracks, trackType) {
         val list = mutableListOf<Pair<Tracks.Group, Int>>()
         trackGroups.forEach { group ->
             for (i in 0 until group.length) {
@@ -1039,67 +1125,123 @@ fun TrackSelectionDialog(
         list
     }
 
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            modifier = Modifier.width(240.dp).padding(16.dp),
-            shape = RoundedCornerShape(20.dp),
-            color = Color(0xFF1E1E1E),
-            tonalElevation = 6.dp
-        ) {
-            Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = Color.White,
-                    fontWeight = FontWeight.Black,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+    // Logic for VLC
+    val vlcTracks = remember(vlcPlayer, trackType) {
+        when (trackType) {
+            C.TRACK_TYPE_AUDIO -> vlcPlayer?.audioTracks
+            C.TRACK_TYPE_TEXT -> vlcPlayer?.spuTracks
+            else -> null
+        }
+    }
+    val currentVlcTrackId = remember(vlcPlayer, trackType) {
+        when (trackType) {
+            C.TRACK_TYPE_AUDIO -> vlcPlayer?.audioTrack ?: -1
+            C.TRACK_TYPE_TEXT -> vlcPlayer?.spuTrack ?: -1
+            else -> -1
+        }
+    }
 
-                if (showAudioBoost && onAudioBoostToggle != null) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
-                            .clickable { onAudioBoostToggle(!audioBoost) }
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.VolumeUp,
-                            null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp)
+    Surface(
+        modifier = Modifier.width(180.dp).padding(8.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF1E1E1E).copy(alpha = 0.85f),
+        tonalElevation = 4.dp,
+        border = BorderStroke(1.dp, Color.White.copy(0.15f))
+    ) {
+        Column(modifier = Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelMedium,
+                color = Color.White,
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (showAudioBoost && onAudioBoostToggle != null) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
+                        .clickable { onAudioBoostToggle(!audioBoost) }
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.VolumeUp,
+                        null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        stringResource(R.string.player_boost),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Switch(
+                        checked = audioBoost,
+                        onCheckedChange = onAudioBoostToggle,
+                        modifier = Modifier.scale(0.5f),
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.primary,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                         )
-                        Text(
-                            "Boost",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Switch(
-                            checked = audioBoost,
-                            onCheckedChange = onAudioBoostToggle,
-                            modifier = Modifier.scale(0.6f),
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = MaterialTheme.colorScheme.primary,
-                                checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                            )
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+            }
+
+            LazyColumn(modifier = Modifier.heightIn(max = 180.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                if (vlcPlayer != null && vlcTracks != null) {
+                    // VLC Track List
+                    item {
+                        val label = when (trackType) {
+                            C.TRACK_TYPE_AUDIO -> stringResource(R.string.player_mute)
+                            C.TRACK_TYPE_TEXT -> stringResource(R.string.player_no_subtitle)
+                            else -> stringResource(R.string.player_disable)
+                        }
+                        TrackItem(
+                            label = label,
+                            isSelected = currentVlcTrackId == -1,
+                            onClick = {
+                                if (trackType == C.TRACK_TYPE_AUDIO) vlcPlayer.audioTrack = -1
+                                else vlcPlayer.spuTrack = -1
+                                onDismiss()
+                            }
                         )
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-
-                LazyColumn(modifier = Modifier.heightIn(max = 200.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    items(vlcTracks.toList()) { track ->
+                        if (track.id != -1) {
+                            TrackItem(
+                                label = track.name ?: "Track ${track.id}",
+                                isSelected = track.id == currentVlcTrackId,
+                                onClick = {
+                                    if (trackType == C.TRACK_TYPE_AUDIO) vlcPlayer.audioTrack = track.id
+                                    else vlcPlayer.spuTrack = track.id
+                                    onDismiss()
+                                }
+                            )
+                        }
+                    }
+                } else {
+                    // ExoPlayer Track List
                     item {
                         val isAuto = exoPlayer?.trackSelectionParameters?.overrides?.values?.none {
                             it.type == trackType
                         } ?: true
 
+                        val label = when (trackType) {
+                            C.TRACK_TYPE_VIDEO -> stringResource(R.string.player_auto)
+                            C.TRACK_TYPE_AUDIO -> stringResource(R.string.player_default)
+                            C.TRACK_TYPE_TEXT -> stringResource(R.string.player_no_subtitle)
+                            else -> stringResource(R.string.player_disable)
+                        }
+
                         TrackItem(
-                            label = if (trackType == C.TRACK_TYPE_VIDEO) "Kualitas Otomatis" else "Default",
+                            label = label,
                             isSelected = isAuto,
                             onClick = {
                                 exoPlayer?.let {
@@ -1113,14 +1255,15 @@ fun TrackSelectionDialog(
                         )
                     }
 
-                    items(sortedTrackItems) { (group, trackIndex) ->
+                    items(exoTrackItems) { (group, trackIndex) ->
                         val format = group.getTrackFormat(trackIndex)
                         val isExplicitlySelected = exoPlayer?.trackSelectionParameters?.overrides?.get(group.mediaTrackGroup)?.trackIndices?.contains(trackIndex) ?: false
 
-                        val label = if (trackType == C.TRACK_TYPE_VIDEO) {
-                            "${format.height}p"
-                        } else {
-                            format.language?.uppercase() ?: "Audio Track ${trackIndex + 1}"
+                        val label = when (trackType) {
+                            C.TRACK_TYPE_VIDEO -> "${format.height}p"
+                            C.TRACK_TYPE_AUDIO -> format.language?.uppercase() ?: format.label ?: "Audio ${trackIndex + 1}"
+                            C.TRACK_TYPE_TEXT -> format.language?.uppercase() ?: format.label ?: "Subtitle ${trackIndex + 1}"
+                            else -> "Track ${trackIndex + 1}"
                         }
 
                         TrackItem(
@@ -1149,18 +1292,18 @@ fun TrackItem(label: String, isSelected: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(vertical = 8.dp, horizontal = 4.dp),
+            .padding(vertical = 4.dp, horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
         if (isSelected) {
-            Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
-            Spacer(modifier = Modifier.width(8.dp))
+            Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+            Spacer(modifier = Modifier.width(6.dp))
         }
         Text(
             label, 
             color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.labelSmall,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )
     }
@@ -1181,7 +1324,7 @@ fun DebugInfoDialog(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.BugReport, null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Debug Info", style = MaterialTheme.typography.titleLarge, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.player_debug_title), style = MaterialTheme.typography.titleLarge, color = Color.White, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -1222,7 +1365,7 @@ fun DebugInfoDialog(
                     modifier = Modifier.align(Alignment.End),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(0.1f), contentColor = Color.White)
                 ) {
-                    Text("Close")
+                    Text(stringResource(R.string.btn_close))
                 }
             }
         }
@@ -1268,8 +1411,9 @@ fun ControlOverlay(
     onPrev: () -> Unit,
     onNext: () -> Unit,
     isFullscreen: Boolean,
-    onResizeToggle: () -> Unit,
+    onFullscreenToggle: () -> Unit = {},
     onShowAudio: () -> Unit,
+    onShowSubtitle: () -> Unit = {},
     onShowResolution: () -> Unit,
     onSwitchEngine: () -> Unit,
     onShowDebug: () -> Unit,
@@ -1348,71 +1492,76 @@ fun ControlOverlay(
             }
 
             // Play/Pause Center Action & Loading Status
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(contentAlignment = Alignment.Center) {
-                    val isPlaying = isPlayingState
-                    val isError = isPlaybackStuck
+            Box(
+                modifier = Modifier.height(110.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    val isError = isPlaybackStuck || loadingStatus.contains("Gagal", true) || loadingStatus.contains("Error", true)
                     
-                    // Reduced glow size
-                    if (isPlaying && !isBuffering) {
-                        Box(
-                            modifier = Modifier
-                                .size(72.dp)
-                                .background(
-                                    Brush.radialGradient(
-                                        listOf(MaterialTheme.colorScheme.primary.copy(0.2f), Color.Transparent)
-                                    ),
-                                    CircleShape
-                                )
-                        )
-                    }
+                    Box(contentAlignment = Alignment.Center) {
+                        // Reduced glow size
+                        if (isPlayingState && !isBuffering) {
+                            Box(
+                                modifier = Modifier
+                                    .size(72.dp)
+                                    .background(
+                                        Brush.radialGradient(
+                                            listOf(MaterialTheme.colorScheme.primary.copy(0.2f), Color.Transparent)
+                                        ),
+                                        CircleShape
+                                    )
+                            )
+                        }
 
-                    Surface(
-                        onClick = { 
-                            if (isError) onReload() 
-                            else {
-                                if (playerEngine == "VLC") {
-                                    vlcPlayer?.let { if (it.isPlaying) it.pause() else it.play() }
-                                } else {
-                                    exoPlayer?.let { if (it.isPlaying) it.pause() else it.play() }
+                        Surface(
+                            onClick = { 
+                                if (isError) onReload() 
+                                else {
+                                    if (playerEngine == "VLC") {
+                                        vlcPlayer?.let { if (it.isPlaying) it.pause() else it.play() }
+                                    } else {
+                                        exoPlayer?.let { if (it.isPlaying) it.pause() else it.play() }
+                                    }
                                 }
+                            },
+                            modifier = Modifier.size(64.dp),
+                            shape = CircleShape,
+                            color = Color.Black.copy(alpha = 0.6f),
+                            border = BorderStroke(1.dp, Brush.linearGradient(listOf(Color.White.copy(0.2f), Color.Transparent))),
+                            shadowElevation = 8.dp
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = if (isError) Icons.Default.Refresh else if (isPlayingState) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(32.dp)
+                                )
                             }
-                        },
-                        modifier = Modifier.size(64.dp),
-                        shape = CircleShape,
-                        color = Color.Black.copy(alpha = 0.6f),
-                        border = BorderStroke(1.dp, Brush.linearGradient(listOf(Color.White.copy(0.2f), Color.Transparent))),
-                        shadowElevation = 8.dp
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = if (isError) Icons.Default.Refresh else if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(32.dp)
+                        }
+                        
+                        if (isBuffering) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(80.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                strokeWidth = 2.dp,
+                                trackColor = Color.White.copy(0.05f)
                             )
                         }
                     }
                     
-                    if (isBuffering) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(80.dp),
+                    if (loadingStatus.isNotEmpty() && !isPlaybackStuck) {
+                        Text(
+                            text = loadingStatus.uppercase(),
+                            modifier = Modifier.padding(top = 12.dp),
                             color = MaterialTheme.colorScheme.primary,
-                            strokeWidth = 2.dp,
-                            trackColor = Color.White.copy(0.05f)
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 1.sp,
+                            textAlign = TextAlign.Center
                         )
                     }
-                }
-                
-                if (loadingStatus.isNotEmpty() && !isPlaybackStuck) {
-                    Text(
-                        text = loadingStatus.uppercase(),
-                        modifier = Modifier.padding(top = 16.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp
-                    )
                 }
             }
 
@@ -1441,14 +1590,15 @@ fun ControlOverlay(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    PlayerControlAction(icon = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, tint = if (isFavorite) Color.Red else Color.White, onClick = onToggleFavorite)
-                    PlayerControlAction(icon = Icons.Default.Settings, onClick = onShowAudio)
+                    PlayerControlAction(icon = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder, tint = if (isFavorite) Color(0xFFFFD700) else Color.White, onClick = onToggleFavorite)
+                    PlayerControlAction(icon = Icons.Default.ClosedCaption, onClick = onShowSubtitle)
+                    PlayerControlAction(icon = Icons.AutoMirrored.Filled.VolumeUp, onClick = onShowAudio)
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     PlayerControlAction(icon = Icons.Default.HighQuality, onClick = onShowResolution)
                     if (isDebug) PlayerControlAction(icon = Icons.Default.BugReport, onClick = onShowDebug)
-                    PlayerControlAction(icon = if (isFullscreen) Icons.Default.FullscreenExit else Icons.Default.Fullscreen, onClick = onResizeToggle)
+                    PlayerControlAction(icon = if (isFullscreen) Icons.Default.FullscreenExit else Icons.Default.Fullscreen, onClick = onFullscreenToggle)
                 }
             }
         }
@@ -1499,7 +1649,7 @@ fun QuickChannelList(
                     Box(modifier = Modifier.width(4.dp).height(20.dp))
                 }
                 Text(
-                    text = currentChannel.group?.uppercase() ?: "SALURAN",
+                    text = currentChannel.group?.uppercase() ?: stringResource(R.string.player_channels_title),
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Black,

@@ -20,7 +20,7 @@ class StreamProTvApp : Application(), ImageLoaderFactory {
             .diskCache {
                 DiskCache.Builder()
                     .directory(this.cacheDir.resolve("image_cache"))
-                    .maxSizePercent(0.05) // Larger disk cache for TV
+                    .maxSizePercent(0.05)
                     .build()
             }
             .okHttpClient {

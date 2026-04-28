@@ -76,6 +76,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _accentColor = MutableStateFlow(prefs.getInt("accent_color", 0xFF2979FF.toInt()))
     val accentColor: StateFlow<Int> = _accentColor
 
+    private val _appLanguage = MutableStateFlow(prefs.getString("app_language", "in") ?: "in")
+    val appLanguage: StateFlow<String> = _appLanguage
+
     private val _userName = MutableStateFlow(prefs.getString("user_name", "Stream Pro User") ?: "Stream Pro User")
     val userName: StateFlow<String> = _userName
 
@@ -112,19 +115,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     private fun getSavedMemberSince(): String {
-        val saved = prefs.getString("member_since", null)
-        if (saved != null) return saved
-
         return try {
             val installTime = getApplication<Application>().packageManager
                 .getPackageInfo(getApplication<Application>().packageName, 0).firstInstallTime
             val sdf = java.text.SimpleDateFormat("MMMM yyyy", java.util.Locale.getDefault())
-            val formattedDate = sdf.format(java.util.Date(installTime))
-            
-            prefs.edit().putString("member_since", formattedDate).apply()
-            formattedDate
+            sdf.format(java.util.Date(installTime))
         } catch (e: Exception) {
-            "januari 2026"
+            "January 2026"
         }
     }
 
@@ -829,6 +826,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setAccentColor(color: Int) {
         _accentColor.value = color
         prefs.edit().putInt("accent_color", color).apply()
+    }
+
+    fun setAppLanguage(lang: String) {
+        _appLanguage.value = lang
+        prefs.edit().putString("app_language", lang).apply()
     }
 
     fun clearCache() {

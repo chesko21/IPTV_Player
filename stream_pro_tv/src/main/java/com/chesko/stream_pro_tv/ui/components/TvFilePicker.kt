@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -46,18 +47,34 @@ fun TvFilePicker(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.8f))
-            .padding(if (files.size > 10) 24.dp else 48.dp),
+            .background(Color.Black.copy(alpha = 0.85f))
+            .padding(48.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth(0.8f)
-                .fillMaxHeight(0.85f)
-                .clip(RoundedCornerShape(24.dp))
-                .background(Color(0xFF141414))
-                .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
-                .padding(24.dp)
+                .fillMaxWidth(0.85f)
+                .fillMaxHeight(0.9f)
+                .clip(RoundedCornerShape(32.dp))
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF1A1A1A).copy(alpha = 0.9f),
+                            Color(0xFF0A0A0A).copy(alpha = 0.95f)
+                        )
+                    )
+                )
+                .border(
+                    1.dp, 
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.15f),
+                            Color(0xFFBB86FC).copy(alpha = 0.05f)
+                        )
+                    ), 
+                    RoundedCornerShape(32.dp)
+                )
+                .padding(32.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -68,47 +85,50 @@ fun TvFilePicker(
                     shape = ClickableSurfaceDefaults.shape(CircleShape),
                     colors = ClickableSurfaceDefaults.colors(
                         containerColor = Color.White.copy(alpha = 0.05f),
-                        focusedContainerColor = MaterialTheme.colorScheme.primary,
+                        focusedContainerColor = Color.White,
                         contentColor = Color.White,
-                        focusedContentColor = Color.White
-                    )
+                        focusedContentColor = Color.Black
+                    ),
+                    scale = ClickableSurfaceDefaults.scale(focusedScale = 1.1f)
                 ) {
-                    Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali", modifier = Modifier.size(20.dp))
+                    Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", modifier = Modifier.size(24.dp))
                     }
                 }
-                Spacer(modifier = Modifier.width(20.dp))
+                Spacer(modifier = Modifier.width(24.dp))
                 Column {
                     Text(
-                        text = "FILE BROWSER",
+                        text = "EXPLORER",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Black,
-                        letterSpacing = 2.sp
+                        letterSpacing = 4.sp
                     )
                     Text(
-                        text = currentDirectory.absolutePath,
+                        text = currentDirectory.absolutePath.uppercase(),
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.4f),
+                        color = Color.White.copy(alpha = 0.3f),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        letterSpacing = 1.sp
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.Black.copy(alpha = 0.3f))
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color.White.copy(alpha = 0.03f))
+                    .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(20.dp))
                     .padding(8.dp)
             ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    contentPadding = PaddingValues(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    contentPadding = PaddingValues(8.dp)
                 ) {
                     if (currentDirectory.parentFile != null &&
                         currentDirectory.absolutePath != Environment.getExternalStorageDirectory().absolutePath &&
@@ -117,7 +137,7 @@ fun TvFilePicker(
                         item {
                             FileItem(
                                 name = "..",
-                                subtitle = "Back to parent directory",
+                                subtitle = "Return to parent universe",
                                 isDirectory = true,
                                 onClick = { currentDirectory = currentDirectory.parentFile!! }
                             )
@@ -127,7 +147,7 @@ fun TvFilePicker(
                     items(files) { file ->
                         FileItem(
                             name = file.name,
-                            subtitle = if (file.isDirectory) "Directory" else "${(file.length() / 1024)} KB",
+                            subtitle = if (file.isDirectory) "System Directory" else "M3U Playlist File • ${(file.length() / 1024)} KB",
                             isDirectory = file.isDirectory,
                             onClick = {
                                 if (file.isDirectory) {
@@ -142,10 +162,15 @@ fun TvFilePicker(
                     if (files.isEmpty()) {
                         item {
                             Box(
-                                modifier = Modifier.fillMaxSize().padding(32.dp),
+                                modifier = Modifier.fillMaxSize().padding(64.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("No compatible files found", color = Color.Gray)
+                                Text(
+                                    "No compatible star-charts found", 
+                                    color = Color.White.copy(alpha = 0.2f),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium
+                                )
                             }
                         }
                     }
@@ -166,25 +191,25 @@ private fun FileItem(
     Surface(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
+        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = Color.Transparent,
             focusedContainerColor = MaterialTheme.colorScheme.primary,
             contentColor = Color.White,
             focusedContentColor = Color.White
         ),
-        scale = ClickableSurfaceDefaults.scale(focusedScale = 1.02f)
+        scale = ClickableSurfaceDefaults.scale(focusedScale = 1.03f)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(44.dp)
                     .background(
-                        if (isDirectory) MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)
-                        else MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        if (isDirectory) Color.White.copy(alpha = 0.05f)
+                        else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                         CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -192,23 +217,25 @@ private fun FileItem(
                 Icon(
                     imageVector = if (isDirectory) Icons.Default.Folder else Icons.AutoMirrored.Filled.InsertDriveFile,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = if (isDirectory) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                    modifier = Modifier.size(22.dp),
+                    tint = if (isDirectory) Color.White.copy(alpha = 0.6f) else MaterialTheme.colorScheme.primary
                 )
             }
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(20.dp))
             Column {
                 Text(
                     text = name,
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = subtitle,
-                    fontSize = 11.sp,
-                    color = Color.Gray,
+                    text = subtitle.uppercase(),
+                    fontSize = 10.sp,
+                    color = Color.White.copy(alpha = 0.4f),
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
                     maxLines = 1
                 )
             }

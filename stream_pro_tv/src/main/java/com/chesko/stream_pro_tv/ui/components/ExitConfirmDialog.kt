@@ -11,7 +11,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -39,81 +38,84 @@ fun ExitConfirmDialog(
     ) {
         Column(
             modifier = Modifier
-                .width(420.dp)
-                .clip(RoundedCornerShape(28.dp))
+                .width(360.dp)
+                .clip(RoundedCornerShape(24.dp))
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF252525),
-                            Color(0xFF151515)
+                            Color(0xFF1A1A1A).copy(alpha = 0.95f),
+                            Color(0xFF0A0A0A).copy(alpha = 0.98f)
                         )
                     )
                 )
                 .border(
                     1.dp, 
-                    Brush.verticalGradient(
+                    Brush.linearGradient(
                         colors = listOf(
                             Color.White.copy(alpha = 0.15f),
-                            Color.Transparent
+                            Color(0xFFBB86FC).copy(alpha = 0.05f)
                         )
                     ), 
-                    RoundedCornerShape(28.dp)
+                    RoundedCornerShape(24.dp)
                 )
-                .padding(32.dp),
+                .padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Icon Section
-            Surface(
-                onClick = {},
-                shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(20.dp)),
-                colors = ClickableSurfaceDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                    contentColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Box(modifier = Modifier.size(64.dp), contentAlignment = Alignment.Center) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ExitToApp, 
-                        contentDescription = null, 
-                        modifier = Modifier.size(32.dp)
+            // Icon Section with Cosmic Glow
+            Box(contentAlignment = Alignment.Center) {
+                Surface(
+                    onClick = {},
+                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
+                    colors = ClickableSurfaceDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        contentColor = MaterialTheme.colorScheme.primary
                     )
+                ) {
+                    Box(modifier = Modifier.size(60.dp), contentAlignment = Alignment.Center) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ExitToApp, 
+                            contentDescription = null, 
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
                 }
             }
             
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             
             Text(
-                text = "Konfirmasi Keluar",
-                style = MaterialTheme.typography.headlineSmall,
+                text = "EXIT UNIVERSE",
+                style = MaterialTheme.typography.titleLarge,
                 color = Color.White,
                 fontWeight = FontWeight.Black,
-                letterSpacing = 0.5.sp
+                letterSpacing = 2.sp
             )
             
             Spacer(modifier = Modifier.height(12.dp))
             
             Text(
-                text = "Ingin menutup aplikasi StreamPro TV?",
-                style = MaterialTheme.typography.bodyLarge,
+                text = "Are you sure you want to leave the cinematic universe?",
+                style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.6f),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                lineHeight = 20.sp
             )
             
-            Spacer(modifier = Modifier.height(36.dp))
+            Spacer(modifier = Modifier.height(32.dp))
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Button Batal (Default Focus)
+                // Button Batal (Stay)
                 Surface(
                     onClick = onDismiss,
                     modifier = Modifier
                         .weight(1f)
-                        .height(52.dp)
+                        .height(48.dp)
                         .focusRequester(cancelFocusRequester),
-                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
-                    scale = ClickableSurfaceDefaults.scale(focusedScale = 1.05f),
+                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
+                    scale = ClickableSurfaceDefaults.scale(focusedScale = 1.08f),
                     colors = ClickableSurfaceDefaults.colors(
                         containerColor = Color.White.copy(alpha = 0.05f),
                         focusedContainerColor = Color.White,
@@ -122,34 +124,36 @@ fun ExitConfirmDialog(
                     )
                 ) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Batal", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text("STAY", fontWeight = FontWeight.Black, fontSize = 15.sp, letterSpacing = 1.sp)
                     }
                 }
                 
-                // Button Keluar
+                // Button Keluar (Exit)
                 Surface(
                     onClick = onConfirm,
                     modifier = Modifier
                         .weight(1f)
-                        .height(52.dp),
-                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
-                    scale = ClickableSurfaceDefaults.scale(focusedScale = 1.05f),
+                        .height(48.dp),
+                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
+                    scale = ClickableSurfaceDefaults.scale(focusedScale = 1.08f),
                     colors = ClickableSurfaceDefaults.colors(
-                        containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
-                        focusedContainerColor = Color.White,
-                        contentColor = Color.White,
-                        focusedContentColor = Color.Black
+                        containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
+                        focusedContainerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.error,
+                        focusedContentColor = Color.White
+                    ),
+                    border = ClickableSurfaceDefaults.border(
+                        border = Border(androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)))
                     )
                 ) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Keluar", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text("EXIT", fontWeight = FontWeight.Black, fontSize = 14.sp, letterSpacing = 1.sp)
                     }
                 }
             }
         }
     }
 
-    // Auto focus ke tombol Batal saat dialog muncul
     LaunchedEffect(Unit) {
         cancelFocusRequester.requestFocus()
     }

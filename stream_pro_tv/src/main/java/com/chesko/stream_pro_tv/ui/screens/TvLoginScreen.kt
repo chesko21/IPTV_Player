@@ -57,6 +57,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import android.content.res.Configuration
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Offset
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -86,6 +88,11 @@ fun TvLoginScreen(
     val urlSurfaceFocusRequester = remember { FocusRequester() }
     var isEditingUrl by remember { mutableStateOf(false) }
 
+    val glowAlpha = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        glowAlpha.animateTo(1f, tween(2000))
+    }
+
     LaunchedEffect(Unit) {
         delay(300)
         buttonFocusRequester.requestFocus()
@@ -95,18 +102,18 @@ fun TvLoginScreen(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        // Background Animation (Poster Wall)
-        MovingPosterWall()
+        // Universe Background
+        UniverseBackground(MaterialTheme.colorScheme.primary, glowAlpha.value)
 
-        // High-end Gradient Overlay
+        // Subtle gradient overlay for readability
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.Black.copy(alpha = 0.6f),
-                            Color.Black.copy(alpha = 0.95f)
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.4f)
                         )
                     )
                 )
@@ -181,24 +188,37 @@ fun BrandingSection() {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        val infiniteTransition = rememberInfiniteTransition(label = "branding")
+        val glowScale by infiniteTransition.animateFloat(
+            initialValue = 1.0f,
+            targetValue = 1.4f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(3000, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "glow"
+        )
 
         Box(
-            modifier = Modifier
-                .size(140.dp)
-                .shadow(
-                    elevation = 40.dp,
-                    shape = CircleShape,
-                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                )
-                .background(Color(0xFF121212), CircleShape)
-                .border(2.dp, Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, Color.White.copy(alpha = 0.3f))), CircleShape)
-                .padding(28.dp),
+            modifier = Modifier.size(140.dp),
             contentAlignment = Alignment.Center
         ) {
+            // Cosmic Glow behind logo
+            Canvas(modifier = Modifier.size(140.dp * glowScale)) {
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFFBB86FC).copy(alpha = 0.15f),
+                            Color.Transparent
+                        )
+                    )
+                )
+            }
+            
             Image(
                 painter = painterResource(com.chesko.stream_pro_tv.R.drawable.app_icon_androidtv),
                 contentDescription = "Logo",
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.size(110.dp)
             )
         }
 
@@ -223,7 +243,7 @@ fun BrandingSection() {
             }
             
             TvText(
-                text = "PREMIUM IPTV PLAYER",
+                text = "EXPLORE THE CINEMATIC UNIVERSE",
                 style = MaterialTheme.typography.labelLarge,
                 color = Color.White.copy(alpha = 0.5f),
                 fontWeight = FontWeight.Bold,
@@ -240,7 +260,7 @@ fun BrandingSection() {
                 .padding(horizontal = 12.dp, vertical = 4.dp)
         ) {
             TvText(
-                text = "BY CHESKO",
+                text = "DESIGN By CHESKO",
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.White.copy(alpha = 0.3f),
                 fontWeight = FontWeight.Medium,
@@ -274,15 +294,20 @@ fun LoginFormSection(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .clip(RoundedCornerShape(24.dp))
-            .background(Color(0xFF181818).copy(alpha = 0.95f))
-            .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(24.dp))
+            .background(Color(0xFF0A0A0A).copy(alpha = 0.7f))
+            .border(
+                1.dp, 
+                Brush.linearGradient(listOf(Color.White.copy(alpha = 0.2f), Color(0xFFBB86FC).copy(alpha = 0.1f))), 
+                RoundedCornerShape(24.dp)
+            )
             .padding(if (modifier == Modifier.fillMaxWidth()) 24.dp else 36.dp)
     ) {
-        // Tab Selector - Modern Glass Look
+        // Tab Selector - Universe Glass Look
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF282828), RoundedCornerShape(12.dp))
+                .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
+                .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
                 .padding(6.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -344,18 +369,19 @@ fun RowScope.TabItem(text: String, isSelected: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .weight(1f)
             .height(44.dp),
-        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
+        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(10.dp)),
         colors = ClickableSurfaceDefaults.colors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-            focusedContainerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.8f) else Color(0xFF333333)
-        )
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.8f) else Color.Transparent,
+            focusedContainerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.1f)
+        ),
+        scale = ClickableSurfaceDefaults.scale(focusedScale = 1.05f)
     ) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             TvText(
                 text = text,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (isSelected) Color.White else Color.Gray
+                fontSize = 13.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = if (isSelected) Color.White else Color.White.copy(alpha = 0.5f)
             )
         }
     }
@@ -464,14 +490,14 @@ fun UrlInputSection(
                             .height(38.dp),
                         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(10.dp)),
                         colors = ClickableSurfaceDefaults.colors(
-                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.05f),
-                            focusedContainerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.5f),
-                            focusedContentColor = Color.White
+                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.05f),
+                            focusedContainerColor = Color.White,
+                            contentColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.6f),
+                            focusedContentColor = Color.Black
                         ),
                         border = ClickableSurfaceDefaults.border(
-                            focusedBorder = Border(BorderStroke(2.dp, Color.White)),
-                            border = Border(BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.05f)))
+                            focusedBorder = Border(BorderStroke(2.dp, MaterialTheme.colorScheme.primary)),
+                            border = Border(BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.1f)))
                         ),
                         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.1f)
                     ) {
@@ -497,14 +523,14 @@ fun UrlInputSection(
                     .focusRequester(urlSurfaceFocusRequester),
                 shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
                 colors = ClickableSurfaceDefaults.colors(
-                    containerColor = Color(0xFF222222),
-                    focusedContainerColor = Color(0xFF333333),
+                    containerColor = Color.White.copy(alpha = 0.03f),
+                    focusedContainerColor = Color.White.copy(alpha = 0.1f),
                     contentColor = Color.White,
                     focusedContentColor = Color.White
                 ),
                 border = ClickableSurfaceDefaults.border(
                     border = Border(BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))),
-                    focusedBorder = Border(BorderStroke(2.dp, MaterialTheme.colorScheme.primary))
+                    focusedBorder = Border(BorderStroke(2.dp, Color(0xFFBB86FC)))
                 )
             ) {
                 Row(
@@ -514,17 +540,20 @@ fun UrlInputSection(
                     Icon(
                         imageVector = Icons.Default.Link,
                         contentDescription = null,
-                        tint = if (url.isEmpty()) Color.Gray else MaterialTheme.colorScheme.primary,
+                        tint = if (url.isEmpty()) Color.Gray else Color(0xFFBB86FC),
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         if (url.isEmpty()) {
-                            Material3Text("Playlist M3U URL", color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                            Material3Text("Click to enter address", color = Color.White.copy(alpha = 0.3f), fontSize = 11.sp)
+                            Material3Text("Playlist M3U URL", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                            Material3Text("Click to enter address", color = Color.White.copy(alpha = 0.25f), fontSize = 11.sp)
                         } else {
-                            Material3Text("Target URL", color = MaterialTheme.colorScheme.primary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            Material3Text(url, color = Color.White, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            val demoIndex = MainViewModel.DEMO_URLS.indexOf(url)
+                            val displayUrl = if (demoIndex != -1) "SERVER ${demoIndex + 1}" else url
+                            
+                            Material3Text("Target URL", color = Color(0xFFBB86FC), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Material3Text(displayUrl, color = Color.White, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 }
@@ -539,10 +568,10 @@ fun UrlInputSection(
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF2A2A2A),
-                    unfocusedContainerColor = Color(0xFF222222),
+                    focusedContainerColor = Color.White.copy(alpha = 0.05f),
+                    unfocusedContainerColor = Color.Transparent,
                     focusedTextColor = Color.White,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedBorderColor = Color(0xFFBB86FC),
                     unfocusedBorderColor = Color.White.copy(alpha = 0.1f)
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -574,9 +603,9 @@ fun UrlInputSection(
                     focusedContainerColor = Color.White,
                     contentColor = Color.White,
                     focusedContentColor = Color.Black,
-                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                 ),
-                scale = ClickableSurfaceDefaults.scale(focusedScale = 1.05f)
+                scale = ClickableSurfaceDefaults.scale(focusedScale = 1.08f)
             ) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     val isUrlLoading = isLoading && url.isNotBlank() && url != MainViewModel.BASE_URL
@@ -601,13 +630,13 @@ fun UrlInputSection(
                     .height(56.dp),
                 shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
                 colors = ClickableSurfaceDefaults.colors(
-                    containerColor = Color.White.copy(alpha = 0.08f),
+                    containerColor = Color.White.copy(alpha = 0.06f),
                     focusedContainerColor = Color.White,
-                    contentColor = Color.White.copy(alpha = 0.8f),
+                    contentColor = Color.White.copy(alpha = 0.7f),
                     focusedContentColor = Color.Black,
-                    disabledContainerColor = Color.White.copy(alpha = 0.04f)
+                    disabledContainerColor = Color.White.copy(alpha = 0.03f)
                 ),
-                scale = ClickableSurfaceDefaults.scale(focusedScale = 1.05f)
+                scale = ClickableSurfaceDefaults.scale(focusedScale = 1.08f)
             ) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     val isDemoLoading = isLoading && (url == MainViewModel.BASE_URL || lastUrl == MainViewModel.BASE_URL)
@@ -649,14 +678,14 @@ fun FileInputSection(
             modifier = Modifier.fillMaxWidth().height(68.dp),
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
             colors = ClickableSurfaceDefaults.colors(
-                containerColor = Color(0xFF222222),
-                focusedContainerColor = Color(0xFF333333),
+                containerColor = Color.White.copy(alpha = 0.03f),
+                focusedContainerColor = Color.White.copy(alpha = 0.1f),
                 contentColor = Color.White,
                 focusedContentColor = Color.White
             ),
             border = ClickableSurfaceDefaults.border(
                 border = Border(BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))),
-                focusedBorder = Border(BorderStroke(2.dp, MaterialTheme.colorScheme.primary))
+                focusedBorder = Border(BorderStroke(2.dp, Color(0xFFBB86FC)))
             )
         ) {
             Row(
@@ -666,16 +695,16 @@ fun FileInputSection(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
                     contentDescription = null,
-                    tint = if (hasSelectedFile) MaterialTheme.colorScheme.primary else Color.Gray,
+                    tint = if (hasSelectedFile) Color(0xFFBB86FC) else Color.Gray,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     if (!hasSelectedFile) {
-                        Material3Text("Select Local M3U File", color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                        Material3Text("Browse internal storage", color = Color.White.copy(alpha = 0.3f), fontSize = 11.sp)
+                        Material3Text("Select Local M3U File", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        Material3Text("Browse internal storage", color = Color.White.copy(alpha = 0.25f), fontSize = 11.sp)
                     } else {
-                        Material3Text("Selected File", color = MaterialTheme.colorScheme.primary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Material3Text("Selected File", color = Color(0xFFBB86FC), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         Material3Text(selectedFileName, color = Color.White, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
@@ -695,7 +724,7 @@ fun FileInputSection(
                 contentColor = Color.White,
                 focusedContentColor = Color.Black
             ),
-            scale = ClickableSurfaceDefaults.scale(focusedScale = 1.05f)
+            scale = ClickableSurfaceDefaults.scale(focusedScale = 1.08f)
         ) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                val isFileLoading = isLoading && hasSelectedFile

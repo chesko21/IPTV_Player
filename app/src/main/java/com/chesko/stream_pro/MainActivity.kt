@@ -1,50 +1,92 @@
 package com.chesko.stream_pro
 
 import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.compose.animation.*
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.chesko.stream_pro.core.ui.MainViewModel
-import com.chesko.stream_pro.core.utils.NetworkObserver
-import com.chesko.stream_pro.ui.screens.*
-import com.chesko.stream_pro.ui.theme.IPTV_PlayerTheme
-import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.chesko.stream_pro.core.data.model.IptvChannel
+import com.chesko.stream_pro.core.ui.MainViewModel
+import com.chesko.stream_pro.core.utils.LocaleHelper
+import com.chesko.stream_pro.core.utils.NetworkObserver
+import com.chesko.stream_pro.ui.screens.AboutScreen
+import com.chesko.stream_pro.ui.screens.EpgScreen
+import com.chesko.stream_pro.ui.screens.HelpScreen
+import com.chesko.stream_pro.ui.screens.HomeScreen
+import com.chesko.stream_pro.ui.screens.LoginScreen
+import com.chesko.stream_pro.ui.screens.PlayerScreen
+import com.chesko.stream_pro.ui.screens.ProfileScreen
+import com.chesko.stream_pro.ui.screens.SettingsScreen
+import com.chesko.stream_pro.ui.screens.SplashScreen
+import com.chesko.stream_pro.ui.theme.IPTV_PlayerTheme
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        val prefs = newBase.getSharedPreferences("iptv_player_prefs", MODE_PRIVATE)
+        val lang = prefs.getString("app_language", "in") ?: "in"
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase, lang))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -84,17 +126,19 @@ class MainActivity : ComponentActivity() {
                 var topNotifColor by remember { mutableStateOf(Color(0xFF4CAF50)) }
                 var isTopNotifVisible by remember { mutableStateOf(false) }
 
+                val context = LocalContext.current
                 LaunchedEffect(networkStatus) {
                     when (networkStatus) {
                         is NetworkObserver.NetworkStatus.Lost -> {
-                            topNotifMessage = "Koneksi internet terputus"
+                            topNotifMessage = context.getString(R.string.net_lost)
                             topNotifIcon = Icons.Default.CloudOff
                             topNotifColor = Color(0xFFE53935)
                             isTopNotifVisible = true
                         }
+
                         is NetworkObserver.NetworkStatus.Available -> {
-                            if (topNotifMessage == "Koneksi internet terputus") {
-                                topNotifMessage = "Koneksi internet terhubung kembali"
+                            if (topNotifMessage == context.getString(R.string.net_lost)) {
+                                topNotifMessage = context.getString(R.string.net_restored)
                                 topNotifIcon = Icons.Default.Wifi
                                 topNotifColor = Color(0xFF4CAF50)
                                 isTopNotifVisible = true
@@ -144,7 +188,7 @@ class MainActivity : ComponentActivity() {
                     Scaffold(
                         snackbarHost = { SnackbarHost(snackbarHostState) },
                         containerColor = MaterialTheme.colorScheme.background,
-                        contentWindowInsets = WindowInsets(0,0,0,0) // Abaikan insets global agar NavHost full screen
+                        contentWindowInsets = WindowInsets(0, 0, 0, 0)
                     ) { _ ->
                         Box(
                             modifier = Modifier.fillMaxSize()

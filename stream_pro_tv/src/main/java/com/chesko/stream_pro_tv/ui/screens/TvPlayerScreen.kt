@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.focus.*
 import androidx.compose.foundation.focusGroup
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
@@ -493,31 +494,58 @@ fun TvPlayerScreenContent(
             val isBuffering = playbackState == Player.STATE_BUFFERING
 
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color.Transparent, Color.Black.copy(alpha = 0.5f))
+                        )
+                    )
+                    .padding(bottom = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (isBuffering) {
                     Text(
-                        text = "Menghubungkan...",
+                        text = "SYNCING SIGNAL...",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.4f),
-                        fontSize = if (isSmallScreen) 8.sp else 9.sp,
-                        fontWeight = FontWeight.Light,
-                        modifier = Modifier.padding(bottom = 2.dp)
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = if (isSmallScreen) 7.sp else 9.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 2.sp,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
+
+                // Program Title Mini-Info
+                if (currentProgram != null) {
+                    Text(
+                        text = currentProgram.title.uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.6f),
+                        fontSize = if (isSmallScreen) 7.sp else 8.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
                 }
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(if (isSmallScreen) 1.5.dp else 2.dp)
-                        .background(Color.White.copy(alpha = 0.15f))
+                        .height(if (isSmallScreen) 2.dp else 3.dp)
+                        .background(Color.White.copy(alpha = 0.1f))
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(progress)
                             .fillMaxHeight()
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.7f))
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), MaterialTheme.colorScheme.primary)
+                                )
+                            )
                     )
                 }
             }
@@ -560,8 +588,8 @@ fun TvPlayerScreenContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
-                            horizontal = if (isSmallScreen) 12.dp else 24.dp,
-                            vertical = if (isSmallScreen) 4.dp else 8.dp
+                            horizontal = if (isSmallScreen) 16.dp else 32.dp,
+                            vertical = if (isSmallScreen) 12.dp else 20.dp
                         )
                         .align(Alignment.TopCenter),
                     verticalAlignment = Alignment.CenterVertically,
@@ -569,40 +597,24 @@ fun TvPlayerScreenContent(
                 ) {
                     TvHeaderButton(
                         icon = Icons.AutoMirrored.Filled.ArrowBack,
-                        label = "Kembali",
+                        label = "BACK",
                         onInteraction = onInteraction,
                         onClick = onBack
                     )
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        TvHeaderButton(
-                            icon = Icons.Default.SettingsInputComponent,
-                            label = activeEngine,
-                            onInteraction = onInteraction,
-                            onClick = onSwitchEngine
-                        )
-                        if (!isSmallScreen) {
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                activeEngine,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-
-                    Box(
+                    Row(
                         modifier = Modifier.weight(1f),
-                        contentAlignment = Alignment.Center
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(
                             modifier = Modifier
                                 .wrapContentWidth()
-                                .height(if (isSmallScreen) 32.dp else 40.dp)
-                                .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.5f))
-                                .padding(horizontal = if (isSmallScreen) 10.dp else 16.dp),
+                                .height(if (isSmallScreen) 36.dp else 48.dp)
+                                .clip(RoundedCornerShape(if (isSmallScreen) 12.dp else 16.dp))
+                                .background(Color.Black.copy(alpha = 0.6f))
+                                .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(if (isSmallScreen) 12.dp else 16.dp))
+                                .padding(horizontal = if (isSmallScreen) 12.dp else 20.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
@@ -612,35 +624,35 @@ fun TvPlayerScreenContent(
                                 placeholder = painterResource(com.chesko.stream_pro_tv.R.drawable.app_icon_androidtv),
                                 error = painterResource(com.chesko.stream_pro_tv.R.drawable.app_icon_androidtv),
                                 modifier = Modifier
-                                    .size(if (isSmallScreen) 24.dp else 36.dp, if (isSmallScreen) 16.dp else 24.dp)
-                                    .clip(RoundedCornerShape(2.dp))
-                                    .background(Color.White.copy(alpha = 0.1f)),
+                                    .size(if (isSmallScreen) 32.dp else 44.dp, if (isSmallScreen) 20.dp else 28.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(Color.White.copy(alpha = 0.05f)),
                                 contentScale = ContentScale.Fit
                             )
-                            Spacer(Modifier.width(if (isSmallScreen) 6.dp else 12.dp))
+                            Spacer(Modifier.width(if (isSmallScreen) 12.dp else 20.dp))
                             Column(
                                 verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                horizontalAlignment = Alignment.Start
                             ) {
                                 Text(
-                                    text = currentChannel.name,
-                                    style = if (isSmallScreen) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
+                                    text = currentChannel.name.uppercase(),
+                                    style = if (isSmallScreen) MaterialTheme.typography.labelMedium else MaterialTheme.typography.titleMedium,
                                     color = Color.White,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.Black,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
-                                    textAlign = TextAlign.Center,
-                                    fontSize = if (isSmallScreen) 10.sp else 12.sp
+                                    letterSpacing = 1.sp
                                 )
                                 currentChannel.group?.let {
                                     Text(
-                                        text = it,
+                                        text = it.uppercase(),
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = Color.White.copy(alpha = 0.7f),
+                                        color = MaterialTheme.colorScheme.primary,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Center,
-                                        fontSize = if (isSmallScreen) 7.sp else 9.sp
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = if (isSmallScreen) 7.sp else 9.sp,
+                                        letterSpacing = 2.sp
                                     )
                                 }
                             }
@@ -649,13 +661,15 @@ fun TvPlayerScreenContent(
 
                     TvHeaderButton(
                         icon = Icons.Default.Menu,
-                        label = "Menu",
+                        label = "MENU",
                         onInteraction = onInteraction,
                         onClick = onSettingsClick
                     )
                 }
 
-                val isError = playbackState == Player.STATE_IDLE && exoPlayer?.playerError != null
+                val isError = (playbackState == Player.STATE_IDLE && exoPlayer?.playerError != null) || 
+                             (playbackState == Player.STATE_IDLE && !isPlaying) ||
+                             (playbackState == Player.STATE_ENDED)
 
                 Row(
                     modifier = Modifier.align(Alignment.Center),
@@ -681,6 +695,17 @@ fun TvPlayerScreenContent(
                     )
 
                     Box(contentAlignment = Alignment.Center) {
+                        val isBuffering = playbackState == Player.STATE_BUFFERING
+                        
+                        if (isBuffering || isError) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(if (isSmallScreen) 54.dp else 64.dp),
+                                color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                strokeWidth = 3.dp,
+                                trackColor = Color.White.copy(alpha = 0.1f)
+                            )
+                        }
+
                         TvPlayerCenterAction(
                             icon = when {
                                 isError -> Icons.Default.Refresh
@@ -732,19 +757,22 @@ fun TvPlayerScreenContent(
                         .align(Alignment.BottomCenter)
                         .padding(
                             horizontal = if (isSmallScreen) 16.dp else 40.dp,
-                            vertical = if (isSmallScreen) 8.dp else 16.dp
+                            vertical = if (isSmallScreen) 12.dp else 24.dp
                         ),
-                    verticalArrangement = Arrangement.spacedBy(if (isSmallScreen) 4.dp else 12.dp)
+                    verticalArrangement = Arrangement.spacedBy(if (isSmallScreen) 8.dp else 16.dp)
                 ) {
                     if (playbackDuration > 0) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .clip(RoundedCornerShape(if (isSmallScreen) 16.dp else 24.dp))
+                                .background(Color.Black.copy(alpha = 0.6f))
+                                .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(if (isSmallScreen) 16.dp else 24.dp))
                                 .padding(
-                                    horizontal = if (isSmallScreen) 12.dp else 24.dp,
-                                    vertical = if (isSmallScreen) 4.dp else 12.dp
+                                    horizontal = if (isSmallScreen) 16.dp else 28.dp,
+                                    vertical = if (isSmallScreen) 10.dp else 20.dp
                                 ),
-                            verticalArrangement = Arrangement.spacedBy(if (isSmallScreen) 2.dp else 4.dp),
+                            verticalArrangement = Arrangement.spacedBy(if (isSmallScreen) 6.dp else 12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Row(
@@ -752,23 +780,34 @@ fun TvPlayerScreenContent(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = currentChannel.name,
-                                    style = if (isSmallScreen) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
+                                Column {
+                                    Text(
+                                        text = "NOW STREAMING",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Black,
+                                        letterSpacing = 2.sp,
+                                        fontSize = if (isSmallScreen) 8.sp else 10.sp
+                                    )
+                                    Text(
+                                        text = currentChannel.name.uppercase(),
+                                        style = if (isSmallScreen) MaterialTheme.typography.labelLarge else MaterialTheme.typography.titleMedium,
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Black,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                                 Text(
                                     text = "${PlayerUtils.formatTime(playbackPosition)} / ${PlayerUtils.formatTime(playbackDuration)}",
-                                    style = if (isSmallScreen) MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp) else MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                    color = Color.White.copy(alpha = 0.8f)
+                                    style = if (isSmallScreen) MaterialTheme.typography.labelMedium.copy(fontSize = 10.sp) else MaterialTheme.typography.titleSmall,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
 
                             Box(
-                                modifier = Modifier.fillMaxWidth().height(if (isSmallScreen) 6.dp else 8.dp),
+                                modifier = Modifier.fillMaxWidth().height(if (isSmallScreen) 8.dp else 12.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 val progress = (playbackPosition.toFloat() / playbackDuration.toFloat()).coerceIn(0f, 1f)
@@ -776,17 +815,21 @@ fun TvPlayerScreenContent(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(if (isSmallScreen) 2.dp else 3.dp)
+                                        .height(if (isSmallScreen) 3.dp else 4.dp)
                                         .clip(CircleShape)
-                                        .background(Color.White.copy(alpha = 0.2f))
+                                        .background(Color.White.copy(alpha = 0.1f))
                                 )
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth(progress)
-                                        .height(if (isSmallScreen) 2.dp else 3.dp)
+                                        .height(if (isSmallScreen) 3.dp else 4.dp)
                                         .align(Alignment.CenterStart)
                                         .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary)
+                                        .background(
+                                            Brush.horizontalGradient(
+                                                listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), MaterialTheme.colorScheme.primary)
+                                            )
+                                        )
                                 )
                             }
                         }
@@ -794,11 +837,14 @@ fun TvPlayerScreenContent(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .clip(RoundedCornerShape(if (isSmallScreen) 16.dp else 24.dp))
+                                .background(Color.Black.copy(alpha = 0.6f))
+                                .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(if (isSmallScreen) 16.dp else 24.dp))
                                 .padding(
-                                    horizontal = if (isSmallScreen) 12.dp else 24.dp,
-                                    vertical = if (isSmallScreen) 4.dp else 12.dp
+                                    horizontal = if (isSmallScreen) 16.dp else 28.dp,
+                                    vertical = if (isSmallScreen) 10.dp else 20.dp
                                 ),
-                            verticalArrangement = Arrangement.spacedBy(if (isSmallScreen) 4.dp else 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(if (isSmallScreen) 6.dp else 12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             val progress = remember(currentProgram) {
@@ -812,58 +858,71 @@ fun TvPlayerScreenContent(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "CURRENT PROGRAM",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Black,
+                                        letterSpacing = 2.sp,
+                                        fontSize = if (isSmallScreen) 8.sp else 10.sp
+                                    )
+                                    Text(
+                                        text = currentProgram.title.uppercase(),
+                                        style = if (isSmallScreen) MaterialTheme.typography.labelLarge else MaterialTheme.typography.titleMedium,
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Black,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                                Spacer(Modifier.width(16.dp))
                                 Text(
-                                    text = currentProgram.title,
+                                    text = "${timeFormat.format(Date(currentProgram.startTime))} - ${timeFormat.format(Date(currentProgram.endTime))}",
                                     style = if (isSmallScreen) MaterialTheme.typography.labelMedium else MaterialTheme.typography.titleSmall,
                                     color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Spacer(Modifier.width(if (isSmallScreen) 8.dp else 16.dp))
-                                Text(
-                                    text = "${timeFormat.format(Date(currentProgram.startTime))} - ${
-                                        timeFormat.format(
-                                            Date(currentProgram.endTime)
-                                        )
-                                    }",
-                                    style = if (isSmallScreen) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
-                                    color = Color.White.copy(alpha = 0.8f),
-                                    fontSize = if (isSmallScreen) 9.sp else 11.sp
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
 
                             Box(
-                                modifier = Modifier.fillMaxWidth().height(if (isSmallScreen) 6.dp else 8.dp),
+                                modifier = Modifier.fillMaxWidth().height(if (isSmallScreen) 8.dp else 12.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(if (isSmallScreen) 2.dp else 3.dp)
+                                        .height(if (isSmallScreen) 3.dp else 4.dp)
                                         .clip(CircleShape)
-                                        .background(Color.White.copy(alpha = 0.2f))
+                                        .background(Color.White.copy(alpha = 0.1f))
                                 )
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth(progress)
-                                        .height(if (isSmallScreen) 2.dp else 3.dp)
+                                        .height(if (isSmallScreen) 3.dp else 4.dp)
                                         .align(Alignment.CenterStart)
                                         .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary)
+                                        .background(
+                                            Brush.horizontalGradient(
+                                                listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), MaterialTheme.colorScheme.primary)
+                                            )
+                                        )
                                 )
                             }
                         }
                     } else {
+                        // Empty Program State (Still glassmorphism)
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .clip(RoundedCornerShape(if (isSmallScreen) 16.dp else 24.dp))
+                                .background(Color.Black.copy(alpha = 0.6f))
+                                .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(if (isSmallScreen) 16.dp else 24.dp))
                                 .padding(
-                                    horizontal = if (isSmallScreen) 12.dp else 24.dp,
-                                    vertical = if (isSmallScreen) 4.dp else 12.dp
+                                    horizontal = if (isSmallScreen) 16.dp else 28.dp,
+                                    vertical = if (isSmallScreen) 10.dp else 20.dp
                                 ),
-                            verticalArrangement = Arrangement.spacedBy(if (isSmallScreen) 4.dp else 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Row(
@@ -872,15 +931,17 @@ fun TvPlayerScreenContent(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Tidak ada informasi program",
-                                    style = if (isSmallScreen) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
-                                    color = Color.White.copy(alpha = 0.6f)
+                                    text = "NO PROGRAM INFORMATION DISCOVERED",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White.copy(alpha = 0.4f),
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 2.sp
                                 )
                             }
                             Box(
-                                modifier = Modifier.fillMaxWidth().height(if (isSmallScreen) 2.dp else 3.dp)
+                                modifier = Modifier.fillMaxWidth().height(2.dp)
                                     .clip(CircleShape)
-                                    .background(Color.White.copy(alpha = 0.1f))
+                                    .background(Color.White.copy(alpha = 0.05f))
                             )
                         }
                     }
@@ -889,25 +950,27 @@ fun TvPlayerScreenContent(
                         Row(
                             modifier = Modifier
                                 .align(Alignment.End)
-                                .padding(
-                                    horizontal = if (isSmallScreen) 12.dp else 18.dp,
-                                    vertical = if (isSmallScreen) 4.dp else 8.dp
-                                ),
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+                                .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(if (isSmallScreen) 6.dp else 12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(
-                                    text = "BERIKUTNYA",
-                                    style = if (isSmallScreen) MaterialTheme.typography.labelSmall.copy(fontSize = 7.sp) else MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                    text = "COMING UP NEXT",
+                                    style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    letterSpacing = 0.5.sp
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 1.sp,
+                                    fontSize = if (isSmallScreen) 7.sp else 9.sp
                                 )
                                 Text(
-                                    text = nextProgram.title,
+                                    text = nextProgram.title.uppercase(),
                                     style = if (isSmallScreen) MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp) else MaterialTheme.typography.labelSmall,
-                                    color = Color.White.copy(alpha = 0.8f),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )

@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import com.chesko.stream_pro.BuildConfig
 import com.chesko.stream_pro.R
 import kotlinx.coroutines.launch
@@ -41,7 +42,7 @@ fun AboutScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tentang Aplikasi", fontWeight = FontWeight.Black) },
+                title = { Text(stringResource(R.string.about_title), fontWeight = FontWeight.Black) },
                 navigationIcon = {
                     IconButton(onClick = {
                         if (!isBackInvoked) {
@@ -51,7 +52,7 @@ fun AboutScreen(onBack: () -> Unit) {
                     }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack, 
-                            contentDescription = "Kembali", 
+                            contentDescription = null, 
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -84,7 +85,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Row {
                     Text(
-                        "STREAM",
+                        stringResource(R.string.brand_name).substringBefore("PRO"),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.onBackground
@@ -102,7 +103,7 @@ fun AboutScreen(onBack: () -> Unit) {
             
             val versionName = BuildConfig.VERSION_NAME
             Text(
-                "Versi $versionName (Stable)",
+                stringResource(R.string.about_version, versionName),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
             )
@@ -110,7 +111,7 @@ fun AboutScreen(onBack: () -> Unit) {
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                "Stream Pro adalah pemutar IPTV modern yang dirancang untuk memberikan pengalaman menonton terbaik dengan antarmuka yang bersih dan performa tinggi.",
+                stringResource(R.string.about_description),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center,
@@ -121,10 +122,10 @@ fun AboutScreen(onBack: () -> Unit) {
 
             // Info Section
             val uriHandler = LocalUriHandler.current
-            AboutInfoItem("Pengembang", "Chesko Dev Team")
-            AboutInfoItem("Lisensi", "Premium Subscription")
+            AboutInfoItem(stringResource(R.string.about_label_developer), stringResource(R.string.about_label_dev_team))
+            AboutInfoItem(stringResource(R.string.about_label_license), stringResource(R.string.about_label_license_val))
             AboutInfoItem(
-                label = "Website", 
+                label = stringResource(R.string.about_label_website), 
                 value = "https://chesko-25.vercel.app",
                 onClick = { uriHandler.openUri("https://chesko-25.vercel.app") }
             )
@@ -137,7 +138,7 @@ fun AboutScreen(onBack: () -> Unit) {
             Spacer(modifier = Modifier.height(48.dp))
 
             Text(
-                "© $currentYear Stream Pro IPTV. All rights reserved.",
+                stringResource(R.string.about_footer_rights, currentYear),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
             )
@@ -170,7 +171,7 @@ fun DonationSection() {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    "Dukung Pengembang",
+                    stringResource(R.string.about_support_dev),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Black,
                     color = MaterialTheme.colorScheme.onSurface
@@ -180,7 +181,7 @@ fun DonationSection() {
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                "Jika Anda menyukai aplikasi ini, Anda dapat memberikan donasi untuk mendukung pengembangan lebih lanjut.",
+                stringResource(R.string.about_donation_msg),
                 style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -194,8 +195,6 @@ fun DonationSection() {
                     .clip(RoundedCornerShape(12.dp))
                     .clickable {
                         clipboardManager.setText(AnnotatedString(danaNumber))
-                        // Note: Scaffold in the main Composable will need its own snackbar host, 
-                        // but for simplicity here we just use the click.
                     },
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
@@ -208,7 +207,7 @@ fun DonationSection() {
                         Text(
                             "DANA",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF118EEA), // DANA Blue
+                            color = Color(0xFF118EEA),
                             fontWeight = FontWeight.Black
                         )
                         Text(
@@ -218,14 +217,14 @@ fun DonationSection() {
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            "a/n Bae***** Ati**",
+                            stringResource(R.string.about_label_dana_name),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Icon(
                         Icons.Default.ContentCopy,
-                        contentDescription = "Salin Nomor",
+                        contentDescription = stringResource(R.string.about_copy_number),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )

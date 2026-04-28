@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import com.chesko.stream_pro.R
 import com.chesko.stream_pro.ui.components.shimmerEffect
 import kotlinx.coroutines.delay
@@ -64,7 +65,7 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
     val logoAlpha = remember { Animatable(0f) }
     val contentAlpha = remember { Animatable(0f) }
     val logoRotation = remember { Animatable(-30f) }
-    val loadingProgress = remember { Animatable(0.1f) } // Start at 10%
+    val loadingProgress = remember { Animatable(0.0f) }
     val starAlpha by infiniteTransition.animateFloat(
         initialValue = 0.2f,
         targetValue = 0.8f,
@@ -77,7 +78,6 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
 
     LaunchedEffect(Unit) {
         launch {
-            // Overshoot spring for cinematic pop
             logoScale.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow))
         }
         launch {
@@ -92,12 +92,10 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
         }
         launch {
             delay(1000)
-            // Animate loading from 10% to 100%
             loadingProgress.animateTo(1f, tween(2500, easing = LinearOutSlowInEasing))
         }
-        
-        // Navigation Logic
-        delay(4000) // Adjusted delay to sync with progress
+
+        delay(4000)
         val currentPlaylist = viewModel.lastUrl.value
         if (currentPlaylist.isNotEmpty()) {
             onNextScreen("home")
@@ -109,10 +107,9 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF020205)), // Deep Space Black
+            .background(Color(0xFF020205)),
         contentAlignment = Alignment.Center
     ) {
-        // 1. COSMIC LAYERS (Nebulas & Stars)
         Canvas(modifier = Modifier.fillMaxSize().blur(80.dp)) {
             // Primary Nebula
             drawCircle(
@@ -212,7 +209,7 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "STREAM",
+                        text = stringResource(R.string.brand_name).substringBefore("PRO"),
                         style = MaterialTheme.typography.displayMedium.copy(
                             fontSize = 42.sp,
                             fontWeight = FontWeight.Black,
@@ -228,7 +225,7 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
                             letterSpacing = (-1).sp
                         ),
                         color = primaryColor,
-                        modifier = Modifier.shimmerEffect() // Adding universe shimmer to PRO
+                        modifier = Modifier.shimmerEffect()
                     )
                 }
                 
@@ -236,7 +233,7 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
                 
                 // Universe Subtitle
                 Text(
-                    text = "EXPLORE THE DIGITAL UNIVERSE",
+                    text = stringResource(R.string.splash_universe_subtitle),
                     style = MaterialTheme.typography.labelMedium.copy(
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
@@ -296,7 +293,7 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 Text(
-                    text = "INITIALIZING SYSTEMS",
+                    text = stringResource(R.string.splash_initializing),
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 4.sp,
@@ -309,7 +306,7 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
 
         // 3. FOOTER
         Text(
-            text = "DESIGNED BY CHESKO",
+            text = stringResource(R.string.splash_designed_by),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 40.dp)

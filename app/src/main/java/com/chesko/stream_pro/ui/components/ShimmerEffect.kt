@@ -27,8 +27,7 @@ import androidx.compose.ui.unit.dp
  */
 fun Modifier.shimmerEffect(): Modifier = composed {
     val transition = rememberInfiniteTransition(label = "universe_shimmer")
-    
-    // Smooth translation animation (Optimized for premium feel)
+
     val translateAnim by transition.animateFloat(
         initialValue = -1500f,
         targetValue = 1500f,
@@ -39,7 +38,6 @@ fun Modifier.shimmerEffect(): Modifier = composed {
         label = "translation"
     )
 
-    // Subtle pulsing alpha animation
     val pulseAlpha by transition.animateFloat(
         initialValue = 0.6f,
         targetValue = 0.9f,
@@ -58,7 +56,8 @@ fun Modifier.shimmerEffect(): Modifier = composed {
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
     )
 
-    this.graphicsLayer { alpha = pulseAlpha }
+    this
+        .graphicsLayer { alpha = pulseAlpha }
         .background(
             brush = Brush.linearGradient(
                 colors = shimmerColors,
@@ -167,7 +166,7 @@ fun ShimmerContentRow() {
                 .clip(RoundedCornerShape(10.dp))
                 .shimmerEffect()
         )
-        
+
         Row(
             modifier = Modifier.padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -187,8 +186,10 @@ fun ShimmerHomeScreen() {
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
     ) {
-        Spacer(modifier = Modifier.statusBarsPadding().height(64.dp))
-        
+        Spacer(modifier = Modifier
+            .statusBarsPadding()
+            .height(64.dp))
+
         // Large Modern Hero Shimmer
         Box(
             modifier = Modifier
@@ -198,7 +199,7 @@ fun ShimmerHomeScreen() {
                 .clip(RoundedCornerShape(32.dp))
                 .shimmerEffect()
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // Futuristic Tab/Chip Shimmer
@@ -218,7 +219,7 @@ fun ShimmerHomeScreen() {
                 )
             }
         }
-        
+
         repeat(3) {
             ShimmerContentRow()
         }

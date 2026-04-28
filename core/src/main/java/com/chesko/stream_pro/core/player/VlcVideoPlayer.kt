@@ -4,9 +4,23 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -17,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -58,7 +73,7 @@ fun VlcVideoPlayer(
 
     var retryCount by remember { mutableIntStateOf(0) }
 
-    val libVLC = remember(hwAcceleration) { 
+    val libVLC = remember(hwAcceleration) {
         val options = arrayListOf<String>().apply {
             add("--drop-late-frames")
             add("--skip-frames")
@@ -66,18 +81,20 @@ fun VlcVideoPlayer(
             add("--network-caching=5000")
             add("--file-caching=5000")
             add("--live-caching=5000")
-            add("--clock-jitter=1500") 
+            add("--clock-jitter=1500")
             add("--clock-synchro=0")
             add("--http-reconnect")
-            
+
 
             add("--no-avcodec-dr")
             add("--adaptive-logic=bandwidth")
             add("--hls-use-access")
             add("--no-stats")
-            add("--no-osd")
             add("--no-video-title-show")
-            
+            add("--sub-track=-1")
+            add("--freetype-rel-fontsize=16")
+            add("--subsdec-encoding=UTF-8")
+
             if (hwAcceleration) {
                 add("--avcodec-hw=any")
                 add("--codec=mediacodec_jni,mediacodec_ndk,all")
@@ -92,7 +109,7 @@ fun VlcVideoPlayer(
             LibVLC(context.applicationContext)
         }
     }
-    
+
     val mediaPlayer = remember(libVLC) { MediaPlayer(libVLC) }
 
     val eventListener = remember {
@@ -104,25 +121,30 @@ fun VlcVideoPlayer(
                     if (retryCount < 3) {
                         retryCount++
                     } else {
-                        currentOnError?.invoke("Playback Error (Discontinuity/Server issue)")
+                        currentOnError?.invoke(context.getString(R.string.vlc_error_discontinuity))
                     }
                 }
+
                 MediaPlayer.Event.Buffering -> {
                     currentOnBuffering?.invoke(event.buffering < 100f)
                 }
+
                 MediaPlayer.Event.Playing -> {
                     currentOnBuffering?.invoke(false)
                     currentOnPlayingChanged?.invoke(true)
                     currentOnSuccess?.invoke()
                     retryCount = 0
                 }
+
                 MediaPlayer.Event.Vout -> {
                     currentOnBuffering?.invoke(false)
                     currentOnPlayingChanged?.invoke(true)
                 }
+
                 MediaPlayer.Event.Paused, MediaPlayer.Event.Stopped, MediaPlayer.Event.EndReached -> {
                     currentOnPlayingChanged?.invoke(false)
                 }
+
                 else -> {}
             }
         }
@@ -138,7 +160,8 @@ fun VlcVideoPlayer(
                 if (mediaPlayer.isPlaying) {
                     mediaPlayer.stop()
                 }
-            } catch (_: Exception) {}
+            } catch (_: Exception) {
+            }
             mediaPlayer.detachViews()
             mediaPlayer.release()
             libVLC.release()
@@ -160,13 +183,17 @@ fun VlcVideoPlayer(
                 Lifecycle.Event.ON_PAUSE -> {
                     try {
                         if (mediaPlayer.isPlaying) mediaPlayer.pause()
-                    } catch (_: Exception) {}
+                    } catch (_: Exception) {
+                    }
                 }
+
                 Lifecycle.Event.ON_RESUME -> {
                     try {
                         if (!mediaPlayer.isPlaying && mediaPlayer.hasMedia()) mediaPlayer.play()
-                    } catch (_: Exception) {}
+                    } catch (_: Exception) {
+                    }
                 }
+
                 else -> {}
             }
         }
@@ -176,10 +203,21 @@ fun VlcVideoPlayer(
         }
     }
 
-    LaunchedEffect(channel.url, channel.userAgent, channel.referrer, channel.cookie, mediaPlayer, retryCount) {
+    LaunchedEffect(
+        channel.url,
+        channel.userAgent,
+        channel.referrer,
+        channel.cookie,
+        mediaPlayer,
+        retryCount
+    ) {
         var media: Media? = null
         try {
-            val isPlaying = try { mediaPlayer.isPlaying } catch (_: Exception) { false }
+            val isPlaying = try {
+                mediaPlayer.isPlaying
+            } catch (_: Exception) {
+                false
+            }
             if (isPlaying) {
                 mediaPlayer.stop()
                 delay(300)
@@ -205,16 +243,16 @@ fun VlcVideoPlayer(
 
             channel.referrer?.let { media.addOption(":http-referrer=$it") }
             channel.cookie?.let { if (it.isNotEmpty()) media.addOption(":http-cookie=$it") }
-            
+
             mediaPlayer.media = media
             mediaPlayer.play()
-            
+
         } catch (e: Exception) {
             if (e !is CancellationException) {
                 if (retryCount < 3) {
                     retryCount++
                 } else {
-                    currentOnError?.invoke("Error: ${e.message}")
+                    currentOnError?.invoke(context.getString(R.string.player_error_format, e.message ?: "Unknown"))
                 }
             }
         } finally {
@@ -222,7 +260,9 @@ fun VlcVideoPlayer(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize().background(Color.Black)) {
+    Box(modifier = modifier
+        .fillMaxSize()
+        .background(Color.Black)) {
         key(mediaPlayer) {
             AndroidView(
                 factory = { ctx ->
@@ -253,7 +293,7 @@ fun VlcVideoPlayer(
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-                text = "StreamPro",
+                text = stringResource(R.string.brand_name),
                 color = Color.White,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold

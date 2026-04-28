@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,8 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
+import androidx.tv.material3.*
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -59,6 +59,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.utils.PlayerUtils
+import com.chesko.stream_pro_tv.ui.screens.UniverseBackground
 import kotlinx.coroutines.delay
 import org.videolan.libvlc.MediaPlayer
 
@@ -101,9 +102,7 @@ fun TvVideoPlayer(
 
     var retryCount by remember { mutableIntStateOf(0) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var retryStatus by remember { mutableStateOf<String?>(null) }
 
-    var isBuffering by remember { mutableStateOf(false) }
     var loudnessEnhancer by remember { mutableStateOf<LoudnessEnhancer?>(null) }
 
     val exoPlayer = remember(hwAcceleration, autoQuality, bufferSize) {
@@ -174,7 +173,6 @@ fun TvVideoPlayer(
                     }
 
                     override fun onPlaybackStateChanged(playbackState: Int) {
-                        isBuffering = playbackState == Player.STATE_BUFFERING
                         when (playbackState) {
                             Player.STATE_BUFFERING -> {
                                 errorMessage = null
@@ -182,15 +180,19 @@ fun TvVideoPlayer(
                             Player.STATE_READY -> {
                                 retryCount = 0
                                 errorMessage = null
-                                retryStatus = null
                             }
-                            Player.STATE_IDLE -> {}
+                            Player.STATE_IDLE -> {
+                                // Jika idle tanpa error setelah mencoba, anggap stuck
+                                if (this@apply.playerError == null && retryCount >= 3) {
+                                    errorMessage = "Video macet, silakan muat ulang"
+                                    onError?.invoke(errorMessage!!)
+                                }
+                            }
                             Player.STATE_ENDED -> {}
                         }
                     }
 
                     override fun onPlayerError(error: PlaybackException) {
-                        isBuffering = false
                         if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
                             seekToDefaultPosition()
                             prepare()
@@ -223,14 +225,12 @@ fun TvVideoPlayer(
 
                         if (retryCount < 3) {
                             retryCount++
-                            retryStatus = "Koneksi bermasalah, mencoba kembali ($retryCount/3)..."
                         } else {
                             // Fallback to VLC if Exo fails
                             if (engine == "EXO" && onEngineSwitch != null) {
                                 onEngineSwitch("VLC")
                                 return
                             }
-                            retryStatus = null
                             errorMessage = errorMsg
                             onError?.invoke(errorMsg)
                         }
@@ -270,7 +270,6 @@ fun TvVideoPlayer(
     LaunchedEffect(channel.url) {
         retryCount = 0
         errorMessage = null
-        retryStatus = null
         
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
@@ -343,77 +342,89 @@ fun TvVideoPlayer(
         )
 
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-
-            AnimatedVisibility(
-                visible = (isBuffering || retryStatus != null) && errorMessage == null,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(if (isSmallScreen) 52.dp else 64.dp),
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                        strokeWidth = if (isSmallScreen) 3.dp else 4.dp
-                    )
-                     Text(
-                        text = retryStatus ?: "Menghubungkan...",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.9f),
-                        fontSize = if (isSmallScreen) 10.sp else 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.offset(y = if (isSmallScreen) 45.dp else 55.dp)
-                    )
-                }
-            }
-
             // Error State
             errorMessage?.let { msg ->
-                Column(
-                    modifier = Modifier
-                        .padding(horizontal = 32.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.Black.copy(alpha = 0.75f))
-                        .padding(horizontal = 24.dp, vertical = 20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ErrorOutline,
-                        contentDescription = null,
-                        tint = Color.Red.copy(alpha = 0.8f),
-                        modifier = Modifier.size(if (isSmallScreen) 32.dp else 40.dp)
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    UniverseBackground(
+                        primaryColor = MaterialTheme.colorScheme.error,
+                        glowAlpha = 0.5f
                     )
                     
-                    Text(
-                        text = msg,
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = if (isSmallScreen) 12.sp else 14.sp
-                    )
-
                     Column(
+                        modifier = Modifier
+                            .padding(horizontal = 48.dp)
+                            .clip(RoundedCornerShape(32.dp))
+                            .background(Color.Black.copy(alpha = 0.7f))
+                            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(32.dp))
+                            .padding(horizontal = 40.dp, vertical = 32.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                        modifier = Modifier.alpha(0.5f)
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text(
-                            text = "Gunakan tombol tengah untuk memuat ulang",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White,
-                            fontSize = if (isSmallScreen) 9.sp else 10.sp,
-                            textAlign = TextAlign.Center
+                        Surface(
+                            onClick = {},
+                            shape = ClickableSurfaceDefaults.shape(androidx.compose.foundation.shape.CircleShape),
+                            colors = ClickableSurfaceDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Box(modifier = Modifier.size(64.dp), contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.Warning,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+                        }
+                        
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "SYSTEM ERROR",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 4.sp
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = msg.uppercase(),
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium,
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Black,
+                                fontSize = if (isSmallScreen) 16.sp else 18.sp
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                                .background(Color.White.copy(alpha = 0.1f))
                         )
-                        Text(
-                            text = "atau Link Sudah Mati!",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White,
-                            fontSize = if (isSmallScreen) 8.sp else 9.sp,
-                            textAlign = TextAlign.Center
-                        )
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.alpha(0.5f)
+                        ) {
+                            Text(
+                                text = "PRESS CENTER TO RE-SYNC STAR-CHART",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = if (isSmallScreen) 9.sp else 10.sp,
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = "SIGNAL MAY BE LOST IN THE VOID",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = if (isSmallScreen) 8.sp else 9.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
             }

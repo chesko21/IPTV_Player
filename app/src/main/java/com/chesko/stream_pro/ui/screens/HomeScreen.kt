@@ -57,6 +57,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -116,7 +117,7 @@ fun HomeScreen(
     if (showExitDialog) {
         Dialog(onDismissRequest = { showExitDialog = false }) {
             Surface(
-                modifier = Modifier.width(240.dp),
+                modifier = Modifier.width(180.dp),
                 shape = RoundedCornerShape(24.dp),
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 8.dp,
@@ -134,14 +135,14 @@ fun HomeScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        "Konfirmasi Keluar",
+                        stringResource(R.string.exit_confirm_title),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        "Yakin ingin keluar?",
+                        stringResource(R.string.exit_confirm_msg),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -156,7 +157,7 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(10.dp)
                         ) {
-                            Text("BATAL", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                            Text(stringResource(R.string.btn_cancel).uppercase(), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                         }
                         Button(
                             onClick = { (context as? Activity)?.finish() },
@@ -165,7 +166,7 @@ fun HomeScreen(
                             contentPadding = PaddingValues(0.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                         ) {
-                            Text("KELUAR", fontSize = 11.sp, fontWeight = FontWeight.Black)
+                            Text(stringResource(R.string.btn_exit), fontSize = 11.sp, fontWeight = FontWeight.Black)
                         }
                     }
                 }
@@ -275,7 +276,7 @@ fun HomeScreen(
                                 shape = RoundedCornerShape(4.dp)
                             ) {
                                 Text(
-                                    "PREMIUM",
+                                    stringResource(R.string.premium_badge),
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary,
@@ -300,7 +301,7 @@ fun HomeScreen(
                         .verticalScroll(rememberScrollState())
                 ) {
                     Text(
-                        "UTAMA",
+                        stringResource(R.string.drawer_group_main),
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
@@ -310,7 +311,7 @@ fun HomeScreen(
 
                     DrawerMenuItem(
                         icon = Icons.Default.DateRange,
-                        label = "Panduan",
+                        label = stringResource(R.string.menu_epg),
                         onClick = {
                             scope.launch {
                                 drawerState.snapTo(DrawerValue.Closed)
@@ -324,7 +325,7 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        "PENGATURAN",
+                        stringResource(R.string.drawer_group_settings),
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
@@ -334,7 +335,7 @@ fun HomeScreen(
 
                     DrawerMenuItem(
                         icon = Icons.Default.Settings,
-                        label = "Pengaturan",
+                        label = stringResource(R.string.menu_settings),
                         onClick = {
                             scope.launch {
                                 drawerState.snapTo(DrawerValue.Closed)
@@ -345,7 +346,7 @@ fun HomeScreen(
 
                     DrawerMenuItem(
                         icon = Icons.Default.Sync,
-                        label = "Sinkronisasi",
+                        label = stringResource(R.string.menu_sync),
                         onClick = {
                             viewModel.refreshPlaylist()
                             scope.launch { drawerState.close() }
@@ -354,7 +355,7 @@ fun HomeScreen(
 
                     DrawerMenuItem(
                         icon = Icons.Default.Backup,
-                        label = "Cadangkan",
+                        label = stringResource(R.string.menu_backup),
                         onClick = {
                             scope.launch {
                                 drawerState.close()
@@ -369,7 +370,7 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        "DUKUNGAN",
+                        stringResource(R.string.drawer_group_support),
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
@@ -379,7 +380,7 @@ fun HomeScreen(
 
                     DrawerMenuItem(
                         icon = Icons.AutoMirrored.Filled.HelpOutline,
-                        label = "Bantuan",
+                        label = stringResource(R.string.menu_help),
                         onClick = {
                             scope.launch {
                                 drawerState.snapTo(DrawerValue.Closed)
@@ -390,7 +391,7 @@ fun HomeScreen(
 
                     DrawerMenuItem(
                         icon = Icons.Default.Info,
-                        label = "Tentang",
+                        label = stringResource(R.string.menu_about),
                         onClick = {
                             scope.launch {
                                 drawerState.snapTo(DrawerValue.Closed)
@@ -405,7 +406,7 @@ fun HomeScreen(
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                         .clickable {
                             scope.launch {
                                 drawerState.close()
@@ -427,11 +428,11 @@ fun HomeScreen(
                     ) {
                         Icon(Icons.AutoMirrored.Filled.Logout, null, tint = Color.Red)
                         Spacer(modifier = Modifier.width(16.dp))
-                        Text("Logout", color = Color.Red, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.menu_logout), color = Color.Red, fontWeight = FontWeight.Bold)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp).navigationBarsPadding())
+                Spacer(modifier = Modifier.navigationBarsPadding())
             }
         }
     ) {
@@ -487,7 +488,7 @@ fun HomeScreen(
                                 ) {
                                     item {
                                         GroupChip(
-                                            text = "Semua",
+                                            text = stringResource(R.string.group_all),
                                             isSelected = selectedGroup == null,
                                             onClick = { viewModel.setSelectedGroup(null) }
                                         )
@@ -508,7 +509,9 @@ fun HomeScreen(
                     if (selectedGroup != null || searchQuery.isNotEmpty()) {
                         item {
                             val title = when {
-                                searchQuery.isNotEmpty() -> "Hasil Pencarian"
+                                searchQuery.isNotEmpty() -> stringResource(R.string.search_results)
+                                selectedGroup == "Favorit" -> stringResource(R.string.row_favorite)
+                                selectedGroup == "Terakhir Ditonton" -> stringResource(R.string.row_history)
                                 selectedGroup != null -> selectedGroup!!
                                 else -> ""
                             }
@@ -549,13 +552,13 @@ fun HomeScreen(
                                         )
                                         Spacer(modifier = Modifier.height(20.dp))
                                         Text(
-                                            "Oops! Saluran tidak ditemukan",
+                                            stringResource(R.string.search_not_found_title),
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
-                                            "Coba kata kunci lain atau periksa koneksi Anda",
+                                            stringResource(R.string.search_not_found_msg),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
                                             textAlign = TextAlign.Center
@@ -600,7 +603,7 @@ fun HomeScreen(
                             item { 
                                 ContentRow(
                                     viewModel = viewModel, 
-                                    title = "Favorit", 
+                                    title = stringResource(R.string.row_favorite), 
                                     channels = favoriteChannels, 
                                     onSeeAllClick = { viewModel.setSelectedGroup("Favorit") },
                                     onChannelSelected = onChannelClick
@@ -612,7 +615,7 @@ fun HomeScreen(
                             item { 
                                 ContentRow(
                                     viewModel = viewModel, 
-                                    title = "Terakhir Ditonton", 
+                                    title = stringResource(R.string.row_history), 
                                     channels = recentlyPlayed, 
                                     onSeeAllClick = { viewModel.setSelectedGroup("Terakhir Ditonton") },
                                     onChannelSelected = onChannelClick
@@ -655,14 +658,14 @@ fun HomeScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            "GRUP LAINNYA",
+                                            stringResource(R.string.other_groups),
                                             style = MaterialTheme.typography.labelMedium,
                                             fontWeight = FontWeight.Black,
                                             color = MaterialTheme.colorScheme.primary.copy(0.7f),
                                             letterSpacing = 1.2.sp
                                         )
                                         Text(
-                                            if (isGroupsExpanded) "LIHAT SEDIKIT" else "LIHAT SEMUA",
+                                            if (isGroupsExpanded) stringResource(R.string.see_less) else stringResource(R.string.see_all),
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Black,
                                             color = MaterialTheme.colorScheme.primary,
@@ -791,7 +794,7 @@ fun HomeScreen(
 
                     // Cinematic Status Text
                     Text(
-                        text = "DEPARTING FROM UNIVERSE",
+                        text = stringResource(R.string.departure_msg),
                         color = Color.White,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Black,
@@ -843,7 +846,7 @@ fun HomeScreen(
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = "Scroll to top",
+                            contentDescription = stringResource(R.string.content_desc_scroll_top),
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -1028,7 +1031,7 @@ fun EnhancedHeroCarousel(
                                 shape = RoundedCornerShape(6.dp)
                             ) {
                                 Text(
-                                    text = (channel.group?.uppercase() ?: "REKOMENDASI"),
+                                    text = (channel.group?.uppercase() ?: stringResource(R.string.carousel_rec)),
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onPrimary,
@@ -1065,7 +1068,7 @@ fun EnhancedHeroCarousel(
                             ) {
                                 Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("WATCH NOW", fontWeight = FontWeight.Black, fontSize = 10.sp)
+                                Text(stringResource(R.string.carousel_watch_now), fontWeight = FontWeight.Black, fontSize = 10.sp)
                             }
                         }
                     }
@@ -1148,21 +1151,21 @@ fun HeaderSection(
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f), CircleShape)
                         .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CircleShape)
                 ) {
-                    Icon(Icons.Default.Menu, "Menu", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
+                    Icon(Icons.Default.Menu, stringResource(R.string.content_desc_menu), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "STREAMPRO",
+                        stringResource(R.string.brand_name),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.primary,
                         letterSpacing = 2.sp
                     )
                     Text(
-                        "Premium Entertainment",
+                        stringResource(R.string.brand_slogan),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         fontWeight = FontWeight.Bold
@@ -1170,8 +1173,8 @@ fun HeaderSection(
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    HeaderActionButton(Icons.Default.Search, "Search") { isSearchExpanded = true }
-                    HeaderActionButton(Icons.Default.Refresh, "Refresh") { onRefresh() }
+                    HeaderActionButton(Icons.Default.Search, stringResource(R.string.content_desc_search)) { isSearchExpanded = true }
+                    HeaderActionButton(Icons.Default.Refresh, stringResource(R.string.content_desc_refresh)) { onRefresh() }
                 }
             } else {
                 IconButton(
@@ -1182,7 +1185,7 @@ fun HeaderSection(
                     },
                     modifier = Modifier.size(44.dp)
                 ) {
-                    Icon(Icons.Default.Close, "Close Search", tint = MaterialTheme.colorScheme.onSurface)
+                    Icon(Icons.Default.Close, stringResource(R.string.content_desc_close_search), tint = MaterialTheme.colorScheme.onSurface)
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -1199,7 +1202,7 @@ fun HeaderSection(
                         .clip(RoundedCornerShape(24.dp)),
                     placeholder = { 
                         Text(
-                            "Cari saluran atau grup...", 
+                            stringResource(R.string.search_placeholder), 
                             fontSize = 14.sp, 
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5f)
                         ) 
@@ -1293,7 +1296,7 @@ fun ContentRow(
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
-                    text = "SEE ALL (${channels.size})",
+                    text = stringResource(R.string.row_see_all, channels.size),
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
@@ -1413,7 +1416,7 @@ fun ChannelModernItem(
                             .align(Alignment.TopStart)
                     ) {
                         Text(
-                            "LIVE",
+                            stringResource(R.string.status_live),
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White,
@@ -1438,7 +1441,7 @@ fun ChannelModernItem(
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Default.Lock,
-                                    contentDescription = "DRM",
+                                    contentDescription = stringResource(R.string.content_desc_drm),
                                     tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(12.dp)
                                 )
@@ -1461,7 +1464,7 @@ fun ChannelModernItem(
             modifier = Modifier.padding(horizontal = 4.dp)
         )
 
-        val programText = currentProgram?.title ?: "Tidak ada info program"
+        val programText = currentProgram?.title ?: stringResource(R.string.no_program_info)
         Text(
             text = programText,
             color = if (currentProgram != null) 

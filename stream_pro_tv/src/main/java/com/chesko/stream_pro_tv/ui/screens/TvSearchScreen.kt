@@ -5,10 +5,12 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -21,6 +23,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -36,10 +39,8 @@ import androidx.tv.material3.*
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.ui.MainViewModel
 import com.chesko.stream_pro_tv.ui.components.ChannelTvGridItem
-import com.chesko.stream_pro_tv.ui.components.PositionFocusedItemInLazyLayout
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
 import androidx.compose.ui.input.key.*
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -69,7 +70,7 @@ fun TvSearchScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF050505))
+            .background(Color(0xFF00020A))
             .onKeyEvent {
                 if (it.key == Key.Back && it.type == KeyEventType.KeyDown) {
                     onBack()
@@ -79,76 +80,63 @@ fun TvSearchScreen(
                 }
             }
     ) {
-        // Animated Background
-        val infiniteTransition = rememberInfiniteTransition(label = "bg")
-        val bgOffset by infiniteTransition.animateFloat(
-            initialValue = 0f,
-            targetValue = 2000f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(40000, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "bgOffset"
+        // Immersive Background
+        UniverseBackground(
+            primaryColor = MaterialTheme.colorScheme.primary,
+            glowAlpha = 0.6f
         )
-
-        Canvas(modifier = Modifier.fillMaxSize().blur(100.dp)) {
-            drawRect(
-                brush = Brush.radialGradient(
-                    colors = listOf(Color(0xFFE50914).copy(alpha = 0.15f), Color.Transparent),
-                    center = center.copy(x = center.x + (bgOffset % 1000f - 500f), y = center.y + (bgOffset % 800f - 400f)),
-                    radius = size.minDimension * 1.5f
-                )
-            )
-            drawRect(
-                brush = Brush.radialGradient(
-                    colors = listOf(Color(0xFF2979FF).copy(alpha = 0.12f), Color.Transparent),
-                    center = center.copy(x = center.x - (bgOffset % 1200f - 600f), y = center.y - (bgOffset % 600f - 300f)),
-                    radius = size.minDimension * 1.2f
-                )
-            )
-        }
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    horizontal = if (isSmall) 12.dp else 32.dp, // Padding lebih minimalis
-                    vertical = if (isSmall) 12.dp else 24.dp
+                    horizontal = if (isSmall) 24.dp else 48.dp,
+                    vertical = if (isSmall) 16.dp else 32.dp
                 )
         ) {
-            // Header - Lebih Kecil
+            // Header Section
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
                     onClick = onBack,
-                    shape = ClickableSurfaceDefaults.shape(MaterialTheme.shapes.small),
+                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
                     colors = ClickableSurfaceDefaults.colors(
-                        containerColor = Color.White.copy(alpha = 0.1f),
+                        containerColor = Color.White.copy(alpha = 0.05f),
                         focusedContainerColor = Color.White,
                         contentColor = Color.White,
                         focusedContentColor = Color.Black
-                    )
+                    ),
+                    scale = ClickableSurfaceDefaults.scale(focusedScale = 1.1f)
                 ) {
-                    Box(modifier = Modifier.size(if (isSmall) 32.dp else 38.dp), contentAlignment = Alignment.Center) {
+                    Box(modifier = Modifier.size(44.dp), contentAlignment = Alignment.Center) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack, 
-                            contentDescription = null,
+                            contentDescription = "Back",
                             modifier = Modifier.size(20.dp)
                         )
                     }
                 }
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    "PENCARIAN",
-                    style = if (isSmall) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    letterSpacing = 1.sp
-                )
+                Spacer(modifier = Modifier.width(20.dp))
+                Column {
+                    Text(
+                        "DISCOVER",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 4.sp
+                    )
+                    Text(
+                        "UNIVERSE SEARCH",
+                        style = if (isSmall) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
+                        color = Color.White,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = (-1).sp
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(if (isSmall) 12.dp else 16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // Search Bar Row - Lebih Ramping
+            // Premium Search Bar
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -158,7 +146,7 @@ fun TvSearchScreen(
                     onValueChange = { viewModel.setSearchQuery(it) },
                     modifier = Modifier
                         .weight(1f)
-                        .height(if (isSmall) 44.dp else 52.dp) // Tinggi dikurangi
+                        .height(60.dp)
                         .focusRequester(focusRequester)
                         .onFocusChanged {
                             if (it.isFocused) {
@@ -167,20 +155,24 @@ fun TvSearchScreen(
                                     keyboardController?.show()
                                 }
                             }
-                        },
+                        }
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White.copy(alpha = 0.03f))
+                        .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp)),
                     placeholder = { 
                         Text(
-                            "Ketik nama channel...", 
-                            color = Color.Gray, 
-                            fontSize = 14.sp 
+                            "Search for stars, planets, or channels...", 
+                            color = Color.White.copy(alpha = 0.3f), 
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Medium
                         ) 
                     },
                     leadingIcon = { 
                         Icon(
                             Icons.Default.Search, 
                             contentDescription = null, 
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+                            tint = if (searchQuery.isEmpty()) Color.Gray else MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
                         ) 
                     },
                     singleLine = true,
@@ -189,55 +181,69 @@ fun TvSearchScreen(
                     colors = TextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        focusedContainerColor = Color.White.copy(alpha = 0.08f),
-                        unfocusedContainerColor = Color.White.copy(alpha = 0.04f),
+                        focusedContainerColor = Color.White.copy(alpha = 0.05f),
+                        unfocusedContainerColor = Color.Transparent,
                         cursorColor = MaterialTheme.colorScheme.primary,
-                        focusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent
                     )
                 )
 
                 if (searchQuery.isNotEmpty()) {
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
                     Surface(
                         onClick = { 
                             viewModel.setSearchQuery("") 
                             focusRequester.requestFocus()
                         },
-                        shape = ClickableSurfaceDefaults.shape(MaterialTheme.shapes.small),
+                        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
                         colors = ClickableSurfaceDefaults.colors(
-                            containerColor = Color.White.copy(alpha = 0.08f),
+                            containerColor = Color.White.copy(alpha = 0.05f),
                             focusedContainerColor = MaterialTheme.colorScheme.primary,
                             contentColor = Color.White,
                             focusedContentColor = Color.White
                         ),
-                        modifier = Modifier.size(if (isSmall) 44.dp else 52.dp) // Ukuran disamakan dengan input
+                        modifier = Modifier.size(60.dp)
                     ) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Icon(
                                 Icons.Default.Close, 
                                 contentDescription = "Clear",
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(if (isSmall) 12.dp else 16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // Results - Grid Lebih Kecil & Rapat
+            // Search Results Grid
             if (filteredChannels.isEmpty() && searchQuery.isNotEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Tidak ada hasil ditemukan", color = Color.Gray, fontSize = 14.sp)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Default.Search, 
+                            contentDescription = null, 
+                            tint = Color.White.copy(alpha = 0.1f),
+                            modifier = Modifier.size(80.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            "No star-charts found in this sector", 
+                            color = Color.White.copy(alpha = 0.3f),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(columns),
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    contentPadding = PaddingValues(bottom = 32.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(filteredChannels) { channel ->
                         ChannelTvGridItem(channel, onChannelClick)
@@ -251,7 +257,6 @@ fun TvSearchScreen(
         focusRequester.requestFocus()
     }
 
-    // Reset pencarian saat meninggalkan layar
     DisposableEffect(Unit) {
         onDispose {
             viewModel.setSearchQuery("")

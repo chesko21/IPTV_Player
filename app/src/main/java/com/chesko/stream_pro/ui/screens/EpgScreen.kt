@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
 import com.chesko.stream_pro.R
 import com.chesko.stream_pro.core.data.model.EpgProgram
@@ -112,7 +113,7 @@ fun EpgScreen(
                             TextField(
                                 value = searchQuery,
                                 onValueChange = { searchQuery = it },
-                                placeholder = { Text("Cari saluran...", color = MaterialTheme.colorScheme.onSurface.copy(0.4f)) },
+                                placeholder = { Text(stringResource(R.string.epg_search_placeholder), color = MaterialTheme.colorScheme.onSurface.copy(0.4f)) },
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = TextFieldDefaults.colors(
                                     focusedContainerColor = Color.Transparent,
@@ -147,7 +148,7 @@ fun EpgScreen(
                     TopAppBar(
                         title = { 
                             Text(
-                                "JADWAL TV", 
+                                stringResource(R.string.epg_title), 
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = 2.sp,
                                 style = MaterialTheme.typography.titleMedium,
@@ -401,7 +402,7 @@ fun EpgChannelRow(
                 if (filteredPrograms.isEmpty()) {
                     Box(modifier = Modifier.fillMaxHeight().width(2000.dp).padding(16.dp), contentAlignment = Alignment.CenterStart) {
                         Text(
-                            "Tidak ada jadwal siaran tersedia", 
+                            stringResource(R.string.epg_no_program),
                             color = MaterialTheme.colorScheme.onSurface.copy(0.2f), 
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold

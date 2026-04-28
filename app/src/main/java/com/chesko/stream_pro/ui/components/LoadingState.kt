@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.chesko.stream_pro.R
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -26,7 +28,7 @@ import kotlin.math.sin
  * A high-end cinematic loading experience
  */
 @Composable
-fun LoadingState(message: String = "Menjelajahi Semesta...") {
+fun LoadingState(message: String = stringResource(R.string.loading_message)) {
     val infiniteTransition = rememberInfiniteTransition(label = "universe_loading")
 
     // Background cosmic pulse

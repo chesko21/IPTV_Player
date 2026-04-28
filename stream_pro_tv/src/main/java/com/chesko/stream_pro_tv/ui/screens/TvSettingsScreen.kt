@@ -6,6 +6,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -24,6 +25,7 @@ import androidx.compose.material3.Text as Material3Text
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Snackbar
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.*
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
@@ -73,17 +75,6 @@ fun TvSettingsScreen(
     val hwAcceleration by viewModel.hwAcceleration.collectAsState()
     val bufferSize by viewModel.bufferSize.collectAsState()
     
-    val infiniteTransition = rememberInfiniteTransition(label = "bg")
-    val bgOffset by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 2000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(40000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "bgOffset"
-    )
-
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -97,476 +88,314 @@ fun TvSettingsScreen(
 
     Box(modifier = Modifier
         .fillMaxSize()
-        .background(Color(0xFF050505))) {
+        .background(Color(0xFF00020A))) {
         
-        // Animated Background (Same as HomeScreen)
-        Canvas(modifier = Modifier
-            .fillMaxSize()
-            .blur(100.dp)
-        ) {
-            drawRect(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color(0xFFE50914).copy(alpha = 0.15f),
-                        Color.Transparent
-                    ),
-                    center = center.copy(
-                        x = center.x + (bgOffset % 1000 - 500), 
-                        y = center.y + (bgOffset % 800 - 400)
-                    ),
-                    radius = size.minDimension * 1.5f
-                )
-            )
-            drawRect(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color(0xFF2979FF).copy(alpha = 0.12f),
-                        Color.Transparent
-                    ),
-                    center = center.copy(
-                        x = center.x - (bgOffset % 1200 - 600), 
-                        y = center.y - (bgOffset % 600 - 300)
-                    ),
-                    radius = size.minDimension * 1.2f
-                )
-            )
-        }
+        // Immersive Background
+        UniverseBackground(
+            primaryColor = MaterialTheme.colorScheme.primary,
+            glowAlpha = 0.6f
+        )
 
-        // Settings List
+        // Settings Container
         Row(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
+                    .widthIn(max = 800.dp)
                     .padding(
                         horizontal = if (isSmall) 24.dp else 48.dp,
                         vertical = if (isSmall) 16.dp else 32.dp
                     )
                     .verticalScroll(rememberScrollState())
             ) {
-                TvText(
-                    text = "PENGATURAN",
-                    style = if (isSmall) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Black,
-                    modifier = Modifier.padding(bottom = if (isSmall) 12.dp else 20.dp)
-                )
+                Column(modifier = Modifier.padding(bottom = 32.dp)) {
+                    TvText(
+                        text = "CONFIGURATION",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 4.sp
+                    )
+                    TvText(
+                        text = "UNIVERSE SETTINGS",
+                        style = if (isSmall) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = (-1).sp
+                    )
+                }
 
-                TvSettingsSection(title = "Pemutar Video") {
+                TvSettingsSection(title = "CINEMATIC ENGINE") {
                     TvSettingsActionItem(
                         icon = Icons.Default.HighQuality,
-                        title = "Kualitas Video",
-                        subtitle = "Kualitas saat ini: ${if (maxVideoHeight == 0) "Auto" else "${maxVideoHeight}p"}",
+                        title = "Video Quality",
+                        subtitle = "Current Target: ${if (maxVideoHeight == 0) "Auto" else "${maxVideoHeight}p"}",
                         onClick = { showQualityDialog = true }
                     )
                     TvSettingsToggleItem(
                         icon = Icons.Default.SlowMotionVideo,
                         title = "Hardware Acceleration",
-                        subtitle = "Meningkatkan performa pemutaran",
+                        subtitle = "Optimize playback performance for your device",
                         checked = hwAcceleration,
                         onCheckedChange = { viewModel.setHwAcceleration(it) }
                     )
                     TvSettingsActionItem(
                         icon = Icons.Default.Timer,
-                        title = "Buffer Size",
-                        subtitle = "Ukuran buffer saat ini: ${bufferSize}s",
+                        title = "Star-Buffer Size",
+                        subtitle = "Current latency buffer: ${bufferSize}s",
                         onClick = { showBufferDialog = true }
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                TvSettingsSection(title = "Manajemen Data") {
+                TvSettingsSection(title = "STAR-CHART MANAGEMENT") {
                     TvSettingsActionItem(
                         icon = Icons.Default.Refresh,
                         title = "Reload Playlist",
-                        subtitle = "Perbarui daftar saluran dari server",
+                        subtitle = "Re-sync star-charts from the master server",
                         onClick = {
                             viewModel.refreshPlaylist()
                             scope.launch {
-                                snackbarHostState.showSnackbar("Playlist berhasil diperbarui")
+                                snackbarHostState.showSnackbar("Playlist synced successfully")
                             }
                         }
                     )
                     TvSettingsActionItem(
                         icon = Icons.Default.DeleteSweep,
-                        title = "Hapus Cache",
-                        subtitle = "Bersihkan data sementara aplikasi",
+                        title = "Clear Space Cache",
+                        subtitle = "Clean temporary data and stardust",
                         onClick = {
                             viewModel.clearCache()
                             scope.launch {
-                                snackbarHostState.showSnackbar("Cache berhasil dihapus")
+                                snackbarHostState.showSnackbar("Cache cleared")
                             }
                         }
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                TvSettingsSection(title = "Informasi") {
+                TvSettingsSection(title = "APPLICATION LOGS") {
                     TvSettingsActionItem(
                         icon = Icons.Default.Info,
-                        title = "Tentang Aplikasi",
-                        subtitle = "Versi $versionName - Stream Pro TV Edition",
+                        title = "About Universe",
+                        subtitle = "Version $versionName - Premium Cinematic Edition",
                         onClick = { showAboutDialog = true }
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                TvSettingsSection(title = "Akun") {
+                TvSettingsSection(title = "STATION EXIT") {
                     TvSettingsActionItem(
                         icon = Icons.AutoMirrored.Filled.Logout,
-                        title = "Keluar (Logout)",
-                        subtitle = "Hapus playlist dan keluar dari aplikasi",
+                        title = "Logout & Disconnect",
+                        subtitle = "Clear all charts and exit to terminal",
                         onClick = {
                             viewModel.deleteCurrentPlaylist()
                             onLogout()
                         },
-                        contentColor = Color(0xFFE50914)
+                        contentColor = MaterialTheme.colorScheme.error
                     )
                 }
+                
+                Spacer(modifier = Modifier.height(48.dp))
             }
         }
 
-        // Snackbar Host for Notifications
+        // Snackbar Host
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 24.dp, end = 24.dp),
+                .padding(bottom = 32.dp, end = 32.dp),
             contentAlignment = Alignment.BottomEnd
         ) {
             SnackbarHost(hostState = snackbarHostState) { data ->
                 Snackbar(
-                    containerColor = Color(0xFF323232),
+                    containerColor = Color(0xFF1A1A1A),
                     contentColor = Color.White,
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.widthIn(max = 350.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.widthIn(max = 400.dp).border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = if (data.visuals.message.contains("Cache")) Icons.Default.CheckCircle else Icons.Default.CloudDone,
+                            imageVector = Icons.Default.CloudDone,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(24.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Material3Text(data.visuals.message, fontSize = 14.sp)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Material3Text(data.visuals.message, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
         }
 
-        // Buffer Size Dialog
+        // --- Dialogs with Universe Styling ---
+        
         if (showBufferDialog) {
-            AlertDialog(
-                onDismissRequest = { showBufferDialog = false },
-                containerColor = Color(0xFF121212),
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.width(360.dp),
-                confirmButton = {
-                    Box(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), contentAlignment = Alignment.Center) {
-                        Button(
-                            onClick = { showBufferDialog = false },
-                            colors = ButtonDefaults.colors(
-                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                contentColor = MaterialTheme.colorScheme.primary
-                            )
-                        ) {
-                            Material3Text("Tutup", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                },
-                title = {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Timer,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                        Spacer(Modifier.height(12.dp))
-                        Material3Text(
-                            "Pilih Ukuran Buffer",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            color = Color.White
+            UniverseAlertDialog(
+                onDismiss = { showBufferDialog = false },
+                title = "SELECT BUFFER SIZE",
+                icon = Icons.Default.Timer
+            ) {
+                val bufferOptions = listOf(5, 10, 15, 30, 45, 60)
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    bufferOptions.forEach { seconds ->
+                        UniverseDialogItem(
+                            label = "$seconds SECONDS",
+                            isSelected = bufferSize == seconds,
+                            onClick = {
+                                viewModel.setBufferSize(seconds)
+                                showBufferDialog = false
+                            }
                         )
                     }
-                },
-                text = {
-                    val bufferOptions = listOf(5, 10, 15, 30, 45, 60)
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        bufferOptions.forEach { seconds ->
-                            val isSelected = bufferSize == seconds
-                            Surface(
-                                onClick = {
-                                    viewModel.setBufferSize(seconds)
-                                    showBufferDialog = false
-                                },
-                                modifier = Modifier.fillMaxWidth().height(40.dp),
-                                shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(20.dp)),
-                                scale = ClickableSurfaceDefaults.scale(focusedScale = 1.04f),
-                                colors = ClickableSurfaceDefaults.colors(
-                                    containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.03f),
-                                    focusedContainerColor = Color.White,
-                                    contentColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.White,
-                                    focusedContentColor = Color.Black
-                                ),
-                                border = ClickableSurfaceDefaults.border(
-                                    focusedBorder = Border(
-                                        BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-                                        shape = RoundedCornerShape(20.dp)
-                                    )
-                                )
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Material3Text(
-                                        text = "$seconds Detik",
-                                        fontSize = 13.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                                    )
-                                    if (isSelected) {
-                                        Icon(
-                                            Icons.Default.CheckCircle,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
-            )
+            }
         }
+
         if (showQualityDialog) {
-            AlertDialog(
-                onDismissRequest = { showQualityDialog = false },
-                containerColor = Color(0xFF121212),
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.width(360.dp),
-                confirmButton = {
-                    Box(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), contentAlignment = Alignment.Center) {
-                        Button(
-                            onClick = { showQualityDialog = false },
-                            colors = ButtonDefaults.colors(
-                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                contentColor = MaterialTheme.colorScheme.primary
-                            )
-                        ) {
-                            Material3Text("Tutup", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                },
-                title = {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.HighQuality,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                        Spacer(Modifier.height(12.dp))
-                        Material3Text(
-                            "Pilih Kualitas Video",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            color = Color.White
+            UniverseAlertDialog(
+                onDismiss = { showQualityDialog = false },
+                title = "VIDEO TARGET",
+                icon = Icons.Default.HighQuality
+            ) {
+                val qualityOptions = listOf(0, 240, 360, 480, 720, 1080)
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    qualityOptions.forEach { height ->
+                        UniverseDialogItem(
+                            label = if (height == 0) "AUTO-ADAPTIVE" else "${height}P RESOLUTION",
+                            isSelected = maxVideoHeight == height,
+                            onClick = {
+                                viewModel.setMaxVideoHeight(height)
+                                showQualityDialog = false
+                            }
                         )
                     }
-                },
-                text = {
-                    val qualityOptions = listOf(0, 240, 360, 480, 720, 1080)
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        qualityOptions.forEach { height ->
-                            val isSelected = maxVideoHeight == height
-                            Surface(
-                                onClick = {
-                                    viewModel.setMaxVideoHeight(height)
-                                    showQualityDialog = false
-                                },
-                                modifier = Modifier.fillMaxWidth().height(40.dp),
-                                shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(20.dp)),
-                                scale = ClickableSurfaceDefaults.scale(focusedScale = 1.04f),
-                                colors = ClickableSurfaceDefaults.colors(
-                                    containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.03f),
-                                    focusedContainerColor = Color.White,
-                                    contentColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.White,
-                                    focusedContentColor = Color.Black
-                                ),
-                                border = ClickableSurfaceDefaults.border(
-                                    focusedBorder = Border(
-                                        BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-                                        shape = RoundedCornerShape(20.dp)
-                                    )
-                                )
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Material3Text(
-                                        text = when(height) {
-                                            0 -> "Otomatis (Auto)"
-                                            else -> "${height}p"
-                                        },
-                                        fontSize = 13.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                                    )
-                                    if (isSelected) {
-                                        Icon(
-                                            Icons.Default.CheckCircle,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
-            )
+            }
         }
 
         if (showAboutDialog) {
-            AlertDialog(
-                onDismissRequest = { showAboutDialog = false },
-                containerColor = Color(0xFF121212),
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.width(360.dp),
-                confirmButton = {
-                    Box(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), contentAlignment = Alignment.Center) {
-                        Button(
-                            onClick = { showAboutDialog = false },
-                            colors = ButtonDefaults.colors(
-                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                contentColor = MaterialTheme.colorScheme.primary
-                            )
-                        ) {
-                            Material3Text("Tutup", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                },
-                title = {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.app_icon_androidtv),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                        )
-                        Spacer(Modifier.height(12.dp))
-                        Material3Text(
-                            "Tentang Aplikasi",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            color = Color.White
-                        )
-                    }
-                },
-                text = {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Material3Text(
-                            "STREAM PRO TV",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Black,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Material3Text(
-                            "Versi $versionName (Premium Edition)",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.Gray.copy(alpha = 0.7f),
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        Material3Text(
-                            "Aplikasi IPTV premium yang dirancang khusus untuk performa tinggi pada perangkat Android TV.",
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Center,
-                            lineHeight = 16.sp,
-                            fontSize = 11.sp,
-                            color = Color.White.copy(alpha = 0.8f)
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        Material3Text(
-                            "DEVELOPED BY",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-                            textAlign = TextAlign.Center,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Material3Text(
-                            "CHESKO - High Precision Apps",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            color = Color.White
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Material3Text(
-                            "SUPPORT DEVELOPMENT (DANA)",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF2979FF),
-                            textAlign = TextAlign.Center,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Material3Text(
-                            "08976248342 a/n Bae**** Ati***",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            color = Color.White
-                        )
-                    }
+            UniverseAlertDialog(
+                onDismiss = { showAboutDialog = false },
+                title = "ABOUT UNIVERSE",
+                icon = Icons.Default.Info
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.app_icon_androidtv),
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp).clip(RoundedCornerShape(16.dp))
+                    )
+                    TvText(
+                        "STREAM PRO TV",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White
+                    )
+                    TvText(
+                        "PREMIUM EDITION • v$versionName",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp
+                    )
+                    TvText(
+                        "Designed for high-performance cinematic experiences on Android TV.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.6f),
+                        textAlign = TextAlign.Center
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.1f)))
+                    
+                    TvText(
+                        "DEVELOPED BY CHESKO",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.4f),
+                        letterSpacing = 4.sp
+                    )
                 }
-            )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+fun UniverseAlertDialog(
+    onDismiss: () -> Unit,
+    title: String,
+    icon: ImageVector,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color(0xFF0A0A0A),
+        shape = RoundedCornerShape(32.dp),
+        modifier = Modifier.width(420.dp).border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(32.dp)),
+        confirmButton = {
+            Surface(
+                onClick = onDismiss,
+                shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
+                colors = ClickableSurfaceDefaults.colors(
+                    containerColor = Color.White.copy(alpha = 0.05f),
+                    focusedContainerColor = Color.White,
+                    contentColor = Color.White,
+                    focusedContentColor = Color.Black
+                ),
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+            ) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    TvText("DISMISS", fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+                }
+            }
+        },
+        title = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
+                Spacer(Modifier.height(16.dp))
+                TvText(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+            }
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+                content()
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+fun UniverseDialogItem(label: String, isSelected: Boolean, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().height(52.dp),
+        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
+        colors = ClickableSurfaceDefaults.colors(
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.03f),
+            focusedContainerColor = MaterialTheme.colorScheme.primary,
+            contentColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.White,
+            focusedContentColor = Color.White
+        )
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            TvText(label, fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold, letterSpacing = 1.sp)
+            if (isSelected) Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(20.dp))
         }
     }
 }
@@ -574,22 +403,23 @@ fun TvSettingsScreen(
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TvSettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(modifier = Modifier.padding(bottom = 6.dp)) {
+    Column(modifier = Modifier.padding(bottom = 12.dp)) {
         TvText(
             text = title,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(start = 8.dp, bottom = 4.dp),
-            fontSize = 9.sp
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Black,
+            modifier = Modifier.padding(start = 12.dp, bottom = 8.dp),
+            letterSpacing = 2.sp
         )
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(20.dp))
                 .background(Color.White.copy(alpha = 0.03f))
-                .padding(1.dp),
-            verticalArrangement = Arrangement.spacedBy(1.dp)
+                .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(20.dp))
+                .padding(4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             content()
         }
@@ -607,37 +437,32 @@ fun TvSettingsToggleItem(
 ) {
     Surface(
         onClick = { onCheckedChange(!checked) },
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.02f),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = Color.Transparent,
             focusedContainerColor = Color.White,
-            contentColor = Color.White.copy(alpha = 0.9f),
+            contentColor = Color.White,
             focusedContentColor = Color.Black
         ),
-        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp))
+        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp))
     ) {
         Row(
-            modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 6.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                 Box(
-                    modifier = Modifier
-                        .size(26.dp)
-                        .background(Color.White.copy(alpha = 0.05f), CircleShape),
+                    modifier = Modifier.size(36.dp).background(Color.White.copy(alpha = 0.05f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp))
+                    Icon(icon, null, modifier = Modifier.size(18.dp))
                 }
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(16.dp))
                 Column {
-                    TvText(text = title, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-                    TvText(text = subtitle, style = MaterialTheme.typography.labelSmall, color = Color.Gray, fontSize = 9.sp)
+                    TvText(text = title, fontWeight = FontWeight.Black, fontSize = 14.sp)
+                    TvText(text = subtitle, color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
             }
             Checkbox(
@@ -646,8 +471,7 @@ fun TvSettingsToggleItem(
                 colors = CheckboxDefaults.colors(
                     checkedColor = MaterialTheme.colorScheme.primary,
                     uncheckedColor = Color.Gray
-                ),
-                modifier = Modifier.size(16.dp)
+                )
             )
         }
     }
@@ -664,35 +488,30 @@ fun TvSettingsActionItem(
 ) {
     Surface(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.02f),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = Color.Transparent,
-            focusedContainerColor = Color.White,
-            contentColor = if (contentColor == Color.White) Color.White.copy(alpha = 0.9f) else contentColor,
-            focusedContentColor = if (contentColor == Color.White) Color.Black else contentColor
+            focusedContainerColor = if (contentColor != Color.White) contentColor else Color.White,
+            contentColor = contentColor,
+            focusedContentColor = if (contentColor != Color.White) Color.White else Color.Black
         ),
-        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp))
+        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp))
     ) {
         Row(
-            modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 6.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier
-                    .size(26.dp)
-                    .background(Color.White.copy(alpha = 0.05f), CircleShape),
+                modifier = Modifier.size(36.dp).background(Color.White.copy(alpha = 0.05f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp))
+                Icon(icon, null, modifier = Modifier.size(18.dp))
             }
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(16.dp))
             Column {
-                TvText(text = title, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-                TvText(text = subtitle, style = MaterialTheme.typography.labelSmall, color = Color.Gray, fontSize = 9.sp)
+                TvText(text = title, fontWeight = FontWeight.Black, fontSize = 14.sp)
+                TvText(text = subtitle, color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

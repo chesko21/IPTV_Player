@@ -18,14 +18,15 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.tv.material3.*
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.ui.MainViewModel
 import com.chesko.stream_pro_tv.ui.components.ChannelTvGridItem
 import com.chesko.stream_pro_tv.ui.components.GroupTvItem
 import com.chesko.stream_pro_tv.ui.components.PositionFocusedItemInLazyLayout
-import com.chesko.stream_pro_tv.ui.components.PremiumTvBackground
 import com.chesko.stream_pro_tv.ui.components.ShimmerHomeScreen
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -42,33 +43,38 @@ fun HomeScreen(
     val groups by viewModel.groups.collectAsState()
     val selectedGroup by viewModel.selectedGroup.collectAsState()
     
-    val infiniteTransition = rememberInfiniteTransition(label = "bg")
-    val bgOffset by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 2000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(40000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "bgOffset"
-    )
-
     if (isLoading) {
         ShimmerHomeScreen()
     } else {
-        Box(modifier = Modifier
-            .fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().background(Color(0xFF00020A))) {
 
-            PremiumTvBackground()
+            UniverseBackground(
+                primaryColor = MaterialTheme.colorScheme.primary,
+                glowAlpha = 0.3f
+            )
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(
-                        horizontal = 48.dp,
-                        vertical = 32.dp
-                    )
+                    .padding(horizontal = 48.dp, vertical = 32.dp)
             ) {
+                Column(modifier = Modifier.padding(bottom = 24.dp)) {
+                    Text(
+                        text = "StreamPro TV",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 4.sp
+                    )
+                    Text(
+                        text = if (selectedGroup == null) "Explore TV Stream" else selectedGroup!!.uppercase(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = (-1).sp
+                    )
+                }
+
                 if (showGroupSelector) {
                     TvGroupSelector(
                         groups = groups,
@@ -89,9 +95,10 @@ fun HomeScreen(
                                     modifier = Modifier.size(100.dp)
                                 )
                                 Text(
-                                    "Tidak ada saluran ditemukan", 
+                                    "No star-charts discovered in this sector", 
                                     style = MaterialTheme.typography.bodyLarge,
-                                    color = Color.White.copy(alpha = 0.3f)
+                                    color = Color.White.copy(alpha = 0.3f),
+                                    fontWeight = FontWeight.Medium
                                 )
                             }
                         }
@@ -124,7 +131,7 @@ fun TvGroupSelector(
         ) {
             item {
                 GroupTvItem(
-                    groupName = "Semua",
+                    groupName = "ALL Channel",
                     isSelected = selectedGroup == null,
                     onClick = { onGroupSelected(null) }
                 )
@@ -132,7 +139,7 @@ fun TvGroupSelector(
 
             items(groups) { group ->
                 GroupTvItem(
-                    groupName = group,
+                    groupName = group.uppercase(),
                     isSelected = selectedGroup == group,
                     onClick = { onGroupSelected(group) }
                 )

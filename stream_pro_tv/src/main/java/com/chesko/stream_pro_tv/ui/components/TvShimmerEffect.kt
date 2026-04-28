@@ -30,9 +30,9 @@ fun Modifier.shimmerEffect(): Modifier = composed {
     )
 
     val shimmerColors = listOf(
-        Color.White.copy(alpha = 0.05f),
-        Color.White.copy(alpha = 0.2f),
-        Color.White.copy(alpha = 0.05f),
+        Color(0xFFBB86FC).copy(alpha = 0.03f),
+        Color(0xFFBB86FC).copy(alpha = 0.12f),
+        Color(0xFFBB86FC).copy(alpha = 0.03f),
     )
 
     val brush = Brush.linearGradient(
@@ -47,8 +47,11 @@ fun Modifier.shimmerEffect(): Modifier = composed {
 @Composable
 fun ShimmerHomeScreen() {
     Box(modifier = Modifier.fillMaxSize()) {
-        // Gunakan background yang sama persis dengan HomeScreen
-        PremiumTvBackground()
+        // Use UniverseBackground to match the theme
+        com.chesko.stream_pro_tv.ui.screens.UniverseBackground(
+            primaryColor = MaterialTheme.colorScheme.primary,
+            glowAlpha = 0.6f
+        )
         
         Column(
             modifier = Modifier

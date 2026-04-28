@@ -405,7 +405,7 @@ fun NavHostContent(
             LaunchedEffect(Unit) { viewModel.setCategoryFilter("live") }
             HomeScreen(
                 viewModel = viewModel,
-                showGroupSelector = false, // Sembunyikan untuk Live
+                showGroupSelector = false,
                 onChannelClick = { channel ->
                     viewModel.setSelectedChannel(channel)
                     navController.navigate("player")

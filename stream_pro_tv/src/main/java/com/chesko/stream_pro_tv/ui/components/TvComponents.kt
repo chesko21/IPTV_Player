@@ -222,7 +222,7 @@ fun ChannelTvGridItem(
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
                         .size(20.dp)
-                        .background(Color(0xFFFFD600), CircleShape) // Yellow background
+                        .background(Color(0xFFFFD600), CircleShape)
                         .padding(4.dp)
                 )
             }

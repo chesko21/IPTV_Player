@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vlc_error_discontinuity">خطأ في التشغيل (مشكلة في الاستمرارية/الخادم)</string>
+    <string name="player_error_format">خطأ: %1$s</string>
+    <string name="exo_error_link_dead">الرابط معطل (404)</string>
+    <string name="exo_error_connection_failed">فشل الاتصال</string>
+    <string name="exo_error_timeout">انتهت المهلة</string>
+    <string name="exo_error_ssl">خطأ SSL (استخدم HTTPS)</string>
+    <string name="exo_error_file_not_found">الملف غير موجود</string>
+    <string name="exo_error_decode_failed">خطأ في فك التشفير</string>
+    <string name="exo_error_unsupported">تنسيق غير مدعوم</string>
+    <string name="exo_error_generic">خطأ (%1$s)</string>
+    <string name="brand_name">StreamPro</string>
+</resources>

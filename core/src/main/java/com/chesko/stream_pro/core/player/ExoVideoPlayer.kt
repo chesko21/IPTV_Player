@@ -6,9 +6,23 @@ import android.widget.FrameLayout
 import androidx.annotation.OptIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -19,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -70,9 +85,9 @@ fun VideoPlayer(
     val exoPlayer = remember(hwAcceleration, bufferSize) {
         val loadControl = DefaultLoadControl.Builder()
             .setBufferDurationsMs(
-                bufferSize * 1000, 
-                (bufferSize * 2).coerceAtLeast(30) * 1000, 
-                2500, 
+                bufferSize * 1000,
+                (bufferSize * 2).coerceAtLeast(30) * 1000,
+                2500,
                 5000
             )
             .setPrioritizeTimeOverSizeThresholds(true)
@@ -83,19 +98,19 @@ fun VideoPlayer(
                 .setAllowVideoMixedMimeTypeAdaptiveness(true)
                 .setForceLowestBitrate(false)
                 .setExceedRendererCapabilitiesIfNecessary(true)
-            
+
             if (maxVideoHeight > 0) {
                 parametersBuilder.setMaxVideoSize(Int.MAX_VALUE, maxVideoHeight)
             }
-            
+
             setParameters(parametersBuilder)
         }
 
         val renderersFactory = androidx.media3.exoplayer.DefaultRenderersFactory(context).apply {
             setExtensionRendererMode(
-                if (hwAcceleration) 
-                    androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON 
-                else 
+                if (hwAcceleration)
+                    androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
+                else
                     androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
             )
             setEnableDecoderFallback(true)
@@ -109,7 +124,7 @@ fun VideoPlayer(
             .build().apply {
                 repeatMode = Player.REPEAT_MODE_OFF
                 playWhenReady = autoPlay
-                
+
                 addListener(object : Player.Listener {
                     override fun onAudioSessionIdChanged(audioSessionId: Int) {
                         try {
@@ -154,14 +169,14 @@ fun VideoPlayer(
                         }
 
                         val detailedMessage = when (error.errorCode) {
-                            PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> "LINK MATI (404)"
-                            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> "KONEKSI GAGAL"
-                            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> "TIMEOUT"
-                            PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED -> "SSL ERROR (Gunakan HTTPS)"
-                            PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND -> "FILE TIDAK DITEMUKAN"
-                            PlaybackException.ERROR_CODE_DECODING_FAILED -> "DECODE ERROR"
-                            PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED -> "FORMAT TIDAK DIDUKUNG"
-                            else -> "ERROR (${error.errorCodeName})"
+                            PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> context.getString(R.string.exo_error_link_dead)
+                            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> context.getString(R.string.exo_error_connection_failed)
+                            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> context.getString(R.string.exo_error_timeout)
+                            PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED -> context.getString(R.string.exo_error_ssl)
+                            PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND -> context.getString(R.string.exo_error_file_not_found)
+                            PlaybackException.ERROR_CODE_DECODING_FAILED -> context.getString(R.string.exo_error_decode_failed)
+                            PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED -> context.getString(R.string.exo_error_unsupported)
+                            else -> context.getString(R.string.exo_error_generic, error.errorCodeName)
                         }
                         currentOnError?.invoke(detailedMessage)
                     }
@@ -242,7 +257,7 @@ fun VideoPlayer(
 
         val mediaItem = PlayerUtils.buildMediaItem(channel)
         val allHeaders = PlayerUtils.getHeadersFromChannel(channel)
-        
+
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()
             .setAllowCrossProtocolRedirects(true)
             .setDefaultRequestProperties(allHeaders)
@@ -263,20 +278,23 @@ fun VideoPlayer(
         exoPlayer.play()
     }
 
-    Box(modifier = modifier.fillMaxSize().background(Color(0xFF0A0A0A))) {
+    Box(modifier = modifier
+        .fillMaxSize()
+        .background(Color(0xFF0A0A0A))) {
         AndroidView(
             factory = { ctx ->
                 PlayerView(ctx).apply {
                     player = exoPlayer
                     useController = false
                     this.resizeMode = resizeMode
+                    subtitleView?.visibility = android.view.View.VISIBLE
                     layoutParams = FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
                 }
             },
-            update = { view -> 
+            update = { view ->
                 if (view.resizeMode != resizeMode) {
                     view.resizeMode = resizeMode
                 }
@@ -300,7 +318,7 @@ fun VideoPlayer(
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-                text = "StreamPro",
+                text = stringResource(R.string.brand_name),
                 color = Color.White,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold

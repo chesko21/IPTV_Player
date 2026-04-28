@@ -30,6 +30,88 @@ import com.google.accompanist.permissions.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@Composable
+fun UniverseBackground(primaryColor: Color, glowAlpha: Float) {
+    val infiniteTransition = rememberInfiniteTransition(label = "universe")
+    
+    // Stars animation
+    val starAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "starAlpha"
+    )
+
+    // Nebula movement
+    val nebulaOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(60000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "nebulaOffset"
+    )
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        // Deep Space Background
+        drawRect(Color(0xFF00020A))
+
+        // Drawing stars
+        val starCount = 150
+        val random = java.util.Random(42) // Fixed seed for consistency
+        repeat(starCount) {
+            val x = random.nextFloat() * size.width
+            val y = random.nextFloat() * size.height
+            val starSize = random.nextFloat() * 2.dp.toPx()
+            val individualAlpha = (random.nextFloat() * 0.5f + 0.5f) * starAlpha
+            
+            drawCircle(
+                color = Color.White.copy(alpha = individualAlpha),
+                radius = starSize,
+                center = androidx.compose.ui.geometry.Offset(x, y)
+            )
+        }
+
+        // Cosmic Nebulas (Big blurred spots)
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(primaryColor.copy(alpha = 0.15f * glowAlpha), Color.Transparent),
+                center = androidx.compose.ui.geometry.Offset(
+                    size.width * 0.2f + (nebulaOffset % 200),
+                    size.height * 0.3f
+                ),
+                radius = size.minDimension * 0.8f
+            )
+        )
+
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xFF6A1B9A).copy(alpha = 0.1f * glowAlpha), Color.Transparent),
+                center = androidx.compose.ui.geometry.Offset(
+                    size.width * 0.8f - (nebulaOffset % 150),
+                    size.height * 0.7f
+                ),
+                radius = size.minDimension * 0.7f
+            )
+        )
+        
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xFF0D47A1).copy(alpha = 0.1f * glowAlpha), Color.Transparent),
+                center = androidx.compose.ui.geometry.Offset(
+                    size.width * 0.5f,
+                    size.height * 0.5f + (nebulaOffset % 100 - 50)
+                ),
+                radius = size.minDimension * 1.0f
+            )
+        )
+    }
+}
+
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun TvSplashScreen(onNextScreen: () -> Unit) {
@@ -43,16 +125,6 @@ fun TvSplashScreen(onNextScreen: () -> Unit) {
 
     val infiniteTransition = rememberInfiniteTransition(label = "ambient")
     
-    val bgOffset by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 2000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(40000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "bgOffset"
-    )
-
     val scale = remember { Animatable(0.6f) }
     val alpha = remember { Animatable(0f) }
     val textAlpha = remember { Animatable(0f) }
@@ -101,40 +173,11 @@ fun TvSplashScreen(onNextScreen: () -> Unit) {
     val subtitleSpacing = 4.sp
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF020202)),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        // 1. DYNAMIC AMBIENT BACKGROUND (Same as Home/Settings for seamless transition)
-        Canvas(modifier = Modifier.fillMaxSize().blur(100.dp)) {
-            drawRect(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        primaryColor.copy(alpha = 0.15f * glowAlpha.value),
-                        Color.Transparent
-                    ),
-                    center = center.copy(
-                        x = center.x + (bgOffset % 1000 - 500), 
-                        y = center.y + (bgOffset % 800 - 400)
-                    ),
-                    radius = size.minDimension * 1.5f
-                )
-            )
-            drawRect(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color(0xFF2979FF).copy(alpha = 0.12f * glowAlpha.value),
-                        Color.Transparent
-                    ),
-                    center = center.copy(
-                        x = center.x - (bgOffset % 1200 - 600), 
-                        y = center.y - (bgOffset % 600 - 300)
-                    ),
-                    radius = size.minDimension * 1.2f
-                )
-            )
-        }
+        // 1. UNIVERSE THEMED BACKGROUND
+        UniverseBackground(primaryColor, glowAlpha.value)
 
         // 2. MAIN CONTENT (Logo + Branding + Loading)
         Column(
@@ -152,12 +195,11 @@ fun TvSplashScreen(onNextScreen: () -> Unit) {
                     rotationZ = logoRotate.value
                 )
             ) {
-                // Pulsing Logo Glow
                 val pulseScale by infiniteTransition.animateFloat(
-                    initialValue = 1.5f,
-                    targetValue = 2.2f,
+                    initialValue = 1.2f,
+                    targetValue = 2.0f,
                     animationSpec = infiniteRepeatable(
-                        animation = tween(3000, easing = FastOutSlowInEasing),
+                        animation = tween(4000, easing = FastOutSlowInEasing),
                         repeatMode = RepeatMode.Reverse
                     ),
                     label = "pulse"
@@ -166,32 +208,22 @@ fun TvSplashScreen(onNextScreen: () -> Unit) {
                 Canvas(modifier = Modifier.size(logoSize * pulseScale)) {
                     drawCircle(
                         brush = Brush.radialGradient(
-                            colors = listOf(primaryColor.copy(alpha = 0.2f * glowAlpha.value), Color.Transparent)
+                            colors = listOf(
+                                primaryColor.copy(alpha = 0.3f * glowAlpha.value),
+                                Color(0xFF6A1B9A).copy(alpha = 0.1f * glowAlpha.value),
+                                Color.Transparent
+                            )
                         ),
                         radius = size.minDimension / 2
                     )
                 }
 
-                // The actual Logo Surface
-                Box(
-                    modifier = Modifier
-                        .size(logoSize)
-                        .clip(CircleShape)
-                        .background(Color(0xFF0A0A0A))
-                        .border(
-                            1.5.dp,
-                            Brush.linearGradient(listOf(primaryColor, primaryColor.copy(alpha = 0.3f))),
-                            CircleShape
-                        )
-                        .padding(logoPadding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.app_icon_androidtv),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+                // The actual Logo
+                Image(
+                    painter = painterResource(R.drawable.app_icon_androidtv),
+                    contentDescription = null,
+                    modifier = Modifier.size(logoSize)
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -231,31 +263,33 @@ fun TvSplashScreen(onNextScreen: () -> Unit) {
                         .padding(horizontal = 12.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = "THE ULTIMATE TV EXPERIENCE",
+                        text = "EXPLORE THE CINEMATIC UNIVERSE",
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontSize = subtitleSize,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = subtitleSpacing,
                             textAlign = TextAlign.Center
                         ),
-                        color = Color.White.copy(alpha = 0.6f)
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // 3. LOADING INDICATOR
-            LinearProgressIndicator(
-                progress = { barWidth.value },
-                modifier = Modifier
-                    .width(160.dp)
-                    .height(4.dp)
-                    .clip(CircleShape)
-                    .graphicsLayer(alpha = textAlpha.value),
-                color = primaryColor,
-                trackColor = Color.White.copy(alpha = 0.05f)
-            )
+            // 3. LOADING INDICATOR (Stardust Path style)
+            Box(contentAlignment = Alignment.Center) {
+                LinearProgressIndicator(
+                    progress = { barWidth.value },
+                    modifier = Modifier
+                        .width(200.dp)
+                        .height(3.dp)
+                        .clip(CircleShape)
+                        .graphicsLayer(alpha = textAlpha.value),
+                    color = primaryColor,
+                    trackColor = Color.White.copy(alpha = 0.05f)
+                )
+            }
         }
 
         // 4. FOOTER (Credit)

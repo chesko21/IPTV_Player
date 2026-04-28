@@ -22,39 +22,40 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.ui.res.stringResource
+import com.chesko.stream_pro.R
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HelpScreen(onBack: () -> Unit) {
     var isBackInvoked by remember { mutableStateOf(false) }
-    val faqList = remember {
-        listOf(
-            FaqItem(
-                "Bagaimana cara menambah playlist?",
-                "Anda dapat menambah playlist dengan menekan tombol 'Tambah' di layar login, lalu masukkan URL M3U yang valid atau pilih file dari penyimpanan perangkat Anda."
-            ),
-            FaqItem(
-                "Kenapa saluran tidak bisa diputar?",
-                "Pastikan koneksi internet Anda stabil. Beberapa saluran mungkin memerlukan VPN atau memiliki batasan wilayah. Jika masalah berlanjut, hubungi penyedia playlist Anda."
-            ),
-            FaqItem(
-                "Bagaimana cara melihat jadwal TV (EPG)?",
-                "Buka Menu Drawer (ikon garis tiga di pojok kiri atas) lalu pilih 'Panduan TV'. EPG akan otomatis terunduh jika sumber playlist menyediakannya."
-            ),
-            FaqItem(
-                "Bagaimana cara menambah ke Favorit?",
-                "Saat memutar video, tekan ikon 'Bintang' di kontrol player. Atau Anda bisa menekan lama pada item saluran di daftar beranda."
-            ),
-            FaqItem(
-                "Aplikasi terasa lambat, apa yang harus dilakukan?",
-                "Anda bisa mencoba membersihkan cache di Pengaturan Android, atau kurangi jumlah playlist yang aktif jika terlalu banyak."
-            )
+    val faqList = listOf(
+        FaqItem(
+            stringResource(R.string.faq_q1),
+            stringResource(R.string.faq_a1)
+        ),
+        FaqItem(
+            stringResource(R.string.faq_q2),
+            stringResource(R.string.faq_a2)
+        ),
+        FaqItem(
+            stringResource(R.string.faq_q3),
+            stringResource(R.string.faq_a3)
+        ),
+        FaqItem(
+            stringResource(R.string.faq_q4),
+            stringResource(R.string.faq_a4)
+        ),
+        FaqItem(
+            stringResource(R.string.faq_q5),
+            stringResource(R.string.faq_a5)
         )
-    }
+    )
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Pusat Bantuan", fontWeight = FontWeight.Black) },
+                title = { Text(stringResource(R.string.help_center_title), fontWeight = FontWeight.Black) },
                 navigationIcon = {
                     IconButton(onClick = {
                         if (!isBackInvoked) {
@@ -64,7 +65,7 @@ fun HelpScreen(onBack: () -> Unit) {
                     }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack, 
-                            contentDescription = "Kembali", 
+                            contentDescription = stringResource(R.string.btn_close),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -99,13 +100,13 @@ fun HelpScreen(onBack: () -> Unit) {
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        "Pertanyaan yang Sering Diajukan",
+                        stringResource(R.string.faq_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        "Cari jawaban untuk masalah Anda di bawah ini",
+                        stringResource(R.string.faq_subtitle),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                     )
@@ -125,13 +126,13 @@ fun HelpScreen(onBack: () -> Unit) {
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            "Masih Butuh Bantuan?",
+                            stringResource(R.string.help_more_title),
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            "Hubungi tim dukungan kami melalui email di https://chesko-25.vercel.app untuk bantuan lebih lanjut.",
+                            stringResource(R.string.help_more_msg),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

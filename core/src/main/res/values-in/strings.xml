@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vlc_error_discontinuity">Galat Pemutaran (Isu Diskontinuitas/Server)</string>
+    <string name="player_error_format">Kesalahan: %1$s</string>
+    <string name="exo_error_link_dead">LINK MATI (404)</string>
+    <string name="exo_error_connection_failed">KONEKSI GAGAL</string>
+    <string name="exo_error_timeout">WAKTU HABIS (TIMEOUT)</string>
+    <string name="exo_error_ssl">GALAT SSL (Gunakan HTTPS)</string>
+    <string name="exo_error_file_not_found">FILE TIDAK DITEMUKAN</string>
+    <string name="exo_error_decode_failed">GALAT DECODE</string>
+    <string name="exo_error_unsupported">FORMAT TIDAK DIDUKUNG</string>
+    <string name="exo_error_generic">KESALAHAN (%1$s)</string>
+    <string name="brand_name">StreamPro</string>
+</resources>

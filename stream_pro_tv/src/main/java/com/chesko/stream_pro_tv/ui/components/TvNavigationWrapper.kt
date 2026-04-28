@@ -6,7 +6,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.foundation.focusGroup
@@ -34,8 +34,9 @@ fun TvNavigationWrapper(
     var isExpanded by remember { mutableStateOf(false) }
 
     val sidebarWidth by animateDpAsState(
-        targetValue = if (isExpanded) 240.dp else 80.dp,
-        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+        targetValue = if (isExpanded) 220.dp else 70.dp,
+
+        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
         label = "sidebarWidth"
     )
 
@@ -52,61 +53,61 @@ fun TvNavigationWrapper(
                 .fillMaxHeight()
                 .onFocusChanged { isExpanded = it.hasFocus }
                 .focusGroup()
+
                 .background(
                     Brush.horizontalGradient(
                         colors = listOf(
-                            Color(0xFF121212),
-                            Color(0xFF1A1A1A)
+                            Color(0xFF0A0A0A),
+                            Color(0xFF00020A)
                         )
                     )
                 )
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(vertical = 24.dp),
+                    .fillMaxHeight(),
                 horizontalAlignment = Alignment.Start
             ) {
                 BrandingSection(isExpanded)
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 SidebarItem(
-                    label = "Home", icon = Icons.Default.Home, isSelected = selectedRoute == "home", isExpanded = isExpanded,
+                    label = "HOME", icon = Icons.Default.Home, isSelected = selectedRoute == "home", isExpanded = isExpanded,
                     modifier = Modifier.focusRequester(homeFR).focusProperties { down = searchFR },
                     onClick = { onRouteSelected("home") }
                 )
                 SidebarItem(
-                    label = "Search", icon = Icons.Default.Search, isSelected = selectedRoute == "search", isExpanded = isExpanded,
+                    label = "SEARCH", icon = Icons.Default.Search, isSelected = selectedRoute == "search", isExpanded = isExpanded,
                     modifier = Modifier.focusRequester(searchFR).focusProperties { up = homeFR; down = liveFR },
                     onClick = { onRouteSelected("search") }
                 )
                 SidebarItem(
-                    label = "Live TV", icon = Icons.Default.Tv, isSelected = selectedRoute == "live", isExpanded = isExpanded,
+                    label = "LIVE TV", icon = Icons.Default.Tv, isSelected = selectedRoute == "live", isExpanded = isExpanded,
                     modifier = Modifier.focusRequester(liveFR).focusProperties { up = searchFR; down = moviesFR },
                     onClick = { onRouteSelected("live") }
                 )
                 SidebarItem(
-                    label = "Movies", icon = Icons.Default.Movie, isSelected = selectedRoute == "movies", isExpanded = isExpanded,
+                    label = "MOVIES", icon = Icons.Default.Movie, isSelected = selectedRoute == "movies", isExpanded = isExpanded,
                     modifier = Modifier.focusRequester(moviesFR).focusProperties { up = liveFR; down = sportFR },
                     onClick = { onRouteSelected("movies") }
                 )
                 SidebarItem(
-                    label = "Sports", icon = Icons.Default.SportsSoccer, isSelected = selectedRoute == "sport", isExpanded = isExpanded,
+                    label = "SPORTS", icon = Icons.Default.SportsSoccer, isSelected = selectedRoute == "sport", isExpanded = isExpanded,
                     modifier = Modifier.focusRequester(sportFR).focusProperties { up = moviesFR; down = favFR },
                     onClick = { onRouteSelected("sport") }
                 )
                 SidebarItem(
-                    label = "Favorites", icon = Icons.Default.Favorite, isSelected = selectedRoute == "favorites", isExpanded = isExpanded,
-                    modifier = Modifier.focusRequester(favFR).focusProperties { up = sportFR; down = settingsFR },
+                    label = "FAVORITES", icon = Icons.Default.Favorite, isSelected = selectedRoute == "favorites", isExpanded = isExpanded,
+                    modifier = Modifier.focusRequester(favFR).focusProperties { up = sportFR; down = settingsFR; next = settingsFR },
                     onClick = { onRouteSelected("favorites") }
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
 
                 SidebarItem(
-                    label = "Settings", icon = Icons.Default.Settings, isSelected = selectedRoute == "settings", isExpanded = isExpanded,
-                    modifier = Modifier.focusRequester(settingsFR).focusProperties { up = favFR },
+                    label = "SETTINGS", icon = Icons.Default.Settings, isSelected = selectedRoute == "settings", isExpanded = isExpanded,
+                    modifier = Modifier.focusRequester(settingsFR).focusProperties { up = favFR; previous = favFR },
                     onClick = { onRouteSelected("settings") }
                 )
             }
@@ -124,15 +125,15 @@ private fun BrandingSection(isExpanded: Boolean) {
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
-            .padding(horizontal = 24.dp),
+            .padding(start = 16.dp, end = 16.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         AnimatedContent(
             targetState = isExpanded,
             transitionSpec = {
-                fadeIn(animationSpec = tween(220, delayMillis = 90)) +
-                        scaleIn(initialScale = 0.92f, animationSpec = tween(220, delayMillis = 90)) togetherWith
-                        fadeOut(animationSpec = tween(90))
+                fadeIn(animationSpec = tween(250)) +
+                        slideInHorizontally(animationSpec = tween(250)) { -20 } togetherWith
+                        fadeOut(animationSpec = tween(150))
             },
             label = "branding"
         ) { expanded ->
@@ -141,23 +142,32 @@ private fun BrandingSection(isExpanded: Boolean) {
                     Image(
                         painter = painterResource(id = R.drawable.app_icon_androidtv),
                         contentDescription = null,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(32.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Row {
-                            Text("STREAM", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, color = Color.White, letterSpacing = (-1).sp)
-                            Text("PRO", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary, letterSpacing = (-1).sp)
+                            Text("STREAM", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White, letterSpacing = (-1).sp)
+                            Text("PRO", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary, letterSpacing = (-1).sp)
                         }
-                        Text(text = "PREMIUM IPTV PLAYER By CHESKO", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "PREMIUM IPTV", 
+                            style = MaterialTheme.typography.labelSmall, 
+                            color = Color.White.copy(alpha = 0.4f), 
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp,
+                            fontSize = 8.sp
+                        )
                     }
                 }
             } else {
-                Image(
-                    painter = painterResource(id = R.drawable.app_icon_androidtv),
-                    contentDescription = null,
-                    modifier = Modifier.size(32.dp)
-                )
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Image(
+                        painter = painterResource(id = R.drawable.app_icon_androidtv),
+                        contentDescription = null,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
             }
         }
     }
@@ -179,32 +189,34 @@ fun SidebarItem(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp)
-            .padding(horizontal = 12.dp, vertical = 2.dp)
+            .height(52.dp)
+            .padding(vertical = 2.dp)
             .onFocusChanged { isFocused = it.isFocused },
-        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
+        shape = ClickableSurfaceDefaults.shape(RectangleShape),
         colors = ClickableSurfaceDefaults.colors(
-            containerColor = if (isSelected) Color.White.copy(alpha = 0.1f) else Color.Transparent,
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else Color.Transparent,
             focusedContainerColor = MaterialTheme.colorScheme.primary,
-            contentColor = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f),
+            contentColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.5f),
             focusedContentColor = Color.White
         ),
-        scale = ClickableSurfaceDefaults.scale(focusedScale = 1.05f)
+        scale = ClickableSurfaceDefaults.scale(focusedScale = 1.0f)
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ) {
-            // Box dengan lebar tetap memastikan ikon tidak bergerak saat ekspansi
             Box(
                 modifier = Modifier.width(56.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, contentDescription = label, modifier = Modifier.size(22.dp))
+                Icon(
+                    imageVector = icon, 
+                    contentDescription = label, 
+                    modifier = Modifier.size(20.dp)
+                )
             }
             
-            // Animasi teks muncul dari samping
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = fadeIn(animationSpec = tween(300)) + expandHorizontally(),
@@ -212,10 +224,11 @@ fun SidebarItem(
             ) {
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = if (isSelected || isFocused) FontWeight.Bold else FontWeight.Normal,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 0.5.sp,
                     maxLines = 1,
-                    modifier = Modifier.padding(start = 8.dp)
+                    modifier = Modifier.padding(start = 4.dp)
                 )
             }
         }

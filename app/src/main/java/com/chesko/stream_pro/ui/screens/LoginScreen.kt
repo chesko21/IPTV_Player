@@ -31,6 +31,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -185,13 +186,13 @@ fun LoginScreen(
                                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
                                         LoginMethodTab(
-                                            text = "REMOTE URL",
+                                            text = stringResource(R.string.tab_remote_url),
                                             isSelected = selectedTab == 0,
                                             modifier = Modifier.weight(1f),
                                             onClick = { selectedTab = 0 }
                                         )
                                         LoginMethodTab(
-                                            text = "LOCAL FILE",
+                                            text = stringResource(R.string.tab_local_file),
                                             isSelected = selectedTab == 1,
                                             modifier = Modifier.weight(1f),
                                             onClick = { selectedTab = 1 }
@@ -213,7 +214,7 @@ fun LoginScreen(
                                                 isOffline = isOffline,
                                                 onConnect = {
                                                     if (!url.startsWith("http")) {
-                                                        scope.launch { snackbarHostState.showSnackbar("Invalid URL protocol") }
+                                                        scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.invalid_url_protocol)) }
                                                         return@UrlSlide
                                                     }
                                                     keyboardController?.hide()
@@ -251,13 +252,13 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(32.dp))
                     
                     Text(
-                        text = "SECURE ENCRYPTED CONNECTION",
-                        color = MaterialTheme.colorScheme.onSurface.copy(0.3f),
-                        style = MaterialTheme.typography.labelSmall,
-                        letterSpacing = 2.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 9.sp
-                    )
+                                text = stringResource(R.string.login_secure_msg),
+                                color = MaterialTheme.colorScheme.onSurface.copy(0.3f),
+                                style = MaterialTheme.typography.labelSmall,
+                                letterSpacing = 2.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 9.sp
+                            )
                 }
             }
         }
@@ -319,7 +320,7 @@ fun UrlSlide(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        "EXPLORE DEMO", 
+                        stringResource(R.string.dialog_explore_demo), 
                         fontWeight = FontWeight.Black, 
                         letterSpacing = 1.sp, 
                         fontSize = 14.sp,
@@ -340,7 +341,7 @@ fun UrlSlide(
                                 ) {
                                     Icon(Icons.Default.Dns, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                                     Spacer(Modifier.width(10.dp))
-                                    Text("Playlist Demo ${index + 1}", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                    Text(stringResource(R.string.demo_playlist_label, index + 1), fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                 }
                             }
                         }
@@ -351,21 +352,22 @@ fun UrlSlide(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("CLOSE", color = MaterialTheme.colorScheme.onSurface.copy(0.5f), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                        Text(stringResource(R.string.btn_close).uppercase(), color = MaterialTheme.colorScheme.onSurface.copy(0.5f), fontWeight = FontWeight.Bold, fontSize = 11.sp)
                     }
                 }
             }
         }
     }
 
+    val context = LocalContext.current
     val displayUrl = remember(url) {
         val demoIndex = MainViewModel.DEMO_URLS.indexOf(url)
-        if (demoIndex != -1) "Universal Playlist ${demoIndex + 1}" else url
+        if (demoIndex != -1) context.getString(R.string.demo_playlist_name, demoIndex + 1) else url
     }
 
     Column(horizontalAlignment = Alignment.Start) {
         Text(
-            "M3U PLAYLIST ENDPOINT", 
+            stringResource(R.string.m3u_endpoint_label), 
             color = MaterialTheme.colorScheme.primary, 
             fontWeight = FontWeight.Black,
             letterSpacing = 1.sp,
@@ -382,7 +384,7 @@ fun UrlSlide(
                     onUrlChange(newValue)
                 }
             },
-            placeholder = { Text("https://your-provider.com/playlist.m3u", color = MaterialTheme.colorScheme.onSurface.copy(0.3f), fontSize = 13.sp) },
+            placeholder = { Text(stringResource(R.string.url_placeholder), color = MaterialTheme.colorScheme.onSurface.copy(0.3f), fontSize = 13.sp) },
             modifier = Modifier.fillMaxWidth(),
             textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp),
             shape = RoundedCornerShape(12.dp),
@@ -409,7 +411,7 @@ fun UrlSlide(
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             ShimmerButton(
-                text = "CONNECT",
+                text = stringResource(R.string.btn_connect),
                 isLoading = isLoading,
                 enabled = !isLoading && !isOffline,
                 onClick = onConnect,
@@ -423,7 +425,7 @@ fun UrlSlide(
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onSurface.copy(0.05f), contentColor = MaterialTheme.colorScheme.onSurface),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.1f))
             ) {
-                Text("DEMO", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                Text(stringResource(R.string.btn_demo), fontWeight = FontWeight.Bold, fontSize = 12.sp)
             }
         }
     }
@@ -441,9 +443,9 @@ fun FileSlide(isLoading: Boolean, onPickFile: () -> Unit) {
             Icon(Icons.Default.CloudUpload, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Text("LOCAL REPOSITORY", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Black, letterSpacing = 1.sp, fontSize = 14.sp)
+        Text(stringResource(R.string.local_repo_label), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Black, letterSpacing = 1.sp, fontSize = 14.sp)
         Text(
-            "Import .m3u or .m3u8 files from your device storage", 
+            stringResource(R.string.local_repo_msg), 
             style = MaterialTheme.typography.bodySmall, 
             color = MaterialTheme.colorScheme.onSurface.copy(0.4f), 
             textAlign = TextAlign.Center,
@@ -461,7 +463,7 @@ fun FileSlide(isLoading: Boolean, onPickFile: () -> Unit) {
         ) {
             Icon(Icons.Default.FolderZip, null, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(12.dp))
-            Text("BROWSE FILES", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            Text(stringResource(R.string.btn_browse_files), fontWeight = FontWeight.Bold, fontSize = 12.sp)
         }
     }
 }
@@ -487,7 +489,7 @@ fun LogoSection() {
         Spacer(modifier = Modifier.height(16.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "STREAM", 
+                stringResource(R.string.brand_name).substringBefore("PRO"),
                 style = MaterialTheme.typography.headlineSmall, 
                 fontWeight = FontWeight.Black, 
                 color = MaterialTheme.colorScheme.onSurface,

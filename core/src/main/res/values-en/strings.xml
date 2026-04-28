@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vlc_error_discontinuity">Playback Error (Discontinuity/Server issue)</string>
+    <string name="player_error_format">Error: %1$s</string>
+    <string name="exo_error_link_dead">DEAD LINK (404)</string>
+    <string name="exo_error_connection_failed">CONNECTION FAILED</string>
+    <string name="exo_error_timeout">TIMEOUT</string>
+    <string name="exo_error_ssl">SSL ERROR (Use HTTPS)</string>
+    <string name="exo_error_file_not_found">FILE NOT FOUND</string>
+    <string name="exo_error_decode_failed">DECODE ERROR</string>
+    <string name="exo_error_unsupported">FORMAT NOT SUPPORTED</string>
+    <string name="exo_error_generic">ERROR (%1$s)</string>
+    <string name="brand_name">StreamPro</string>
+</resources>
