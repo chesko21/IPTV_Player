@@ -367,9 +367,9 @@ fun PlayerScreenContent(
         !currentChannel.drmConfig.isNullOrBlank()
     }
 
-    var activeEngine by remember(playerEngineSetting, currentChannel.url) { 
+    val initialEngine = remember(playerEngineSetting, currentChannel.url) { 
         val url = currentChannel.url.lowercase().trim()
-        val initialEngine = when {
+        when {
             isExoOnly -> "EXO"
             
             url.startsWith("rtsp://") || url.startsWith("rtmp://") || 
@@ -379,8 +379,9 @@ fun PlayerScreenContent(
 
             else -> playerEngineSetting
         }
-        mutableStateOf(initialEngine) 
     }
+
+    var activeEngine by remember(initialEngine) { mutableStateOf(initialEngine) }
     
     val hwAcceleration by viewModel.hwAcceleration.collectAsState()
     val bufferSize by viewModel.bufferSize.collectAsState()
@@ -469,9 +470,11 @@ fun PlayerScreenContent(
             } catch (_: Exception) {
             }
         } else {
-            exoPlayer?.stop()
-            exoPlayer?.prepare()
-            exoPlayer?.play()
+            exoPlayer?.let {
+                it.stop()
+                it.prepare()
+                it.play()
+            }
         }
         isPlaybackStuck = false
         isBuffering = true
@@ -570,12 +573,6 @@ fun PlayerScreenContent(
                     return
                 }
 
-                if (activeEngine == "EXO" && !isExoOnly) {
-                    loadingStatus = playerFallbackVlc
-                    activeEngine = "VLC"
-                    return
-                }
-
                 loadingStatus = playerErrorLoad
                 isBuffering = false
                 isPlaybackStuck = true
@@ -598,10 +595,6 @@ fun PlayerScreenContent(
                     }
                     if (bufferCount == 8) {
                         reloadVideo()
-                    }
-                    if (bufferCount >= 15 && activeEngine == "EXO" && !isExoOnly) {
-                        activeEngine = "VLC"
-                        bufferCount = 0
                     }
                 } else if (player.isPlaying && player.playbackState == Player.STATE_READY) {
                     bufferCount = 0
@@ -739,13 +732,7 @@ fun PlayerScreenContent(
                     },
                     onError = { 
                         errorMessage = it
-                        // Auto-fallback to VLC if Exo fails, but only for non-DASH/HLS/DRM
-                        if (activeEngine == "EXO" && !isExoOnly) {
-                            loadingStatus = playerExoFallback
-                            activeEngine = "VLC"
-                        } else {
-                            isPlaybackStuck = true 
-                        }
+                        isPlaybackStuck = true 
                     },
                     onEngineSwitch = {
                         activeEngine = it
@@ -849,15 +836,17 @@ fun PlayerScreenContent(
                     Text(
                         text = errorMessage ?: stringResource(R.string.player_connection_lost),
                         color = Color.White,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = if (errorMessage != null) stringResource(R.string.player_link_dead) else stringResource(R.string.player_stopped),
-                        color = Color.White.copy(alpha = 0.7f),
-                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.5f),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 10.sp,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -1466,7 +1455,7 @@ fun ControlOverlay(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (canSwitchEngine) playerEngine else "$playerEngine",
+                        text = if (canSwitchEngine) playerEngine else "$playerEngine (FIXED)",
                         color = if (canSwitchEngine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(0.5f),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,

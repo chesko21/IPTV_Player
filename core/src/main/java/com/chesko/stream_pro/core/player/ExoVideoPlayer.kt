@@ -163,11 +163,6 @@ fun VideoPlayer(
                             return
                         }
 
-                        if (currentOnEngineSwitch != null) {
-                            currentOnEngineSwitch?.invoke("VLC")
-                            return
-                        }
-
                         val detailedMessage = when (error.errorCode) {
                             PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> context.getString(R.string.exo_error_link_dead)
                             PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> context.getString(R.string.exo_error_connection_failed)
@@ -184,6 +179,8 @@ fun VideoPlayer(
             }
     }
 
+    // Monitoring logic removed to prevent auto-switching to VLC
+    /*
     LaunchedEffect(exoPlayer) {
         var bufferingStartTime = 0L
         while (true) {
@@ -200,6 +197,7 @@ fun VideoPlayer(
             delay(1000)
         }
     }
+    */
 
     DisposableEffect(exoPlayer, lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -320,7 +318,7 @@ fun VideoPlayer(
             Text(
                 text = stringResource(R.string.brand_name),
                 color = Color.White,
-                fontSize = 14.sp,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Bold
             )
         }

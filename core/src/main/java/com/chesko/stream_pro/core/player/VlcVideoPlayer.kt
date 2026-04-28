@@ -121,7 +121,7 @@ fun VlcVideoPlayer(
                     if (retryCount < 3) {
                         retryCount++
                     } else {
-                        currentOnError?.invoke(context.getString(R.string.vlc_error_discontinuity))
+                        currentOnError?.invoke("VLC encountered an error during playback")
                     }
                 }
 
@@ -252,7 +252,7 @@ fun VlcVideoPlayer(
                 if (retryCount < 3) {
                     retryCount++
                 } else {
-                    currentOnError?.invoke(context.getString(R.string.player_error_format, e.message ?: "Unknown"))
+                    currentOnError?.invoke(e.message ?: "Unknown media error")
                 }
             }
         } finally {
