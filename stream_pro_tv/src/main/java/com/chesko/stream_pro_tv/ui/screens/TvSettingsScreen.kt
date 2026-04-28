@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.Image
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -75,6 +76,8 @@ fun TvSettingsScreen(
     val hwAcceleration by viewModel.hwAcceleration.collectAsState()
     val bufferSize by viewModel.bufferSize.collectAsState()
     
+    val appLanguage by viewModel.appLanguage.collectAsState()
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -84,6 +87,7 @@ fun TvSettingsScreen(
 
     var showBufferDialog by remember { mutableStateOf(false) }
     var showQualityDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier
@@ -110,14 +114,14 @@ fun TvSettingsScreen(
             ) {
                 Column(modifier = Modifier.padding(bottom = 32.dp)) {
                     TvText(
-                        text = "CONFIGURATION",
+                        text = stringResource(R.string.settings_config_label),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Black,
                         letterSpacing = 4.sp
                     )
                     TvText(
-                        text = "UNIVERSE SETTINGS",
+                        text = stringResource(R.string.settings_title),
                         style = if (isSmall) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineSmall,
                         color = Color.White,
                         fontWeight = FontWeight.Black,
@@ -125,50 +129,68 @@ fun TvSettingsScreen(
                     )
                 }
 
-                TvSettingsSection(title = "CINEMATIC ENGINE") {
+                TvSettingsSection(title = stringResource(R.string.settings_group_engine)) {
                     TvSettingsActionItem(
                         icon = Icons.Default.HighQuality,
-                        title = "Video Quality",
-                        subtitle = "Current Target: ${if (maxVideoHeight == 0) "Auto" else "${maxVideoHeight}p"}",
+                        title = stringResource(R.string.settings_quality_title),
+                        subtitle = stringResource(R.string.settings_quality_subtitle, if (maxVideoHeight == 0) stringResource(R.string.settings_quality_auto) else "${maxVideoHeight}p"),
                         onClick = { showQualityDialog = true }
                     )
                     TvSettingsToggleItem(
                         icon = Icons.Default.SlowMotionVideo,
-                        title = "Hardware Acceleration",
-                        subtitle = "Optimize playback performance for your device",
+                        title = stringResource(R.string.settings_hw_title),
+                        subtitle = stringResource(R.string.settings_hw_subtitle),
                         checked = hwAcceleration,
                         onCheckedChange = { viewModel.setHwAcceleration(it) }
                     )
                     TvSettingsActionItem(
                         icon = Icons.Default.Timer,
-                        title = "Star-Buffer Size",
-                        subtitle = "Current latency buffer: ${bufferSize}s",
+                        title = stringResource(R.string.settings_buffer_title),
+                        subtitle = stringResource(R.string.settings_buffer_subtitle, bufferSize),
                         onClick = { showBufferDialog = true }
                     )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                TvSettingsSection(title = "STAR-CHART MANAGEMENT") {
+                TvSettingsSection(title = stringResource(R.string.settings_group_display)) {
+                    val langLabel = when (appLanguage) {
+                        "en" -> "English"
+                        "in" -> "Bahasa Indonesia"
+                        "ms" -> "Bahasa Melayu"
+                        "ar" -> "Arabic"
+                        else -> "System Default"
+                    }
+                    TvSettingsActionItem(
+                        icon = Icons.Default.Language,
+                        title = stringResource(R.string.settings_language_title),
+                        subtitle = stringResource(R.string.settings_language_subtitle, langLabel),
+                        onClick = { showLanguageDialog = true }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                TvSettingsSection(title = stringResource(R.string.settings_group_management)) {
                     TvSettingsActionItem(
                         icon = Icons.Default.Refresh,
-                        title = "Reload Playlist",
-                        subtitle = "Re-sync star-charts from the master server",
+                        title = stringResource(R.string.settings_reload_title),
+                        subtitle = stringResource(R.string.settings_reload_subtitle),
                         onClick = {
                             viewModel.refreshPlaylist()
                             scope.launch {
-                                snackbarHostState.showSnackbar("Playlist synced successfully")
+                                snackbarHostState.showSnackbar(context.getString(R.string.settings_reload_success))
                             }
                         }
                     )
                     TvSettingsActionItem(
                         icon = Icons.Default.DeleteSweep,
-                        title = "Clear Space Cache",
-                        subtitle = "Clean temporary data and stardust",
+                        title = stringResource(R.string.settings_cache_title),
+                        subtitle = stringResource(R.string.settings_cache_subtitle),
                         onClick = {
                             viewModel.clearCache()
                             scope.launch {
-                                snackbarHostState.showSnackbar("Cache cleared")
+                                snackbarHostState.showSnackbar(context.getString(R.string.settings_cache_success))
                             }
                         }
                     )
@@ -176,22 +198,22 @@ fun TvSettingsScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                TvSettingsSection(title = "APPLICATION LOGS") {
+                TvSettingsSection(title = stringResource(R.string.settings_group_logs)) {
                     TvSettingsActionItem(
                         icon = Icons.Default.Info,
-                        title = "About Universe",
-                        subtitle = "Version $versionName - Premium Cinematic Edition",
+                        title = stringResource(R.string.settings_about_title),
+                        subtitle = stringResource(R.string.settings_about_subtitle, versionName),
                         onClick = { showAboutDialog = true }
                     )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                TvSettingsSection(title = "STATION EXIT") {
+                TvSettingsSection(title = stringResource(R.string.settings_group_exit)) {
                     TvSettingsActionItem(
                         icon = Icons.AutoMirrored.Filled.Logout,
-                        title = "Logout & Disconnect",
-                        subtitle = "Clear all charts and exit to terminal",
+                        title = stringResource(R.string.settings_logout_title),
+                        subtitle = stringResource(R.string.settings_logout_subtitle),
                         onClick = {
                             viewModel.deleteCurrentPlaylist()
                             onLogout()
@@ -237,14 +259,14 @@ fun TvSettingsScreen(
         if (showBufferDialog) {
             UniverseAlertDialog(
                 onDismiss = { showBufferDialog = false },
-                title = "SELECT BUFFER SIZE",
+                title = stringResource(R.string.dialog_buffer_title),
                 icon = Icons.Default.Timer
             ) {
                 val bufferOptions = listOf(5, 10, 15, 30, 45, 60)
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     bufferOptions.forEach { seconds ->
                         UniverseDialogItem(
-                            label = "$seconds SECONDS",
+                            label = "$seconds ${stringResource(R.string.dialog_unit_seconds)}",
                             isSelected = bufferSize == seconds,
                             onClick = {
                                 viewModel.setBufferSize(seconds)
@@ -259,14 +281,14 @@ fun TvSettingsScreen(
         if (showQualityDialog) {
             UniverseAlertDialog(
                 onDismiss = { showQualityDialog = false },
-                title = "VIDEO TARGET",
+                title = stringResource(R.string.dialog_quality_title),
                 icon = Icons.Default.HighQuality
             ) {
                 val qualityOptions = listOf(0, 240, 360, 480, 720, 1080)
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     qualityOptions.forEach { height ->
                         UniverseDialogItem(
-                            label = if (height == 0) "AUTO-ADAPTIVE" else "${height}P RESOLUTION",
+                            label = if (height == 0) stringResource(R.string.dialog_auto_adaptive) else stringResource(R.string.dialog_resolution_p, height),
                             isSelected = maxVideoHeight == height,
                             onClick = {
                                 viewModel.setMaxVideoHeight(height)
@@ -278,10 +300,38 @@ fun TvSettingsScreen(
             }
         }
 
+        if (showLanguageDialog) {
+            UniverseAlertDialog(
+                onDismiss = { showLanguageDialog = false },
+                title = stringResource(R.string.dialog_language_title),
+                icon = Icons.Default.Language
+            ) {
+                val languages = listOf(
+                    "en" to "ENGLISH",
+                    "in" to "BAHASA INDONESIA",
+                    "ms" to "BAHASA MELAYU",
+                    "ar" to "ARABIC"
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    languages.forEach { (code, label) ->
+                        UniverseDialogItem(
+                            label = label,
+                            isSelected = appLanguage == code,
+                            onClick = {
+                                viewModel.setAppLanguage(code)
+                                showLanguageDialog = false
+                                (context as? android.app.Activity)?.recreate()
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
         if (showAboutDialog) {
             UniverseAlertDialog(
                 onDismiss = { showAboutDialog = false },
-                title = "ABOUT UNIVERSE",
+                title = stringResource(R.string.dialog_about_title),
                 icon = Icons.Default.Info
             ) {
                 Column(
@@ -295,20 +345,20 @@ fun TvSettingsScreen(
                         modifier = Modifier.size(80.dp).clip(RoundedCornerShape(16.dp))
                     )
                     TvText(
-                        "STREAM PRO TV",
+                        stringResource(R.string.app_name),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Black,
                         color = Color.White
                     )
                     TvText(
-                        "PREMIUM EDITION • v$versionName",
+                        "${stringResource(R.string.branding_premium)} • v$versionName",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 2.sp
                     )
                     TvText(
-                        "Designed for high-performance cinematic experiences on Android TV.",
+                        stringResource(R.string.branding_description),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White.copy(alpha = 0.6f),
                         textAlign = TextAlign.Center
@@ -319,7 +369,7 @@ fun TvSettingsScreen(
                     Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.1f)))
                     
                     TvText(
-                        "DEVELOPED BY CHESKO",
+                        stringResource(R.string.branding_developed),
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.White.copy(alpha = 0.4f),
                         letterSpacing = 4.sp
@@ -356,7 +406,7 @@ fun UniverseAlertDialog(
                 modifier = Modifier.fillMaxWidth().height(48.dp)
             ) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    TvText("DISMISS", fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+                    TvText(stringResource(R.string.dialog_dismiss), fontWeight = FontWeight.Black, letterSpacing = 2.sp)
                 }
             }
         },

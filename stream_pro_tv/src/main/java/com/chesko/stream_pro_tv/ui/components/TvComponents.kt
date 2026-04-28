@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.*
 import coil.compose.AsyncImage
+import androidx.compose.ui.res.stringResource
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro_tv.R
 
@@ -216,7 +217,7 @@ fun ChannelTvGridItem(
             if (!channel.drmConfig.isNullOrEmpty()) {
                 Icon(
                     imageVector = Icons.Default.Lock,
-                    contentDescription = "DRM Protected",
+                    contentDescription = stringResource(R.string.content_desc_drm),
                     tint = Color.Black,
                     modifier = Modifier
                         .align(Alignment.TopEnd)

@@ -20,6 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.chesko.stream_pro_tv.R
 import androidx.tv.material3.*
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -84,7 +86,7 @@ fun ExitConfirmDialog(
             Spacer(modifier = Modifier.height(20.dp))
             
             Text(
-                text = "EXIT UNIVERSE",
+                text = stringResource(R.string.exit_title),
                 style = MaterialTheme.typography.titleLarge,
                 color = Color.White,
                 fontWeight = FontWeight.Black,
@@ -94,7 +96,7 @@ fun ExitConfirmDialog(
             Spacer(modifier = Modifier.height(12.dp))
             
             Text(
-                text = "Are you sure you want to leave the cinematic universe?",
+                text = stringResource(R.string.exit_msg),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
@@ -124,7 +126,7 @@ fun ExitConfirmDialog(
                     )
                 ) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("STAY", fontWeight = FontWeight.Black, fontSize = 15.sp, letterSpacing = 1.sp)
+                        Text(stringResource(R.string.exit_btn_stay), fontWeight = FontWeight.Black, fontSize = 15.sp, letterSpacing = 1.sp)
                     }
                 }
                 
@@ -147,7 +149,7 @@ fun ExitConfirmDialog(
                     )
                 ) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("EXIT", fontWeight = FontWeight.Black, fontSize = 14.sp, letterSpacing = 1.sp)
+                        Text(stringResource(R.string.exit_btn_exit), fontWeight = FontWeight.Black, fontSize = 14.sp, letterSpacing = 1.sp)
                     }
                 }
             }

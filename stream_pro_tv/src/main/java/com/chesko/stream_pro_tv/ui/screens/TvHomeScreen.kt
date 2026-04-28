@@ -21,6 +21,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.chesko.stream_pro_tv.R
 import androidx.tv.material3.*
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.ui.MainViewModel
@@ -60,14 +62,14 @@ fun HomeScreen(
             ) {
                 Column(modifier = Modifier.padding(bottom = 24.dp)) {
                     Text(
-                        text = "StreamPro TV",
+                        text = stringResource(R.string.app_name),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Black,
                         letterSpacing = 4.sp
                     )
                     Text(
-                        text = if (selectedGroup == null) "Explore TV Stream" else selectedGroup!!.uppercase(),
+                        text = if (selectedGroup == null) stringResource(R.string.home_explore) else selectedGroup!!.uppercase(),
                         style = MaterialTheme.typography.headlineSmall,
                         color = Color.White,
                         fontWeight = FontWeight.Black,
@@ -95,7 +97,7 @@ fun HomeScreen(
                                     modifier = Modifier.size(100.dp)
                                 )
                                 Text(
-                                    "No star-charts discovered in this sector", 
+                                    stringResource(R.string.home_no_charts), 
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = Color.White.copy(alpha = 0.3f),
                                     fontWeight = FontWeight.Medium
@@ -131,7 +133,7 @@ fun TvGroupSelector(
         ) {
             item {
                 GroupTvItem(
-                    groupName = "ALL Channel",
+                    groupName = stringResource(R.string.home_all_channels),
                     isSelected = selectedGroup == null,
                     onClick = { onGroupSelected(null) }
                 )

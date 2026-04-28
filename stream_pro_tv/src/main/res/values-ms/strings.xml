@@ -1,0 +1,163 @@
+<resources>
+    <string name="app_name">StreamPro TV</string>
+
+    <!-- Settings -->
+    <string name="settings_config_label">KONFIGURASI</string>
+    <string name="settings_title">TETAPAN ALAM SEMESTA</string>
+    <string name="settings_group_engine">ENJIN SINEMATIK</string>
+    <string name="settings_quality_title">Kualiti Video</string>
+    <string name="settings_quality_subtitle">Sasaran Semasa: %1$s</string>
+    <string name="settings_quality_auto">Auto</string>
+    <string name="settings_hw_title">Penyahkod Perkakasan</string>
+    <string name="settings_hw_subtitle">Optimalkan prestasi main balik untuk peranti anda</string>
+    <string name="settings_buffer_title">Saiz Penimbal Bintang</string>
+    <string name="settings_buffer_subtitle">Penimbal latensi semasa: %1$ss</string>
+
+    <string name="settings_group_management">PENGURUSAN CARTA BINTANG</string>
+    <string name="settings_reload_title">Muat Semula Senarai Main</string>
+    <string name="settings_reload_subtitle">Segerakkan semula carta bintang dari pelayan induk</string>
+    <string name="settings_reload_success">Senarai main berjaya disegerakkan</string>
+    <string name="settings_cache_title">Kosongkan Cache Ruang</string>
+    <string name="settings_cache_subtitle">Bersihkan data sementara dan debu bintang</string>
+    <string name="settings_cache_success">Cache dikosongkan</string>
+
+    <string name="settings_group_logs">LOG APLIKASI</string>
+    <string name="settings_about_title">Perihal Alam Semesta</string>
+    <string name="settings_about_subtitle">Versi %1$s - Edisi Sinematik Premium</string>
+
+    <string name="settings_group_exit">KELUAR STESEN</string>
+    <string name="settings_logout_title">Log Keluar &amp; Putuskan Sambungan</string>
+    <string name="settings_logout_subtitle">Kosongkan semua carta dan keluar ke terminal</string>
+
+    <string name="settings_group_display">PAPARAN &amp; BAHASA</string>
+    <string name="settings_language_title">Bahasa Alam Semesta</string>
+    <string name="settings_language_subtitle">Semasa: %1$s</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_buffer_title">PILIH SAIZ PENIMBAL</string>
+    <string name="dialog_quality_title">SASARAN VIDEO</string>
+    <string name="dialog_language_title">PILIH BAHASA</string>
+    <string name="dialog_about_title">PERIHAL ALAM SEMESTA</string>
+    <string name="dialog_unit_seconds">SAAT</string>
+    <string name="dialog_auto_adaptive">AUTO-ADAPTIF</string>
+    <string name="dialog_resolution_p">RESOLUSI %1$dP</string>
+    <string name="dialog_dismiss">TUTUP</string>
+
+    <!-- Branding -->
+    <string name="branding_explore">TEROKAI ALAM SEMESTA SINEMATIK</string>
+    <string name="branding_design">REKA BENTUK OLEH CHESKO</string>
+    <string name="branding_developed">DIBANGUNKAN OLEH CHESKO</string>
+    <string name="branding_description">Direka untuk pengalaman sinematik prestasi tinggi pada Android TV.</string>
+    <string name="branding_premium">EDISI PREMIUM</string>
+    <string name="branding_premium_iptv">IPTV PREMIUM</string>
+
+    <!-- Login -->
+    <string name="login_tab_url">URL M3U</string>
+    <string name="login_tab_file">FAIL TEMPATAN</string>
+    <string name="login_source_config">KONFIGURASI SUMBER</string>
+    <string name="login_preset_demos">PRESET URL DEMO</string>
+    <string name="login_server_label">PELAYAN %1$d</string>
+    <string name="login_url_placeholder">URL Senarai Main M3U</string>
+    <string name="login_url_hint">Klik untuk masukkan alamat</string>
+    <string name="login_target_url">URL Sasaran</string>
+    <string name="login_btn_login">LOG MASUK</string>
+    <string name="login_btn_demo">DEMO</string>
+    <string name="login_file_config">KONFIGURASI FAIL</string>
+    <string name="login_file_placeholder">Pilih Fail M3U Tempatan</string>
+    <string name="login_file_hint">Layari storan dalaman</string>
+    <string name="login_file_selected">Fail Dipilih</string>
+    <string name="login_btn_connect_file">SAMBUNG FAIL</string>
+    <string name="login_no_file">Tiada fail dipilih</string>
+
+    <!-- Home -->
+    <string name="home_explore">Terokai Aliran TV</string>
+    <string name="home_no_charts">Tiada carta bintang ditemui di sektor ini</string>
+    <string name="home_all_channels">SEMUA Saluran</string>
+
+    <!-- Search -->
+    <string name="search_discover">TEMUI</string>
+    <string name="search_universe">CARIAN ALAM SEMESTA</string>
+    <string name="search_placeholder">Cari bintang, planet, atau saluran&#8230;</string>
+    <string name="search_no_results">Tiada carta bintang ditemui di sektor ini</string>
+
+    <!-- Player -->
+    <string name="player_syncing">MENYEGERAKKAN SINYAL…</string>
+    <string name="player_back">KEMBALI</string>
+    <string name="player_menu">MENU</string>
+    <string name="player_prev">Sebelumnya</string>
+    <string name="player_rewind">Undur 10s</string>
+    <string name="player_reload">Muat Semula</string>
+    <string name="player_pause">Jeda</string>
+    <string name="player_play">Main</string>
+    <string name="player_forward">Maju 10s</string>
+    <string name="player_next">Seterusnya</string>
+    <string name="player_now_streaming">SEDANG BERSIARAN</string>
+    <string name="player_current_program">PROGRAM SEMASA</string>
+    <string name="player_no_program">TIADA MAKLUMAT PROGRAM DITEMUI</string>
+    <string name="player_coming_up">AKAN DATANG</string>
+    <string name="player_sidebar_quality">KUALITI VIDEO</string>
+    <string name="player_sidebar_audio">PILIHAN AUDIO</string>
+    <string name="player_sidebar_channels">SENARAI SALURAN</string>
+    <string name="player_sidebar_favorite_add">Tambah ke Kegemaran</string>
+    <string name="player_sidebar_favorite_remove">Hapus Kegemaran</string>
+    <string name="player_sidebar_audio_boost">Audio Boost: %1$s</string>
+    <string name="player_sidebar_audio_tracks">TREK AUDIO</string>
+    <string name="player_sidebar_auto">Automatik</string>
+    <string name="player_sidebar_audio_label">AUDIO</string>
+    <string name="player_sidebar_quality_label">Kualiti %1$d</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">UTAMA</string>
+    <string name="nav_search">CARI</string>
+    <string name="nav_live">TV LIVE</string>
+    <string name="nav_movies">FILM</string>
+    <string name="nav_sports">SUKAN</string>
+    <string name="nav_favorites">KEGEMARAN</string>
+    <string name="nav_settings">TETAPAN</string>
+
+    <!-- Network -->
+    <string name="net_lost">Sambungan internet terputus. Sila semak rangkaian anda.</string>
+    <string name="net_restored">Sambungan internet disambungkan semula.</string>
+
+    <!-- Player Errors -->
+    <string name="error_video_stuck">Video tersekat, sila muat semula</string>
+    <string name="error_404">Saluran tidak ditemui (404)</string>
+    <string name="error_403">Akses dinafikan oleh pelayan (403)</string>
+    <string name="error_401">Token akses tamat tempoh (401)</string>
+    <string name="error_504">Pelayan Tamat Masa (504) - Pelayan sibuk</string>
+    <string name="error_server_issue">Masalah Pelayan (%1$d)</string>
+    <string name="error_load_failed">Gagal memuatkan: Kod %1$d</string>
+    <string name="error_http_connection">Masalah sambungan pelayan (Ralat HTTP)</string>
+    <string name="error_network_lost">Sambungan internet terputus</string>
+    <string name="error_timeout">Sambungan tamat masa (Timeout)</string>
+    <string name="error_protocol">Ralat protokol (HTTP lwn HTTPS)</string>
+    <string name="error_file_not_found">Fail video tidak ditemui</string>
+    <string name="error_decoding">Gagal memproses video (Ralat Kodek)</string>
+    <string name="error_unsupported_format">Format video tidak disokong</string>
+    <string name="error_remote">Pelayan tidak bertindak balas</string>
+    <string name="error_unknown">Gagal memuatkan (%1$s)</string>
+
+    <string name="player_system_error">RALAT SISTEM</string>
+    <string name="player_re_sync">TEKAN TENGAH UNTUK SEGERAK SEMULA</string>
+    <string name="player_signal_lost">ISYARAT MUNGKIN HILANG DALAM KEKOSONGAN</string>
+
+    <!-- Exit Dialog -->
+    <string name="exit_title">KELUAR ALAM SEMESTA</string>
+    <string name="exit_msg">Adakah anda pasti mahu meninggalkan alam semesta sinematik?</string>
+    <string name="exit_btn_stay">KEKAL</string>
+    <string name="exit_btn_exit">KELUAR</string>
+
+    <!-- Loading -->
+    <string name="loading_channels">Memuatkan Saluran…</string>
+
+    <!-- File Picker -->
+    <string name="file_picker_explorer">PENJELAJAH</string>
+    <string name="file_picker_parent_dir">Kembali ke alam semesta induk</string>
+    <string name="file_picker_system_dir">Direktori Sistem</string>
+    <string name="file_picker_m3u_file">Fail Senarai Main M3U • %1$d KB</string>
+    <string name="file_picker_no_files">Tiada carta bintang yang serasi ditemui</string>
+
+    <!-- Components -->
+    <string name="content_desc_back">Kembali</string>
+    <string name="content_desc_drm">Dilindungi DRM</string>
+</resources>

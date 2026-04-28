@@ -23,6 +23,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.*
+import androidx.compose.ui.res.stringResource
+import com.chesko.stream_pro_tv.R
 import java.io.File
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -92,13 +94,13 @@ fun TvFilePicker(
                     scale = ClickableSurfaceDefaults.scale(focusedScale = 1.1f)
                 ) {
                     Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", modifier = Modifier.size(24.dp))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_desc_back), modifier = Modifier.size(24.dp))
                     }
                 }
                 Spacer(modifier = Modifier.width(24.dp))
                 Column {
                     Text(
-                        text = "EXPLORER",
+                        text = stringResource(R.string.file_picker_explorer),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Black,
@@ -137,7 +139,7 @@ fun TvFilePicker(
                         item {
                             FileItem(
                                 name = "..",
-                                subtitle = "Return to parent universe",
+                                subtitle = stringResource(R.string.file_picker_parent_dir),
                                 isDirectory = true,
                                 onClick = { currentDirectory = currentDirectory.parentFile!! }
                             )
@@ -147,7 +149,7 @@ fun TvFilePicker(
                     items(files) { file ->
                         FileItem(
                             name = file.name,
-                            subtitle = if (file.isDirectory) "System Directory" else "M3U Playlist File • ${(file.length() / 1024)} KB",
+                            subtitle = if (file.isDirectory) stringResource(R.string.file_picker_system_dir) else stringResource(R.string.file_picker_m3u_file, (file.length() / 1024).toInt()),
                             isDirectory = file.isDirectory,
                             onClick = {
                                 if (file.isDirectory) {
@@ -166,7 +168,7 @@ fun TvFilePicker(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    "No compatible star-charts found", 
+                                    stringResource(R.string.file_picker_no_files),
                                     color = Color.White.copy(alpha = 0.2f),
                                     style = MaterialTheme.typography.bodyLarge,
                                     fontWeight = FontWeight.Medium

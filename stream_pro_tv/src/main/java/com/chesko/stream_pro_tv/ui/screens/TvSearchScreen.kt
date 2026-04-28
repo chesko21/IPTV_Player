@@ -33,8 +33,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.chesko.stream_pro_tv.R
 import androidx.tv.material3.*
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.ui.MainViewModel
@@ -118,14 +121,14 @@ fun TvSearchScreen(
                 Spacer(modifier = Modifier.width(20.dp))
                 Column {
                     Text(
-                        "DISCOVER",
+                        stringResource(R.string.search_discover),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Black,
                         letterSpacing = 4.sp
                     )
                     Text(
-                        "UNIVERSE SEARCH",
+                        stringResource(R.string.search_universe),
                         style = if (isSmall) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
                         color = Color.White,
                         fontWeight = FontWeight.Black,
@@ -161,7 +164,7 @@ fun TvSearchScreen(
                         .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp)),
                     placeholder = { 
                         Text(
-                            "Search for stars, planets, or channels...", 
+                            stringResource(R.string.search_placeholder), 
                             color = Color.White.copy(alpha = 0.3f), 
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium
@@ -230,7 +233,7 @@ fun TvSearchScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            "No star-charts found in this sector", 
+                            stringResource(R.string.search_no_results),
                             color = Color.White.copy(alpha = 0.3f),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium

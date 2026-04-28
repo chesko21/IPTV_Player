@@ -22,8 +22,10 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.*
 import com.chesko.stream_pro_tv.R
 import com.google.accompanist.permissions.*
@@ -263,7 +265,7 @@ fun TvSplashScreen(onNextScreen: () -> Unit) {
                         .padding(horizontal = 12.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = "EXPLORE THE CINEMATIC UNIVERSE",
+                        text = stringResource(R.string.branding_explore),
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontSize = subtitleSize,
                             fontWeight = FontWeight.Bold,
@@ -294,7 +296,7 @@ fun TvSplashScreen(onNextScreen: () -> Unit) {
 
         // 4. FOOTER (Credit)
         Text(
-            text = "BY CHESKO",
+            text = stringResource(R.string.branding_developed),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 32.dp)

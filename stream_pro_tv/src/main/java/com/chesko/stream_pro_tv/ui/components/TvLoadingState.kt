@@ -13,12 +13,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.chesko.stream_pro_tv.R
 import androidx.tv.material3.*
 import com.chesko.stream_pro_tv.ui.screens.UniverseBackground
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun LoadingState(message: String = "Memuat Saluran...") {
+fun LoadingState(message: String? = null) {
+    val displayMessage = message ?: stringResource(R.string.loading_channels)
     val infiniteTransition = rememberInfiniteTransition(label = "loading")
     
     val glowAlpha by infiniteTransition.animateFloat(
@@ -71,7 +74,7 @@ fun LoadingState(message: String = "Memuat Saluran...") {
             Spacer(modifier = Modifier.height(32.dp))
             
             Text(
-                text = message.uppercase(),
+                text = displayMessage.uppercase(),
                 color = Color.White.copy(alpha = 0.7f),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Black,

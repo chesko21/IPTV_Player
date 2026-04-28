@@ -60,6 +60,8 @@ import androidx.media3.ui.PlayerView
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.utils.PlayerUtils
 import com.chesko.stream_pro_tv.ui.screens.UniverseBackground
+import androidx.compose.ui.res.stringResource
+import com.chesko.stream_pro_tv.R
 import kotlinx.coroutines.delay
 import org.videolan.libvlc.MediaPlayer
 
@@ -184,7 +186,7 @@ fun TvVideoPlayer(
                             Player.STATE_IDLE -> {
                                 // Jika idle tanpa error setelah mencoba, anggap stuck
                                 if (this@apply.playerError == null && retryCount >= 3) {
-                                    errorMessage = "Video macet, silakan muat ulang"
+                                    errorMessage = context.getString(R.string.error_video_stuck)
                                     onError?.invoke(errorMessage!!)
                                 }
                             }
@@ -202,24 +204,24 @@ fun TvVideoPlayer(
                         val cause = error.cause
                         val errorMsg = if (cause is HttpDataSource.InvalidResponseCodeException) {
                             when (cause.responseCode) {
-                                404 -> "Saluran tidak ditemukan (404)"
-                                403 -> "Akses ditolak oleh server (403)"
-                                401 -> "Token akses kadaluarsa (401)"
-                                504 -> "Server Timeout (504) - Server sedang sibuk"
-                                500, 502, 503 -> "Masalah pada Server (${cause.responseCode})"
-                                else -> "Gagal memuat: Kode ${cause.responseCode}"
+                                404 -> context.getString(R.string.error_404)
+                                403 -> context.getString(R.string.error_403)
+                                401 -> context.getString(R.string.error_401)
+                                504 -> context.getString(R.string.error_504)
+                                500, 502, 503 -> context.getString(R.string.error_server_issue, cause.responseCode)
+                                else -> context.getString(R.string.error_load_failed, cause.responseCode)
                             }
                         } else {
                             when (error.errorCode) {
-                                PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> "Masalah koneksi server (HTTP Error)"
-                                PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> "Koneksi internet terputus"
-                                PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> "Waktu koneksi habis (Timeout)"
-                                PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED -> "Kesalahan protokol (HTTP vs HTTPS)"
-                                PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND -> "File video tidak ditemukan"
-                                PlaybackException.ERROR_CODE_DECODING_FAILED -> "Gagal memproses video (Codec Error)"
-                                PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED -> "Format video tidak didukung"
-                                PlaybackException.ERROR_CODE_REMOTE_ERROR -> "Server tidak merespon"
-                                else -> "Gagal memuat (${error.errorCodeName})"
+                                PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> context.getString(R.string.error_http_connection)
+                                PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> context.getString(R.string.error_network_lost)
+                                PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> context.getString(R.string.error_timeout)
+                                PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED -> context.getString(R.string.error_protocol)
+                                PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND -> context.getString(R.string.error_file_not_found)
+                                PlaybackException.ERROR_CODE_DECODING_FAILED -> context.getString(R.string.error_decoding)
+                                PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED -> context.getString(R.string.error_unsupported_format)
+                                PlaybackException.ERROR_CODE_REMOTE_ERROR -> context.getString(R.string.error_remote)
+                                else -> context.getString(R.string.error_unknown, error.errorCodeName)
                             }
                         }
 
@@ -379,7 +381,7 @@ fun TvVideoPlayer(
                         
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = "SYSTEM ERROR",
+                                text = stringResource(R.string.player_system_error),
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Black,
@@ -409,7 +411,7 @@ fun TvVideoPlayer(
                             modifier = Modifier.alpha(0.5f)
                         ) {
                             Text(
-                                text = "PRESS CENTER TO RE-SYNC STAR-CHART",
+                                text = stringResource(R.string.player_re_sync),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
@@ -417,7 +419,7 @@ fun TvVideoPlayer(
                                 textAlign = TextAlign.Center
                             )
                             Text(
-                                text = "SIGNAL MAY BE LOST IN THE VOID",
+                                text = stringResource(R.string.player_signal_lost),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color.White,
                                 fontWeight = FontWeight.Medium,

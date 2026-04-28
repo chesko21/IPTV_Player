@@ -39,6 +39,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import com.chesko.stream_pro_tv.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -81,7 +83,14 @@ fun TvLoginScreen(
     }
 
     var selectedFilePath by remember { mutableStateOf<String?>(null) }
-    var selectedFileName by remember { mutableStateOf("Belum ada file dipilih") }
+    var selectedFileName by remember { mutableStateOf("") }
+    val noFileSelectedMsg = stringResource(R.string.login_no_file)
+    
+    LaunchedEffect(noFileSelectedMsg) {
+        if (selectedFileName.isEmpty() || selectedFileName == "Belum ada file dipilih") {
+            selectedFileName = noFileSelectedMsg
+        }
+    }
     var showFilePicker by remember { mutableStateOf(false) }
 
     val buttonFocusRequester = remember { FocusRequester() }
@@ -243,7 +252,7 @@ fun BrandingSection() {
             }
             
             TvText(
-                text = "EXPLORE THE CINEMATIC UNIVERSE",
+                text = stringResource(R.string.branding_explore),
                 style = MaterialTheme.typography.labelLarge,
                 color = Color.White.copy(alpha = 0.5f),
                 fontWeight = FontWeight.Bold,
@@ -260,7 +269,7 @@ fun BrandingSection() {
                 .padding(horizontal = 12.dp, vertical = 4.dp)
         ) {
             TvText(
-                text = "DESIGN By CHESKO",
+                text = stringResource(R.string.branding_design),
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.White.copy(alpha = 0.3f),
                 fontWeight = FontWeight.Medium,
@@ -312,12 +321,12 @@ fun LoginFormSection(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             TabItem(
-                text = "M3U URL",
+                text = stringResource(R.string.login_tab_url),
                 isSelected = selectedTab == 0,
                 onClick = { onTabSelected(0) }
             )
             TabItem(
-                text = "LOCAL FILE",
+                text = stringResource(R.string.login_tab_file),
                 isSelected = selectedTab == 1,
                 onClick = { onTabSelected(1) }
             )
@@ -457,7 +466,7 @@ fun UrlInputSection(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         TvText(
-            text = "SOURCE CONFIGURATION",
+            text = stringResource(R.string.login_source_config),
             style = MaterialTheme.typography.labelSmall,
             color = Color.White.copy(alpha = 0.4f),
             fontWeight = FontWeight.Bold,
@@ -467,7 +476,7 @@ fun UrlInputSection(
         // Preset Demo URLs Section
         Column(modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)) {
             TvText(
-                text = "PRESET DEMO URLS",
+                text = stringResource(R.string.login_preset_demos),
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.White.copy(alpha = 0.3f),
                 fontWeight = FontWeight.Medium,
@@ -478,9 +487,8 @@ fun UrlInputSection(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val labels = listOf("SERVER 1", "SERVER 2", "SERVER 3", "SERVER 4", "SERVER 5")
                 MainViewModel.DEMO_URLS.forEachIndexed { index, demoUrl ->
-                    val label = labels.getOrElse(index) { "SERVER ${index + 1}" }
+                    val label = stringResource(R.string.login_server_label, index + 1)
                     val isSelected = url == demoUrl
                     
                     Surface(
@@ -546,13 +554,13 @@ fun UrlInputSection(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         if (url.isEmpty()) {
-                            Material3Text("Playlist M3U URL", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                            Material3Text("Click to enter address", color = Color.White.copy(alpha = 0.25f), fontSize = 11.sp)
+                            Material3Text(stringResource(R.string.login_url_placeholder), color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                            Material3Text(stringResource(R.string.login_url_hint), color = Color.White.copy(alpha = 0.25f), fontSize = 11.sp)
                         } else {
                             val demoIndex = MainViewModel.DEMO_URLS.indexOf(url)
-                            val displayUrl = if (demoIndex != -1) "SERVER ${demoIndex + 1}" else url
+                            val displayUrl = if (demoIndex != -1) stringResource(R.string.login_server_label, demoIndex + 1) else url
                             
-                            Material3Text("Target URL", color = Color(0xFFBB86FC), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Material3Text(stringResource(R.string.login_target_url), color = Color(0xFFBB86FC), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                             Material3Text(displayUrl, color = Color.White, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
@@ -616,7 +624,7 @@ fun UrlInputSection(
                             strokeWidth = 3.dp
                         )
                     } else {
-                        TvText("LOGIN", fontSize = 16.sp, fontWeight = FontWeight.Black)
+                        TvText(stringResource(R.string.login_btn_login), fontSize = 16.sp, fontWeight = FontWeight.Black)
                     }
                 }
             }
@@ -647,7 +655,7 @@ fun UrlInputSection(
                             strokeWidth = 3.dp
                         )
                     } else {
-                        TvText("DEMO", fontSize = 16.sp, fontWeight = FontWeight.Black)
+                        TvText(stringResource(R.string.login_btn_demo), fontSize = 16.sp, fontWeight = FontWeight.Black)
                     }
                 }
             }
@@ -666,7 +674,7 @@ fun FileInputSection(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         TvText(
-            text = "FILE CONFIGURATION",
+            text = stringResource(R.string.login_file_config),
             style = MaterialTheme.typography.labelSmall,
             color = Color.White.copy(alpha = 0.4f),
             fontWeight = FontWeight.Bold,
@@ -701,10 +709,10 @@ fun FileInputSection(
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     if (!hasSelectedFile) {
-                        Material3Text("Select Local M3U File", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                        Material3Text("Browse internal storage", color = Color.White.copy(alpha = 0.25f), fontSize = 11.sp)
+                        Material3Text(stringResource(R.string.login_file_placeholder), color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        Material3Text(stringResource(R.string.login_file_hint), color = Color.White.copy(alpha = 0.25f), fontSize = 11.sp)
                     } else {
-                        Material3Text("Selected File", color = Color(0xFFBB86FC), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Material3Text(stringResource(R.string.login_file_selected), color = Color(0xFFBB86FC), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         Material3Text(selectedFileName, color = Color.White, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
@@ -735,7 +743,7 @@ fun FileInputSection(
                         strokeWidth = 3.dp
                     )
                 } else {
-                    TvText("CONNECT FILE", fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    TvText(stringResource(R.string.login_btn_connect_file), fontSize = 16.sp, fontWeight = FontWeight.Black)
                 }
             }
         }

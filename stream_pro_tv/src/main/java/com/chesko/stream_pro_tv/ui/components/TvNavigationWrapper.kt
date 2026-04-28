@@ -18,11 +18,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import com.chesko.stream_pro_tv.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.*
-import com.chesko.stream_pro_tv.R
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -73,32 +74,32 @@ fun TvNavigationWrapper(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 SidebarItem(
-                    label = "HOME", icon = Icons.Default.Home, isSelected = selectedRoute == "home", isExpanded = isExpanded,
+                    label = stringResource(R.string.nav_home), icon = Icons.Default.Home, isSelected = selectedRoute == "home", isExpanded = isExpanded,
                     modifier = Modifier.focusRequester(homeFR).focusProperties { down = searchFR },
                     onClick = { onRouteSelected("home") }
                 )
                 SidebarItem(
-                    label = "SEARCH", icon = Icons.Default.Search, isSelected = selectedRoute == "search", isExpanded = isExpanded,
+                    label = stringResource(R.string.nav_search), icon = Icons.Default.Search, isSelected = selectedRoute == "search", isExpanded = isExpanded,
                     modifier = Modifier.focusRequester(searchFR).focusProperties { up = homeFR; down = liveFR },
                     onClick = { onRouteSelected("search") }
                 )
                 SidebarItem(
-                    label = "LIVE TV", icon = Icons.Default.Tv, isSelected = selectedRoute == "live", isExpanded = isExpanded,
+                    label = stringResource(R.string.nav_live), icon = Icons.Default.Tv, isSelected = selectedRoute == "live", isExpanded = isExpanded,
                     modifier = Modifier.focusRequester(liveFR).focusProperties { up = searchFR; down = moviesFR },
                     onClick = { onRouteSelected("live") }
                 )
                 SidebarItem(
-                    label = "MOVIES", icon = Icons.Default.Movie, isSelected = selectedRoute == "movies", isExpanded = isExpanded,
+                    label = stringResource(R.string.nav_movies), icon = Icons.Default.Movie, isSelected = selectedRoute == "movies", isExpanded = isExpanded,
                     modifier = Modifier.focusRequester(moviesFR).focusProperties { up = liveFR; down = sportFR },
                     onClick = { onRouteSelected("movies") }
                 )
                 SidebarItem(
-                    label = "SPORTS", icon = Icons.Default.SportsSoccer, isSelected = selectedRoute == "sport", isExpanded = isExpanded,
+                    label = stringResource(R.string.nav_sports), icon = Icons.Default.SportsSoccer, isSelected = selectedRoute == "sport", isExpanded = isExpanded,
                     modifier = Modifier.focusRequester(sportFR).focusProperties { up = moviesFR; down = favFR },
                     onClick = { onRouteSelected("sport") }
                 )
                 SidebarItem(
-                    label = "FAVORITES", icon = Icons.Default.Favorite, isSelected = selectedRoute == "favorites", isExpanded = isExpanded,
+                    label = stringResource(R.string.nav_favorites), icon = Icons.Default.Favorite, isSelected = selectedRoute == "favorites", isExpanded = isExpanded,
                     modifier = Modifier.focusRequester(favFR).focusProperties { up = sportFR; down = settingsFR; next = settingsFR },
                     onClick = { onRouteSelected("favorites") }
                 )
@@ -106,7 +107,7 @@ fun TvNavigationWrapper(
                 Spacer(modifier = Modifier.weight(1f))
 
                 SidebarItem(
-                    label = "SETTINGS", icon = Icons.Default.Settings, isSelected = selectedRoute == "settings", isExpanded = isExpanded,
+                    label = stringResource(R.string.nav_settings), icon = Icons.Default.Settings, isSelected = selectedRoute == "settings", isExpanded = isExpanded,
                     modifier = Modifier.focusRequester(settingsFR).focusProperties { up = favFR; previous = favFR },
                     onClick = { onRouteSelected("settings") }
                 )
@@ -151,7 +152,7 @@ private fun BrandingSection(isExpanded: Boolean) {
                             Text("PRO", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary, letterSpacing = (-1).sp)
                         }
                         Text(
-                            text = "PREMIUM IPTV", 
+                            text = stringResource(R.string.branding_premium_iptv),
                             style = MaterialTheme.typography.labelSmall, 
                             color = Color.White.copy(alpha = 0.4f), 
                             fontWeight = FontWeight.Bold,

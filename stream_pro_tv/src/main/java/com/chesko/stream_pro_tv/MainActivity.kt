@@ -1,6 +1,9 @@
 package com.chesko.stream_pro_tv
 
+import android.content.Context
 import android.os.Bundle
+import com.chesko.stream_pro.core.utils.LocaleHelper
+import androidx.compose.ui.res.stringResource
 import android.content.res.Configuration
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -73,6 +76,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.MaterialTheme as Material3Theme
 
 class MainActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        val prefs = newBase.getSharedPreferences("iptv_player_prefs", Context.MODE_PRIVATE)
+        val lang = prefs.getString("app_language", "in") ?: "in"
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase, lang))
+    }
 
     private fun isTvDevice(): Boolean {
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as android.app.UiModeManager
@@ -249,7 +258,7 @@ fun AppNavigation(isTvDevice: Boolean, viewModel: MainViewModel) {
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        if (isLost) "Koneksi Internet Terputus. Silakan periksa jaringan Anda." else "Koneksi Internet Kembali Terhubung.",
+                        if (isLost) stringResource(R.string.net_lost) else stringResource(R.string.net_restored),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White

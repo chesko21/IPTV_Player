@@ -360,19 +360,22 @@ fun PlayerScreenContent(
     val audioBoost by viewModel.audioBoost.collectAsState()
     val playerEngineSetting by viewModel.playerEngine.collectAsState()
 
+    val isExoOnly = remember(currentChannel.url, currentChannel.drmType, currentChannel.drmConfig) {
+        val url = currentChannel.url.lowercase().trim()
+        url.contains(".mpd") || url.contains(".m3u8") || 
+        !currentChannel.drmType.isNullOrBlank() || 
+        !currentChannel.drmConfig.isNullOrBlank()
+    }
+
     var activeEngine by remember(playerEngineSetting, currentChannel.url) { 
         val url = currentChannel.url.lowercase().trim()
         val initialEngine = when {
+            isExoOnly -> "EXO"
+            
             url.startsWith("rtsp://") || url.startsWith("rtmp://") || 
             url.startsWith("udp://") || url.startsWith("rtp://") -> "VLC"
 
             url.contains(".ts") || url.contains("mpegts") -> "VLC"
-
-            url.contains(".mpd") || 
-            !currentChannel.drmType.isNullOrBlank() || 
-            !currentChannel.drmConfig.isNullOrBlank() -> "EXO"
-
-            url.contains(".m3u8") -> "EXO"
 
             else -> playerEngineSetting
         }
@@ -567,7 +570,7 @@ fun PlayerScreenContent(
                     return
                 }
 
-                if (activeEngine == "EXO") {
+                if (activeEngine == "EXO" && !isExoOnly) {
                     loadingStatus = playerFallbackVlc
                     activeEngine = "VLC"
                     return
@@ -596,7 +599,7 @@ fun PlayerScreenContent(
                     if (bufferCount == 8) {
                         reloadVideo()
                     }
-                    if (bufferCount >= 15 && activeEngine == "EXO") {
+                    if (bufferCount >= 15 && activeEngine == "EXO" && !isExoOnly) {
                         activeEngine = "VLC"
                         bufferCount = 0
                     }
@@ -736,8 +739,8 @@ fun PlayerScreenContent(
                     },
                     onError = { 
                         errorMessage = it
-                        // Auto-fallback to VLC if Exo fails
-                        if (activeEngine == "EXO") {
+                        // Auto-fallback to VLC if Exo fails, but only for non-DASH/HLS/DRM
+                        if (activeEngine == "EXO" && !isExoOnly) {
                             loadingStatus = playerExoFallback
                             activeEngine = "VLC"
                         } else {
@@ -927,6 +930,7 @@ fun PlayerScreenContent(
                 onSwitchEngine = {
                     activeEngine = if (activeEngine == "VLC") "EXO" else "VLC"
                 },
+                canSwitchEngine = !isExoOnly,
                 onShowDebug = { if (isDebug) showDebugDialog = true },
                 exoPlayer = exoPlayer,
                 vlcPlayer = vlcPlayer,
@@ -1416,6 +1420,7 @@ fun ControlOverlay(
     onShowSubtitle: () -> Unit = {},
     onShowResolution: () -> Unit,
     onSwitchEngine: () -> Unit,
+    canSwitchEngine: Boolean = true,
     onShowDebug: () -> Unit,
     exoPlayer: ExoPlayer? = null,
     vlcPlayer: org.videolan.libvlc.MediaPlayer? = null,
@@ -1443,21 +1448,26 @@ fun ControlOverlay(
 
             // Engine Switcher (Top Position)
             Surface(
-                onClick = onSwitchEngine,
+                onClick = if (canSwitchEngine) onSwitchEngine else ({}),
                 modifier = Modifier.height(38.dp),
                 shape = RoundedCornerShape(19.dp),
                 color = Color.Black.copy(alpha = 0.5f),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                border = BorderStroke(1.dp, if (canSwitchEngine) Color.White.copy(alpha = 0.1f) else Color.Transparent)
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.SettingsInputComponent, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                    Icon(
+                        Icons.Default.SettingsInputComponent, 
+                        null, 
+                        tint = if (canSwitchEngine) Color.White else Color.White.copy(0.3f), 
+                        modifier = Modifier.size(16.dp)
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = playerEngine,
-                        color = MaterialTheme.colorScheme.primary,
+                        text = if (canSwitchEngine) playerEngine else "$playerEngine",
+                        color = if (canSwitchEngine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(0.5f),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
                         letterSpacing = 1.sp

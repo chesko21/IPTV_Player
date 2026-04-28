@@ -36,6 +36,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.chesko.stream_pro_tv.R
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -506,7 +508,7 @@ fun TvPlayerScreenContent(
             ) {
                 if (isBuffering) {
                     Text(
-                        text = "SYNCING SIGNAL...",
+                        text = stringResource(R.string.player_syncing),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = if (isSmallScreen) 7.sp else 9.sp,
@@ -597,7 +599,7 @@ fun TvPlayerScreenContent(
                 ) {
                     TvHeaderButton(
                         icon = Icons.AutoMirrored.Filled.ArrowBack,
-                        label = "BACK",
+                        label = stringResource(R.string.player_back),
                         onInteraction = onInteraction,
                         onClick = onBack
                     )
@@ -661,7 +663,7 @@ fun TvPlayerScreenContent(
 
                     TvHeaderButton(
                         icon = Icons.Default.Menu,
-                        label = "MENU",
+                        label = stringResource(R.string.player_menu),
                         onInteraction = onInteraction,
                         onClick = onSettingsClick
                     )
@@ -678,7 +680,7 @@ fun TvPlayerScreenContent(
                 ) {
                     TvPlayerCenterAction(
                         icon = Icons.Default.SkipPrevious,
-                        label = "Sebelumnya",
+                        label = stringResource(R.string.player_prev),
                         onInteraction = onInteraction,
                         onClick = { onChangeChannel(-1) },
                         size = if (isSmallScreen) 28.dp else 36.dp,
@@ -687,7 +689,7 @@ fun TvPlayerScreenContent(
 
                     TvPlayerCenterAction(
                         icon = Icons.Default.Replay10,
-                        label = "Rewind 10s",
+                        label = stringResource(R.string.player_rewind),
                         onInteraction = onInteraction,
                         onClick = { onSeek(-10000L) },
                         size = if (isSmallScreen) 28.dp else 36.dp,
@@ -713,9 +715,9 @@ fun TvPlayerScreenContent(
                                 else -> Icons.Default.PlayArrow
                             },
                             label = when {
-                                isError -> "Reload"
-                                isPlaying -> "Pause"
-                                else -> "Play"
+                                isError -> stringResource(R.string.player_reload)
+                                isPlaying -> stringResource(R.string.player_pause)
+                                else -> stringResource(R.string.player_play)
                             },
                             iconSize = if (isSmallScreen) 20.dp else 24.dp,
                             modifier = Modifier
@@ -734,7 +736,7 @@ fun TvPlayerScreenContent(
 
                     TvPlayerCenterAction(
                         icon = Icons.Default.Forward10,
-                        label = "Forward 10s",
+                        label = stringResource(R.string.player_forward),
                         onInteraction = onInteraction,
                         onClick = { onSeek(10000L) },
                         size = if (isSmallScreen) 28.dp else 36.dp,
@@ -743,7 +745,7 @@ fun TvPlayerScreenContent(
 
                     TvPlayerCenterAction(
                         icon = Icons.Default.SkipNext,
-                        label = "Selanjutnya",
+                        label = stringResource(R.string.player_next),
                         onInteraction = onInteraction,
                         onClick = { onChangeChannel(1) },
                         size = if (isSmallScreen) 28.dp else 36.dp,
@@ -782,7 +784,7 @@ fun TvPlayerScreenContent(
                             ) {
                                 Column {
                                     Text(
-                                        text = "NOW STREAMING",
+                                        text = stringResource(R.string.player_now_streaming),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.Black,
@@ -860,7 +862,7 @@ fun TvPlayerScreenContent(
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "CURRENT PROGRAM",
+                                        text = stringResource(R.string.player_current_program),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.Black,
@@ -931,7 +933,7 @@ fun TvPlayerScreenContent(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "NO PROGRAM INFORMATION DISCOVERED",
+                                    text = stringResource(R.string.player_no_program),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = Color.White.copy(alpha = 0.4f),
                                     fontWeight = FontWeight.Bold,
@@ -959,7 +961,7 @@ fun TvPlayerScreenContent(
                         ) {
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(
-                                    text = "COMING UP NEXT",
+                                    text = stringResource(R.string.player_coming_up),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary,
                                     fontWeight = FontWeight.Black,
@@ -1090,10 +1092,10 @@ fun TvSettingsSidebar(
             ) {
                 Text(
                     text = when(currentView) {
-                        "MAIN" -> "MENU"
-                        "QUALITY" -> "KUALITAS VIDEO"
-                        "AUDIO" -> "PILIHAN AUDIO"
-                        "CHANNELS" -> "DAFTAR SALURAN"
+                        "MAIN" -> stringResource(R.string.player_menu)
+                        "QUALITY" -> stringResource(R.string.player_sidebar_quality)
+                        "AUDIO" -> stringResource(R.string.player_sidebar_audio)
+                        "CHANNELS" -> stringResource(R.string.player_sidebar_channels)
                         else -> ""
                     },
                     style = MaterialTheme.typography.labelSmall,
@@ -1115,7 +1117,7 @@ fun TvSettingsSidebar(
                         "MAIN" -> {
                             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                 SidebarItem(
-                                    label = "Daftar Saluran",
+                                    label = stringResource(R.string.player_sidebar_channels),
                                     icon = Icons.AutoMirrored.Filled.FormatListBulleted,
                                     onClick = { onViewChange("CHANNELS") },
                                     modifier = Modifier
@@ -1123,7 +1125,7 @@ fun TvSettingsSidebar(
                                         .onFocusChanged { if (it.isFocused) lastMainFocus = "CHANNELS" }
                                 )
                                 SidebarItem(
-                                    label = if (isFavorite) "Hapus Favorit" else "Tambah Favorit",
+                                    label = if (isFavorite) stringResource(R.string.player_sidebar_favorite_remove) else stringResource(R.string.player_sidebar_favorite_add),
                                     icon = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                                     onClick = onToggleFavorite,
                                     isFavorite = true,
@@ -1132,7 +1134,7 @@ fun TvSettingsSidebar(
                                         .onFocusChanged { if (it.isFocused) lastMainFocus = "FAVORITE" }
                                 )
                                 SidebarItem(
-                                    label = "Kualitas Video",
+                                    label = stringResource(R.string.player_sidebar_quality),
                                     icon = Icons.Default.HighQuality,
                                     onClick = { onViewChange("QUALITY") },
                                     modifier = Modifier
@@ -1140,7 +1142,7 @@ fun TvSettingsSidebar(
                                         .onFocusChanged { if (it.isFocused) lastMainFocus = "QUALITY" }
                                 )
                                 SidebarItem(
-                                    label = "Pilihan Audio",
+                                    label = stringResource(R.string.player_sidebar_audio),
                                     icon = Icons.AutoMirrored.Filled.VolumeUp,
                                     onClick = { onViewChange("AUDIO") },
                                     modifier = Modifier
@@ -1159,7 +1161,7 @@ fun TvSettingsSidebar(
                         "AUDIO" -> {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 SidebarItem(
-                                    label = if (audioBoost) "Audio Boost: ON" else "Audio Boost: OFF",
+                                    label = stringResource(R.string.player_sidebar_audio_boost, if (audioBoost) "ON" else "OFF"),
                                     icon = if (audioBoost) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Filled.VolumeDown,
                                     onClick = onToggleAudioBoost,
                                     modifier = Modifier.fillMaxWidth()
@@ -1172,7 +1174,7 @@ fun TvSettingsSidebar(
                                     contentAlignment = Alignment.CenterStart
                                 ) {
                                     Text(
-                                        text = "TREK AUDIO",
+                                        text = stringResource(R.string.player_sidebar_audio_tracks),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
                                         fontSize = 8.sp,
@@ -1309,8 +1311,8 @@ fun SidebarItem(
         colors = ClickableSurfaceDefaults.colors(
             containerColor = Color.White.copy(alpha = 0.05f),
             focusedContainerColor = Color.White,
-            contentColor = if (isFavorite && label.startsWith("Hapus")) Color.Red else Color.White,
-            focusedContentColor = if (isFavorite && label.startsWith("Hapus")) Color.Red else Color.Black
+            contentColor = if (isFavorite && (label.startsWith("Remove") || label.startsWith("Hapus"))) Color.Red else Color.White,
+            focusedContentColor = if (isFavorite && (label.startsWith("Remove") || label.startsWith("Hapus"))) Color.Red else Color.Black
         ),
         border = ClickableSurfaceDefaults.border(
             focusedBorder = Border(
@@ -1392,7 +1394,7 @@ fun TrackSelectionList(
                 val isAutoSelected = !hasOverride
                 item {
                     TrackItem(
-                        label = "Otomatis",
+                        label = stringResource(R.string.player_sidebar_auto),
                         isSelected = isAutoSelected,
                         icon = Icons.Default.AutoFixHigh,
                         onClick = {
@@ -1505,16 +1507,17 @@ fun TrackItem(
 }
 
 @AndroidOptIn(androidx.media3.common.util.UnstableApi::class)
+@Composable
 private fun buildTrackName(trackType: Int, format: androidx.media3.common.Format, index: Int): String {
     return when (trackType) {
         C.TRACK_TYPE_VIDEO -> {
             val height = if (format.height != -1) "${format.height}p" else ""
             val frameRate = if (format.frameRate > 0) " ${format.frameRate.toInt()}fps" else ""
             val label = format.label ?: height
-            if (label.isEmpty()) "Kualitas ${index + 1}" else "$label$frameRate"
+            if (label.isEmpty()) stringResource(R.string.player_sidebar_quality_label, index + 1) else "$label$frameRate"
         }
         C.TRACK_TYPE_AUDIO -> {
-            val lang = format.language?.uppercase() ?: "AUDIO"
+            val lang = format.language?.uppercase() ?: stringResource(R.string.player_sidebar_audio_label)
             val label = format.label?.let { " - $it" } ?: ""
             val channels = if (format.channelCount != -1) " (${format.channelCount}ch)" else ""
             "$lang$label$channels"
