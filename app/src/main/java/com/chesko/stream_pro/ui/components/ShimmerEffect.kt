@@ -51,7 +51,7 @@ fun Modifier.shimmerEffect(): Modifier = composed {
     val shimmerColors = listOf(
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.25f), // Stronger primary tint
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.20f),
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
     )

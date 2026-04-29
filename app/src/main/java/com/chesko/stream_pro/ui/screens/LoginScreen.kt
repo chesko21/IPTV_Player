@@ -3,21 +3,80 @@ package com.chesko.stream_pro.ui.screens
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.EaseOutQuart
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.Dns
+import androidx.compose.material.icons.filled.FolderZip
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -35,7 +94,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -113,14 +171,12 @@ fun LoginScreen(
                 )
             }
         },
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = Color.Transparent,
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { _ ->
         Box(modifier = Modifier.fillMaxSize()) {
-            // 1. COSMIC BACKGROUND LAYERS
             MovingPosterWall()
-            
-            // Atmospheric Radial Glows
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -133,7 +189,6 @@ fun LoginScreen(
                     )
             )
 
-            // 2. MAIN CONTENT
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -152,17 +207,17 @@ fun LoginScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     LogoSection()
-                    
+
                     Spacer(modifier = Modifier.height(40.dp))
 
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .border(
-                                    1.dp, 
+                                    1.dp,
                                     Brush.linearGradient(
                                         listOf(MaterialTheme.colorScheme.onSurface.copy(0.1f), Color.Transparent)
-                                    ), 
+                                    ),
                                     RoundedCornerShape(24.dp)
                                 ),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f),
@@ -173,7 +228,7 @@ fun LoginScreen(
                                 Column(
                                     modifier = Modifier
                                         .padding(16.dp)
-                                        .blur(if (isLoading) 2.dp else 0.dp), 
+                                        .blur(if (isLoading) 2.dp else 0.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     // Custom Tab Switcher
@@ -237,7 +292,7 @@ fun LoginScreen(
                                         }
                                     }
                                 }
-                                
+
                                 if (isLoading) {
                                     Box(
                                         modifier = Modifier.matchParentSize().background(Color.Black.copy(0.2f)),
@@ -250,7 +305,7 @@ fun LoginScreen(
                         }
 
                     Spacer(modifier = Modifier.height(32.dp))
-                    
+
                     Text(
                                 text = stringResource(R.string.login_secure_msg),
                                 color = MaterialTheme.colorScheme.onSurface.copy(0.3f),
@@ -275,7 +330,7 @@ fun LoginMethodTab(text: String, isSelected: Boolean, modifier: Modifier, onClic
         if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(0.4f),
         animationSpec = tween(400)
     )
-    
+
     Box(
         modifier = modifier
             .height(38.dp)
@@ -285,9 +340,9 @@ fun LoginMethodTab(text: String, isSelected: Boolean, modifier: Modifier, onClic
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = text, 
-            color = contentColor, 
-            fontWeight = FontWeight.Black, 
+            text = text,
+            color = contentColor,
+            fontWeight = FontWeight.Black,
             fontSize = 11.sp,
             letterSpacing = 1.sp
         )
@@ -308,31 +363,31 @@ fun UrlSlide(
     if (showDemoDialog) {
         Dialog(onDismissRequest = { showDemoDialog = false }) {
             Surface(
-                modifier = Modifier.width(260.dp),
+                modifier = Modifier.width(220.dp),
                 shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                tonalElevation = 16.dp,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.1f))
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
+                    modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        stringResource(R.string.dialog_explore_demo), 
-                        fontWeight = FontWeight.Black, 
-                        letterSpacing = 1.sp, 
+                        stringResource(R.string.dialog_explore_demo),
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 1.sp,
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    
+
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         MainViewModel.DEMO_URLS.forEachIndexed { index, demoUrl ->
                             Surface(
                                 onClick = { showDemoDialog = false; onDemo(demoUrl) },
                                 shape = RoundedCornerShape(12.dp),
-                                color = MaterialTheme.colorScheme.onSurface.copy(0.04f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(0.05f),
                                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.06f))
                             ) {
                                 Row(
@@ -367,8 +422,8 @@ fun UrlSlide(
 
     Column(horizontalAlignment = Alignment.Start) {
         Text(
-            stringResource(R.string.m3u_endpoint_label), 
-            color = MaterialTheme.colorScheme.primary, 
+            stringResource(R.string.m3u_endpoint_label),
+            color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Black,
             letterSpacing = 1.sp,
             style = MaterialTheme.typography.labelSmall
@@ -445,9 +500,9 @@ fun FileSlide(isLoading: Boolean, onPickFile: () -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
         Text(stringResource(R.string.local_repo_label), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Black, letterSpacing = 1.sp, fontSize = 14.sp)
         Text(
-            stringResource(R.string.local_repo_msg), 
-            style = MaterialTheme.typography.bodySmall, 
-            color = MaterialTheme.colorScheme.onSurface.copy(0.4f), 
+            stringResource(R.string.local_repo_msg),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(0.4f),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
         )
@@ -490,15 +545,15 @@ fun LogoSection() {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 stringResource(R.string.brand_name).substringBefore("PRO"),
-                style = MaterialTheme.typography.headlineSmall, 
-                fontWeight = FontWeight.Black, 
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.onSurface,
                 letterSpacing = (-1).sp
             )
             Text(
-                "PRO", 
-                style = MaterialTheme.typography.headlineSmall, 
-                fontWeight = FontWeight.Black, 
+                "PRO",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.primary,
                 letterSpacing = (-1).sp,
                 modifier = Modifier.shimmerEffect()
@@ -574,7 +629,7 @@ fun ShimmerButton(
     modifier: Modifier = Modifier
 ) {
     val buttonHeight = 42.dp
-    
+
     if (isLoading) {
         Box(
             modifier = modifier

@@ -1,5 +1,7 @@
 package com.chesko.stream_pro.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -7,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,6 +35,7 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -61,6 +65,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -85,6 +90,7 @@ fun SettingsScreen(viewModel: MainViewModel, onBack: () -> Unit) {
     val bufferSize by viewModel.bufferSize.collectAsState()
     val darkMode by viewModel.darkMode.collectAsState()
     val appLanguage by viewModel.appLanguage.collectAsState()
+    val backgroundType by viewModel.backgroundType.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -92,11 +98,22 @@ fun SettingsScreen(viewModel: MainViewModel, onBack: () -> Unit) {
     val accentColor = MaterialTheme.colorScheme.primary
 
     var showColorPicker by remember { mutableStateOf(false) }
+    var showBackgroundColorPicker by remember { mutableStateOf(false) }
+    var showBackgroundDialog by remember { mutableStateOf(false) }
     var showBufferDialog by remember { mutableStateOf(false) }
     var showQualityDialog by remember { mutableStateOf(false) }
     var showEngineDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
     var isBackInvoked by remember { mutableStateOf(false) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            viewModel.setBackgroundImageUri(it.toString())
+            viewModel.setBackgroundType("image")
+        }
+    }
 
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
@@ -130,20 +147,20 @@ fun SettingsScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = Color.Transparent,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Transparent
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             SettingsGroup(
                 title = stringResource(R.string.group_player),
@@ -215,6 +232,16 @@ fun SettingsScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                     subtitle = stringResource(R.string.item_accent_subtitle),
                     onClick = { showColorPicker = true }
                 )
+                SettingsItem(
+                    icon = Icons.Default.Wallpaper,
+                    title = stringResource(R.string.item_background),
+                    subtitle = when (backgroundType) {
+                        "color" -> stringResource(R.string.background_color)
+                        "image" -> stringResource(R.string.background_image)
+                        else -> stringResource(R.string.background_default)
+                    },
+                    onClick = { showBackgroundDialog = true }
+                )
             }
 
             SettingsGroup(title = stringResource(R.string.group_data), accentColor = accentColor) {
@@ -233,6 +260,34 @@ fun SettingsScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 onColorSelected = {
                     viewModel.setAccentColor(it.toArgb())
                     showColorPicker = false
+                }
+            )
+        }
+
+        if (showBackgroundColorPicker) {
+            ColorPickerDialog(
+                onDismiss = { showBackgroundColorPicker = false },
+                onColorSelected = {
+                    viewModel.setBackgroundColor(it.toArgb())
+                    viewModel.setBackgroundType("color")
+                    showBackgroundColorPicker = false
+                }
+            )
+        }
+
+        if (showBackgroundDialog) {
+            BackgroundPickerDialog(
+                currentType = backgroundType,
+                onDismiss = { showBackgroundDialog = false },
+                onTypeSelected = { type ->
+                    if (type == "image") {
+                        imagePickerLauncher.launch("image/*")
+                    } else if (type == "color") {
+                        showBackgroundColorPicker = true
+                    } else {
+                        viewModel.setBackgroundType("default")
+                    }
+                    showBackgroundDialog = false
                 }
             )
         }
@@ -284,6 +339,84 @@ fun SettingsScreen(viewModel: MainViewModel, onBack: () -> Unit) {
 }
 
 @Composable
+fun BackgroundPickerDialog(
+    currentType: String,
+    onDismiss: () -> Unit,
+    onTypeSelected: (String) -> Unit
+) {
+    val options = listOf(
+        "default" to stringResource(R.string.background_default),
+        "color" to stringResource(R.string.background_color),
+        "image" to stringResource(R.string.background_image)
+    )
+
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier
+                .width(260.dp)
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            tonalElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    stringResource(R.string.dialog_background_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Black,
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    options.forEach { (type, label) ->
+                        Surface(
+                            onClick = { onTypeSelected(type) },
+                            shape = RoundedCornerShape(10.dp),
+                            color = if (type == currentType)
+                                MaterialTheme.colorScheme.primaryContainer
+                            else
+                                Color.Transparent,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = type == currentType,
+                                    onClick = { onTypeSelected(type) },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = MaterialTheme.colorScheme.primary
+                                    ),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = if (type == currentType) FontWeight.Bold else FontWeight.Normal
+                                )
+                            }
+                        }
+                    }
+                }
+
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text(stringResource(R.string.btn_close), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun LanguagePickerDialog(
     currentLanguage: String,
     onDismiss: () -> Unit,
@@ -300,31 +433,32 @@ fun LanguagePickerDialog(
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier
-                .width(280.dp)
+                .width(260.dp)
                 .wrapContentHeight(),
-            shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            contentColor = MaterialTheme.colorScheme.onSurface,
             tonalElevation = 6.dp
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     stringResource(R.string.dialog_language_title),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(bottom = 4.dp)
+                    fontWeight = FontWeight.Black,
+                    modifier = Modifier.padding(bottom = 2.dp)
                 )
 
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     languages.forEach { (code, label) ->
                         Surface(
                             onClick = {
                                 onLanguageSelected(code)
                                 (context as? android.app.Activity)?.recreate()
                             },
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(10.dp),
                             color = if (code == currentLanguage)
                                 MaterialTheme.colorScheme.primaryContainer
                             else
@@ -332,7 +466,7 @@ fun LanguagePickerDialog(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
-                                modifier = Modifier.padding(vertical = 10.dp, horizontal = 12.dp),
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 RadioButton(
@@ -344,9 +478,9 @@ fun LanguagePickerDialog(
                                     colors = RadioButtonDefaults.colors(
                                         selectedColor = MaterialTheme.colorScheme.primary
                                     ),
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(20.dp)
                                 )
-                                Spacer(modifier = Modifier.width(12.dp))
+                                Spacer(modifier = Modifier.width(10.dp))
                                 Text(
                                     text = label,
                                     style = MaterialTheme.typography.bodyMedium,
@@ -361,7 +495,7 @@ fun LanguagePickerDialog(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text(stringResource(R.string.btn_close), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.btn_close), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             }
         }
@@ -382,28 +516,29 @@ fun EnginePickerDialog(
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier
-                .width(280.dp)
+                .width(260.dp)
                 .wrapContentHeight(),
-            shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            contentColor = MaterialTheme.colorScheme.onSurface,
             tonalElevation = 6.dp
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     stringResource(R.string.dialog_engine_title),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(bottom = 4.dp)
+                    fontWeight = FontWeight.Black,
+                    modifier = Modifier.padding(bottom = 2.dp)
                 )
 
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     engines.forEach { (engine, label) ->
                         Surface(
                             onClick = { onEngineSelected(engine) },
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(10.dp),
                             color = if (engine == currentEngine)
                                 MaterialTheme.colorScheme.primaryContainer
                             else
@@ -411,7 +546,7 @@ fun EnginePickerDialog(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
-                                modifier = Modifier.padding(vertical = 10.dp, horizontal = 12.dp),
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 RadioButton(
@@ -420,9 +555,9 @@ fun EnginePickerDialog(
                                     colors = RadioButtonDefaults.colors(
                                         selectedColor = MaterialTheme.colorScheme.primary
                                     ),
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(20.dp)
                                 )
-                                Spacer(modifier = Modifier.width(12.dp))
+                                Spacer(modifier = Modifier.width(10.dp))
                                 Text(
                                     text = label,
                                     style = MaterialTheme.typography.bodyMedium,
@@ -437,7 +572,7 @@ fun EnginePickerDialog(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text(stringResource(R.string.btn_close), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.btn_close), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             }
         }
@@ -463,28 +598,29 @@ fun QualityPickerDialog(
             modifier = Modifier
                 .width(260.dp)
                 .wrapContentHeight(),
-            shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            contentColor = MaterialTheme.colorScheme.onSurface,
             tonalElevation = 6.dp
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     stringResource(R.string.dialog_quality_title),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(bottom = 4.dp)
+                    fontWeight = FontWeight.Black,
+                    modifier = Modifier.padding(bottom = 2.dp)
                 )
 
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     qualityOptions.forEach { (height, label) ->
                         val displayLabel =
                             if (height == 0) stringResource(R.string.item_quality_auto) else label
                         Surface(
                             onClick = { onQualitySelected(height) },
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(10.dp),
                             color = if (height == currentHeight)
                                 MaterialTheme.colorScheme.primaryContainer
                             else
@@ -492,7 +628,7 @@ fun QualityPickerDialog(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
-                                modifier = Modifier.padding(vertical = 10.dp, horizontal = 12.dp),
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 RadioButton(
@@ -501,9 +637,9 @@ fun QualityPickerDialog(
                                     colors = RadioButtonDefaults.colors(
                                         selectedColor = MaterialTheme.colorScheme.primary
                                     ),
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(20.dp)
                                 )
-                                Spacer(modifier = Modifier.width(12.dp))
+                                Spacer(modifier = Modifier.width(10.dp))
                                 Text(
                                     text = displayLabel,
                                     style = MaterialTheme.typography.bodyMedium,
@@ -518,7 +654,7 @@ fun QualityPickerDialog(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text(stringResource(R.string.btn_close), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.btn_close), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             }
         }
@@ -532,34 +668,35 @@ fun BufferPickerDialog(currentBuffer: Int, onDismiss: () -> Unit, onBufferSelect
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier
-                .width(280.dp)
+                .width(260.dp)
                 .wrapContentHeight(),
-            shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            contentColor = MaterialTheme.colorScheme.onSurface,
             tonalElevation = 6.dp
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     stringResource(R.string.dialog_buffer_title),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(bottom = 4.dp)
+                    fontWeight = FontWeight.Black,
+                    modifier = Modifier.padding(bottom = 2.dp)
                 )
 
-                Box(modifier = Modifier.heightIn(max = 300.dp)) {
+                Box(modifier = Modifier.heightIn(max = 280.dp)) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         bufferOptions.forEach { seconds ->
                             Surface(
                                 onClick = { onBufferSelected(seconds) },
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(10.dp),
                                 color = if (seconds == currentBuffer)
                                     MaterialTheme.colorScheme.primaryContainer
                                 else
@@ -568,8 +705,8 @@ fun BufferPickerDialog(currentBuffer: Int, onDismiss: () -> Unit, onBufferSelect
                             ) {
                                 Row(
                                     modifier = Modifier.padding(
-                                        vertical = 10.dp,
-                                        horizontal = 12.dp
+                                        vertical = 8.dp,
+                                        horizontal = 10.dp
                                     ),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -579,9 +716,9 @@ fun BufferPickerDialog(currentBuffer: Int, onDismiss: () -> Unit, onBufferSelect
                                         colors = RadioButtonDefaults.colors(
                                             selectedColor = MaterialTheme.colorScheme.primary
                                         ),
-                                        modifier = Modifier.size(24.dp)
+                                        modifier = Modifier.size(20.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Spacer(modifier = Modifier.width(10.dp))
                                     Text(
                                         text = stringResource(R.string.unit_seconds, seconds),
                                         style = MaterialTheme.typography.bodyMedium,
@@ -597,7 +734,7 @@ fun BufferPickerDialog(currentBuffer: Int, onDismiss: () -> Unit, onBufferSelect
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text(stringResource(R.string.btn_close), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.btn_close), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             }
         }
@@ -618,15 +755,16 @@ fun ColorPickerDialog(onDismiss: () -> Unit, onColorSelected: (Color) -> Unit) {
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier
-                .width(340.dp)
+                .width(320.dp)
                 .wrapContentHeight(),
-            shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            contentColor = MaterialTheme.colorScheme.onSurface,
             tonalElevation = 6.dp
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(15.dp)
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Header
                 Row(
@@ -637,7 +775,7 @@ fun ColorPickerDialog(onDismiss: () -> Unit, onColorSelected: (Color) -> Unit) {
                     Column {
                         Text(
                             stringResource(R.string.item_accent_color),
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Black
                         )
                         Text(
@@ -658,13 +796,13 @@ fun ColorPickerDialog(onDismiss: () -> Unit, onColorSelected: (Color) -> Unit) {
                     ) {}
                 }
 
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
                 // Custom Pickers
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
                         stringResource(R.string.dialog_color_custom),
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -689,18 +827,21 @@ fun ColorPickerDialog(onDismiss: () -> Unit, onColorSelected: (Color) -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text(stringResource(R.string.btn_cancel), fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.btn_cancel), fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = { onColorSelected(selectedColor) },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = selectedColor)
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = selectedColor),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        modifier = Modifier.height(36.dp)
                     ) {
                         val isLightColor = hsv[2] > 0.7f && hsv[1] < 0.4f
                         Text(
                             stringResource(R.string.btn_apply),
                             fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
                             color = if (isLightColor) Color.Black else Color.White
                         )
                     }
@@ -823,14 +964,14 @@ fun SettingsGroup(
     Column {
         Text(
             text = title,
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.labelMedium,
             color = accentColor,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
+            modifier = Modifier.padding(start = 6.dp, bottom = 6.dp)
         )
         Surface(
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column {
@@ -848,28 +989,30 @@ fun SettingsItem(icon: ImageVector, title: String, subtitle: String, onClick: ()
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 icon,
                 null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(20.dp)
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     title,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
                 )
-                Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
             }
             Icon(
                 Icons.Default.ChevronRight,
                 null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f)
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f),
+                modifier = Modifier.size(16.dp)
             )
         }
     }
@@ -887,23 +1030,29 @@ fun SettingsToggleItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             icon,
             null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(20.dp)
         )
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-            Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+            Text(
+                title, 
+                color = MaterialTheme.colorScheme.onSurface, 
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+            Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
         }
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
+            modifier = Modifier.scale(0.8f),
             colors = SwitchDefaults.colors(
                 checkedThumbColor = accentColor,
                 checkedTrackColor = accentColor.copy(0.3f)

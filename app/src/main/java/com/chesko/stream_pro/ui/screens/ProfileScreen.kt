@@ -1,5 +1,7 @@
 package com.chesko.stream_pro.ui.screens
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +20,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -27,13 +31,14 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.chesko.stream_pro.R
 import com.chesko.stream_pro.core.ui.MainViewModel
@@ -47,7 +52,8 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
     val deviceId by viewModel.deviceId.collectAsState()
     val memberSince by viewModel.memberSince.collectAsState()
     val favoriteChannels by viewModel.favoriteChannels.collectAsState()
-    
+
+    var refreshTrigger by remember { mutableStateOf(0) }
     var showEditNameDialog by remember { mutableStateOf(false) }
     var showEditEmailDialog by remember { mutableStateOf(false) }
     var tempName by remember { mutableStateOf("") }
@@ -62,41 +68,85 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
-        uri?.let { viewModel.saveProfileImage(it) }
+        uri?.let {
+            viewModel.saveProfileImage(it)
+            refreshTrigger++
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    "Profile photo updated successfully!",
+                    duration = SnackbarDuration.Short
+                )
+            }
+        }
     }
 
     if (showEditNameDialog) {
-        ModernEditDialog(
+        AnimatedEditDialog(
             title = stringResource(R.string.edit_name),
-            value = tempName,
+            currentValue = userName,
             onValueChange = { tempName = it },
-            onDismiss = { showEditNameDialog = false },
-            onSave = {
-                viewModel.updateProfile(tempName, userEmail)
+            onDismiss = {
                 showEditNameDialog = false
+                tempName = ""
             },
-            label = stringResource(R.string.label_name)
+            onSave = {
+                if (tempName.isNotBlank()) {
+                    viewModel.updateProfile(tempName, userEmail)
+                    showEditNameDialog = false
+                    tempName = ""
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            "Name updated successfully!",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                }
+            },
+            placeholder = "Enter your name",
+            icon = Icons.Default.Person,
+            accentColor = MaterialTheme.colorScheme.primary
         )
     }
 
     if (showEditEmailDialog) {
-        ModernEditDialog(
+        AnimatedEditDialog(
             title = stringResource(R.string.edit_email),
-            value = tempEmail,
+            currentValue = userEmail,
             onValueChange = { tempEmail = it },
-            onDismiss = { showEditEmailDialog = false },
-            onSave = {
-                viewModel.updateProfile(userName, tempEmail)
+            onDismiss = {
                 showEditEmailDialog = false
+                tempEmail = ""
             },
-            label = stringResource(R.string.label_email)
+            onSave = {
+                if (tempEmail.isNotBlank() && tempEmail.contains("@")) {
+                    viewModel.updateProfile(userName, tempEmail)
+                    showEditEmailDialog = false
+                    tempEmail = ""
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            "Email updated successfully!",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                }
+            },
+            placeholder = "your@email.com",
+            icon = Icons.Default.Email,
+            accentColor = MaterialTheme.colorScheme.primary,
+            isEmail = true
         )
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.profile_title), fontWeight = FontWeight.Black) },
+                title = {
+                    Text(
+                        stringResource(R.string.profile_title),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = {
                         if (!isBackInvoked) {
@@ -105,19 +155,20 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                         }
                     }) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack, 
-                            contentDescription = stringResource(R.string.btn_cancel), 
-                            tint = MaterialTheme.colorScheme.onSurface
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.btn_cancel),
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
+                    containerColor = Color.Transparent,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(
@@ -125,68 +176,58 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+                .padding(horizontal = 20.dp)
+                .padding(top = 8.dp, bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Profile Image & Info
+            // Profile Image
             Box(
                 modifier = Modifier
-                    .size(130.dp)
+                    .size(90.dp)
                     .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.secondary
-                            )
-                        )
-                    )
-                    .padding(4.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
                     .clickable { launcher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
-                if (profileImageUri != null) {
-                    AsyncImage(
-                        model = profileImageUri,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop,
-                        error = painterResource(id = R.drawable.app_icon_android),
-                        placeholder = painterResource(id = R.drawable.app_icon_android)
-                    )
-                } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.app_icon_android),
-                        contentDescription = null,
-                        modifier = Modifier.size(80.dp)
-                    )
-                }
-                
-                // Overlay edit icon
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.2f)),
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                key(profileImageUri, refreshTrigger) {
+                    if (profileImageUri != null) {
+                        AsyncImage(
+                            model = profileImageUri,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
                         Icon(
-                            Icons.Default.CameraAlt,
-                            null,
-                            modifier = Modifier.size(18.dp).padding(vertical = 4.dp),
-                            tint = Color.White
+                            Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.size(40.dp),
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                         )
                     }
                 }
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .padding(4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.CameraAlt,
+                        null,
+                        modifier = Modifier.size(12.dp),
+                        tint = Color.White
+                    )
+                }
             }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // User Info
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -197,83 +238,64 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 ) {
                     Text(
                         userName,
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Black,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Icon(
                         Icons.Default.Edit,
-                        contentDescription = "Edit Nama",
-                        modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        contentDescription = "Edit",
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
                     )
                 }
-                
+
                 Text(
                     userEmail,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    modifier = Modifier.padding(top = 4.dp)
                 )
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Surface(
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shape = RoundedCornerShape(12.dp),
-                tonalElevation = 8.dp
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Stats Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f), RoundedCornerShape(12.dp))
+                    .padding(vertical = 16.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.Star, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        stringResource(R.string.premium_member),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontWeight = FontWeight.Black
-                    )
-                }
+                MinimalStatItem(
+                    value = favoriteChannels.size.toString(),
+                    label = stringResource(R.string.stat_favorite)
+                )
+                MinimalStatItem(
+                    value = "1",
+                    label = stringResource(R.string.stat_playlist)
+                )
+                MinimalStatItem(
+                    value = "∞",
+                    label = stringResource(R.string.stat_expired)
+                )
             }
-            
-            Spacer(modifier = Modifier.height(40.dp))
-            
-            // Stats Section (Modern Card)
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 2.dp,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
-            ) {
-                Row(
-                    modifier = Modifier.padding(vertical = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    ProfileStatItem(stringResource(R.string.stat_favorite), favoriteChannels.size.toString())
-                    VerticalDivider(modifier = Modifier.height(40.dp).width(1.dp), color = MaterialTheme.colorScheme.outline.copy(0.1f))
-                    ProfileStatItem(stringResource(R.string.stat_playlist), "1")
-                    VerticalDivider(modifier = Modifier.height(40.dp).width(1.dp), color = MaterialTheme.colorScheme.outline.copy(0.1f))
-                    ProfileStatItem(stringResource(R.string.stat_expired), stringResource(R.string.stat_expired_never))
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(32.dp))
-            
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             // Details Section
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     stringResource(R.string.account_info),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                     modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
                 )
-                
-                ProfileDetailItem(
+
+                MinimalDetailItem(
                     icon = Icons.Default.Email,
                     label = stringResource(R.string.label_email),
                     value = userEmail,
@@ -282,10 +304,10 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                         showEditEmailDialog = true
                     }
                 )
-                ProfileDetailItem(
+                MinimalDetailItem(
                     icon = Icons.Default.Devices,
                     label = stringResource(R.string.label_device_id),
-                    value = deviceId,
+                    value = deviceId.take(12) + "...",
                     onClick = {
                         clipboardManager.setText(AnnotatedString(deviceId))
                         scope.launch {
@@ -293,113 +315,324 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                         }
                     }
                 )
-                ProfileDetailItem(Icons.Default.DateRange, stringResource(R.string.label_member_since), memberSince)
+                MinimalDetailItem(
+                    icon = Icons.Default.DateRange,
+                    label = stringResource(R.string.label_member_since),
+                    value = memberSince
+                )
             }
-            
+
             Spacer(modifier = Modifier.height(32.dp))
-            
-            Button(
+
+            // Logout Button
+            OutlinedButton(
                 onClick = { /* viewModel.logout() */ },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = MaterialTheme.colorScheme.error
                 ),
-                shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.2f)),
-                contentPadding = PaddingValues(vertical = 16.dp)
+                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
             ) {
-                Text(stringResource(R.string.btn_logout_account), fontWeight = FontWeight.Black, fontSize = 16.sp)
+                Icon(
+                    Icons.AutoMirrored.Filled.Logout,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    stringResource(R.string.btn_logout_account),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
-            
-            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ModernEditDialog(
+fun AnimatedEditDialog(
     title: String,
-    value: String,
+    currentValue: String,
     onValueChange: (String) -> Unit,
     onDismiss: () -> Unit,
     onSave: () -> Unit,
-    label: String
+    placeholder: String,
+    icon: ImageVector,
+    accentColor: Color,
+    isEmail: Boolean = false
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(20.dp),
-        containerColor = MaterialTheme.colorScheme.surface,
-        title = {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Black
-            )
-        },
-        text = {
-            OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                label = { Text(label) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                )
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = onSave) {
-                Text(stringResource(R.string.btn_save), fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.btn_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
+    var showDialog by remember { mutableStateOf(true) }
+    var textValue by remember { mutableStateOf(currentValue) }
+    var isFieldFocused by remember { mutableStateOf(false) }
+
+    val scale by animateFloatAsState(
+        targetValue = if (isFieldFocused) 1.02f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy),
+        label = "scale"
+    )
+
+    LaunchedEffect(textValue) {
+        onValueChange(textValue)
+    }
+
+    if (showDialog) {
+        Dialog(
+            onDismissRequest = {
+                showDialog = false
+                onDismiss()
+            },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            AnimatedVisibility(
+                visible = showDialog,
+                enter = fadeIn(animationSpec = tween(300)) +
+                        slideInVertically(initialOffsetY = { -it }, animationSpec = tween(400, easing = EaseOutBack)),
+                exit = fadeOut(animationSpec = tween(250)) +
+                        slideOutVertically(targetOffsetY = { -it }, animationSpec = tween(300, easing = EaseInCubic))
+            ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .scale(scale),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 8.dp,
+                        focusedElevation = 12.dp
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Brush.linearGradient(
+                                        colors = listOf(
+                                            accentColor.copy(alpha = 0.1f),
+                                            accentColor.copy(alpha = 0.05f)
+                                        )
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp),
+                                tint = accentColor
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            title,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            "Update your ${if (isEmail) "email address" else "name"}",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        OutlinedTextField(
+                            value = textValue,
+                            onValueChange = { textValue = it },
+                            placeholder = {
+                                Text(
+                                    placeholder,
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onFocusChanged { focusState ->
+                                    isFieldFocused = focusState.isFocused
+                                },
+                            singleLine = true,
+                            shape = RoundedCornerShape(16.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = accentColor,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                                cursorColor = accentColor,
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f)
+                            ),
+                            textStyle = LocalTextStyle.current.copy(
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.Medium
+                            ),
+                            leadingIcon = {
+                                Icon(
+                                    if (isEmail) Icons.Default.Email else Icons.Default.Person,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = if (isFieldFocused) accentColor else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                )
+                            },
+                            trailingIcon = {
+                                if (textValue.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = { textValue = "" },
+                                        modifier = Modifier.size(24.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = "Clear",
+                                            modifier = Modifier.size(14.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                        )
+                                    }
+                                }
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = {
+                                    showDialog = false
+                                    onDismiss()
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(44.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                ),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+                            ) {
+                                Text(
+                                    stringResource(R.string.btn_cancel),
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+
+                            Button(
+                                onClick = {
+                                    showDialog = false
+                                    onSave()
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(44.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = accentColor
+                                ),
+                                enabled = textValue.isNotBlank() &&
+                                        if (isEmail) textValue.contains("@") else true
+                            ) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    stringResource(R.string.btn_save),
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
-    )
-}
-
-@Composable
-fun ProfileStatItem(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onBackground)
-        Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
     }
 }
 
 @Composable
-fun ProfileDetailItem(
+fun MinimalStatItem(value: String, label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            value,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Text(
+            label,
+            fontSize = 10.sp,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+            modifier = Modifier.padding(top = 2.dp)
+        )
+    }
+}
+
+@Composable
+fun MinimalDetailItem(
     icon: ImageVector,
     label: String,
     value: String,
     onClick: (() -> Unit)? = null
 ) {
-    Row(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f)
     ) {
-        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
-            Text(value, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-        }
-        if (onClick != null) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Icon(
-                Icons.Default.Edit,
-                contentDescription = "Edit",
-                modifier = Modifier.size(20.dp),
+                icon,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
             )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    label,
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+                Text(
+                    value,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            if (onClick != null) {
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+                )
+            }
         }
     }
 }

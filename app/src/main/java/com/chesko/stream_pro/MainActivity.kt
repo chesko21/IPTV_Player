@@ -62,6 +62,7 @@ import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.ui.MainViewModel
 import com.chesko.stream_pro.core.utils.LocaleHelper
 import com.chesko.stream_pro.core.utils.NetworkObserver
+import com.chesko.stream_pro.ui.components.AppBackground
 import com.chesko.stream_pro.ui.screens.AboutScreen
 import com.chesko.stream_pro.ui.screens.EpgScreen
 import com.chesko.stream_pro.ui.screens.HelpScreen
@@ -181,13 +182,10 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
+                AppBackground(viewModel = viewModel) {
                     Scaffold(
                         snackbarHost = { SnackbarHost(snackbarHostState) },
-                        containerColor = MaterialTheme.colorScheme.background,
+                        containerColor = Color.Transparent,
                         contentWindowInsets = WindowInsets(0, 0, 0, 0)
                     ) { _ ->
                         Box(

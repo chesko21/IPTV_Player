@@ -1154,30 +1154,30 @@ fun TrackSelectionMenu(
             if (showAudioBoost && onAudioBoostToggle != null) {
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
                         .clickable { onAudioBoostToggle(!audioBoost) }
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                        .padding(horizontal = 6.dp, vertical = 1.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.VolumeUp,
                         null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(12.dp)
                     )
                     Text(
                         stringResource(R.string.player_boost),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = Color.White,
+                        fontSize = 10.sp
                     )
                     Switch(
                         checked = audioBoost,
                         onCheckedChange = onAudioBoostToggle,
-                        modifier = Modifier.scale(0.5f),
+                        modifier = Modifier.scale(0.45f).size(32.dp, 16.dp),
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = MaterialTheme.colorScheme.primary,
                             checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
@@ -1455,7 +1455,7 @@ fun ControlOverlay(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (canSwitchEngine) playerEngine else "$playerEngine (FIXED)",
+                        text = if (canSwitchEngine) playerEngine else "$playerEngine",
                         color = if (canSwitchEngine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(0.5f),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
@@ -1637,13 +1637,21 @@ fun QuickChannelList(
     onClose: () -> Unit
 ) {
     Surface(
-        modifier = Modifier.fillMaxHeight().width(240.dp),
+        modifier = Modifier
+            .fillMaxHeight()
+            .width(240.dp),
         color = Color(0xFF1A1A1A).copy(alpha = 0.85f),
         tonalElevation = 8.dp
     ) {
-
-        Column(modifier = Modifier.statusBarsPadding()) {
-            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Vertical + WindowInsetsSides.End))
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Surface(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(2.dp), modifier = Modifier.padding(end = 8.dp)) {
                     Box(modifier = Modifier.width(4.dp).height(20.dp))
                 }

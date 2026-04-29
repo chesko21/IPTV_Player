@@ -8,6 +8,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -82,16 +83,25 @@ fun IPTV_PlayerTheme(
     // Choose base color scheme
     val baseColorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     
-    // Apply dynamic branding (Accent Color)
+    // Apply dynamic branding (Accent Color) with contrast checking
     val colorScheme = if (accentColor != null) {
+        val isLightAccent = accentColor.luminance() > 0.5f
         baseColorScheme.copy(
             primary = accentColor,
+            onPrimary = if (isLightAccent) Color.Black else Color.White,
             secondary = accentColor,
-            primaryContainer = accentColor.copy(alpha = 0.2f),
-            onPrimaryContainer = accentColor
+            onSecondary = if (isLightAccent) Color.Black else Color.White,
+            primaryContainer = accentColor.copy(alpha = 0.15f),
+            onPrimaryContainer = if (darkTheme) Color.White else accentColor,
+            // Ensure surfaces are legible on custom backgrounds
+            surface = if (darkTheme) DarkSurface.copy(alpha = 0.9f) else LightSurface.copy(alpha = 0.9f),
+            surfaceVariant = if (darkTheme) DarkSurfaceVariant.copy(alpha = 0.7f) else LightSurfaceVariant.copy(alpha = 0.7f)
         )
     } else {
-        baseColorScheme
+        baseColorScheme.copy(
+            surface = if (darkTheme) DarkSurface.copy(alpha = 0.9f) else LightSurface.copy(alpha = 0.9f),
+            surfaceVariant = if (darkTheme) DarkSurfaceVariant.copy(alpha = 0.7f) else LightSurfaceVariant.copy(alpha = 0.7f)
+        )
     }
 
     val view = LocalView.current

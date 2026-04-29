@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 /**
  * Universal Modern Universe Color Palette
- * Designed for High-End Cinematic Experience
+ * Optimized for contrast and transparency support
  */
 
 // --- BRAND COLORS ---
@@ -16,30 +16,30 @@ val SecondaryBlue = Color(0xFF448AFF)
 val TertiaryCyan = Color(0xFF00E5FF)
 
 // --- DARK THEME (CINEMATIC) ---
-val DarkBackground = Color(0xFF05050A) // Deep Space Black
+val DarkBackground = Color(0xFF05050A) 
 val DarkSurface = Color(0xFF0D0D14)
-val DarkSurfaceVariant = Color(0xFF1B1B26)
+val DarkSurfaceVariant = Color(0xFF1E1E2A)
 val DarkSurfaceContainer = Color(0xFF14141E)
 
-val DarkOnSurface = Color(0xFFF0F0F5)
-val DarkOnSurfaceVariant = Color(0xFFBCBCC9)
-val DarkOutline = Color(0xFF454552)
+val DarkOnSurface = Color(0xFFFFFFFF) // Maximum contrast
+val DarkOnSurfaceVariant = Color(0xFFB0B0C0)
+val DarkOutline = Color(0xFF3C3C4A)
 
 // --- LIGHT THEME (CLEAN) ---
-val LightBackground = Color(0xFFFBFBFF)
+val LightBackground = Color(0xFFF5F7FA)
 val LightSurface = Color(0xFFFFFFFF)
-val LightSurfaceVariant = Color(0xFFE2E2F0)
-val LightSurfaceContainer = Color(0xFFF0F0F9)
+val LightSurfaceVariant = Color(0xFFEDF0F5)
+val LightSurfaceContainer = Color(0xFFF8FAFC)
 
-val LightOnSurface = Color(0xFF191921)
-val LightOnSurfaceVariant = Color(0xFF454552)
-val LightOutline = Color(0xFF757585)
+val LightOnSurface = Color(0xFF0F172A) // Deep Navy for better readability
+val LightOnSurfaceVariant = Color(0xFF475569)
+val LightOutline = Color(0xFFCBD5E1)
 
 // --- STATUS & FUNCTIONAL ---
-val CosmicError = Color(0xFFFF5252)
-val CosmicSuccess = Color(0xFF00E676)
-val CosmicWarning = Color(0xFFFFD740)
-val CosmicInfo = Color(0xFF40C4FF)
+val CosmicError = Color(0xFFFF3D00)
+val CosmicSuccess = Color(0xFF00C853)
+val CosmicWarning = Color(0xFFFFAB00)
+val CosmicInfo = Color(0xFF00B0FF)
 
 // --- OVERLAYS & SPECIAL ---
 val ScrimColor = Color(0x99000000)

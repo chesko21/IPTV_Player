@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.chesko.stream_pro.BuildConfig
 import com.chesko.stream_pro.R
-import kotlinx.coroutines.launch
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,7 +41,13 @@ fun AboutScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.about_title), fontWeight = FontWeight.Black) },
+                title = {
+                    Text(
+                        stringResource(R.string.about_title),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = {
                         if (!isBackInvoked) {
@@ -51,96 +56,122 @@ fun AboutScreen(onBack: () -> Unit) {
                         }
                     }) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack, 
-                            contentDescription = null, 
-                            tint = MaterialTheme.colorScheme.onSurface
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = Color.Transparent,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Transparent
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+                .padding(horizontal = 20.dp)
+                .padding(top = 8.dp, bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            // App Logo
+            // App Logo - More Compact
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Image(
                     painter = painterResource(id = R.drawable.app_icon_android),
                     contentDescription = null,
-                    modifier = Modifier.size(80.dp)
+                    modifier = Modifier.size(64.dp)
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                Row {
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    verticalAlignment = Alignment.Bottom
+                ) {
                     Text(
                         stringResource(R.string.brand_name).substringBefore("PRO"),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Black,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         "PRO",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 2.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
-            
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Version - Smaller
             val versionName = BuildConfig.VERSION_NAME
-            Text(
-                stringResource(R.string.about_version, versionName),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-            )
+            Surface(
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Text(
+                    stringResource(R.string.about_version, versionName),
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                )
+            }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
+            // Description - More Compact
             Text(
                 stringResource(R.string.about_description),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center,
-                lineHeight = 24.sp
+                lineHeight = 20.sp,
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
-            // Info Section
-            val uriHandler = LocalUriHandler.current
-            AboutInfoItem(stringResource(R.string.about_label_developer), stringResource(R.string.about_label_dev_team))
-            AboutInfoItem(stringResource(R.string.about_label_license), stringResource(R.string.about_label_license_val))
-            AboutInfoItem(
-                label = stringResource(R.string.about_label_website), 
-                value = "https://chesko-25.vercel.app",
-                onClick = { uriHandler.openUri("https://chesko-25.vercel.app") }
-            )
+            // Info Section - More Minimalist
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                ),
+                elevation = CardDefaults.cardElevation(0.dp)
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                    val uriHandler = LocalUriHandler.current
+                    AboutInfoItem(stringResource(R.string.about_label_developer), stringResource(R.string.about_label_dev_team))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    AboutInfoItem(stringResource(R.string.about_label_license), stringResource(R.string.about_label_license_val))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    AboutInfoItem(
+                        label = stringResource(R.string.about_label_website),
+                        value = "chesko-25.vercel.app",
+                        onClick = { uriHandler.openUri("https://chesko-25.vercel.app") }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Donation Section - More Compact & Clean
+            DonationSection()
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Donation Section
-            DonationSection()
-
-            Spacer(modifier = Modifier.height(48.dp))
-
+            // Footer - More Subtle
             Text(
                 stringResource(R.string.about_footer_rights, currentYear),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)
             )
         }
     }
@@ -149,86 +180,112 @@ fun AboutScreen(onBack: () -> Unit) {
 @Composable
 fun DonationSection() {
     val clipboardManager = LocalClipboardManager.current
+    val scope = rememberCoroutineScope()
     val danaNumber = "08976248342"
+    var showSnackbar by remember { mutableStateOf(false) }
 
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp)),
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
+        ),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(14.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            // Support Title - More Minimal
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
                 Icon(
                     Icons.Default.Favorite,
                     contentDescription = null,
-                    tint = Color.Red,
-                    modifier = Modifier.size(18.dp)
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(14.dp)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     stringResource(R.string.about_support_dev),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Black,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Text(
                 stringResource(R.string.about_donation_msg),
-                style = MaterialTheme.typography.bodySmall,
+                fontSize = 11.sp,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                lineHeight = 16.sp
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
+            // Dana Card - More Minimal
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(10.dp))
                     .clickable {
                         clipboardManager.setText(AnnotatedString(danaNumber))
+                        showSnackbar = true
                     },
                 color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
             ) {
                 Row(
-                    modifier = Modifier.padding(12.dp),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             "DANA",
-                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 10.sp,
                             color = Color(0xFF118EEA),
-                            fontWeight = FontWeight.Black
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp
                         )
                         Text(
                             danaNumber,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            letterSpacing = 0.5.sp
                         )
                         Text(
                             stringResource(R.string.about_label_dana_name),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )
                     }
                     Icon(
                         Icons.Default.ContentCopy,
                         contentDescription = stringResource(R.string.about_copy_number),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                        modifier = Modifier.size(16.dp)
                     )
                 }
+            }
+
+            // Optional: Snackbar feedback
+            if (showSnackbar) {
+                LaunchedEffect(Unit) {
+                    kotlinx.coroutines.delay(1500)
+                    showSnackbar = false
+                }
+                Text(
+                    "✓ Copied!",
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
             }
         }
     }
@@ -236,27 +293,38 @@ fun DonationSection() {
 
 @Composable
 fun AboutInfoItem(
-    label: String, 
-    value: String, 
+    label: String,
+    value: String,
     onClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
-            .padding(vertical = 12.dp),
+            .padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            label, 
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), 
-            fontWeight = FontWeight.Medium
+            label,
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f),
+            fontWeight = FontWeight.Normal
         )
         Text(
-            value, 
-            color = if (onClick != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.Bold
+            value,
+            fontSize = 12.sp,
+            color = if (onClick != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.85f),
+            fontWeight = if (onClick != null) FontWeight.Medium else FontWeight.Normal
         )
     }
+}
+
+@Composable
+fun HorizontalDivider(modifier: Modifier = Modifier) {
+    Divider(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
+        thickness = 0.5.dp
+    )
 }

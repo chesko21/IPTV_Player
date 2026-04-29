@@ -49,7 +49,7 @@ fun LoadingState(message: String = stringResource(R.string.loading_message)) {
                 Brush.radialGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f * bgPulse),
-                        Color(0xFF020205) // Deep Space Black
+                        Color(0xFF020205)
                     )
                 )
             ),
@@ -141,7 +141,6 @@ fun CosmicOrbitalLoader() {
                 style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
             )
 
-            // Inner Pulsing Core
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(primaryColor, Color.Transparent)
@@ -149,7 +148,6 @@ fun CosmicOrbitalLoader() {
                 radius = 12.dp.toPx()
             )
 
-            // Orbital Particles
             val radius = 40.dp.toPx()
             val angleRad = Math.toRadians(rotationInner.toDouble())
             val particlePos = Offset(
@@ -162,11 +160,10 @@ fun CosmicOrbitalLoader() {
                 radius = 3.dp.toPx(),
                 center = particlePos
             )
-            
-            // Particle Glow
+
             drawCircle(
                 brush = Brush.radialGradient(
-                    colors = listOf(primaryColor.copy(alpha = 0.6f), Color.Transparent)
+                    colors = listOf(primaryColor.copy(alpha = 0.5f), Color.Transparent)
                 ),
                 radius = 8.dp.toPx(),
                 center = particlePos

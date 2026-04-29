@@ -219,224 +219,232 @@ fun HomeScreen(
                     .fillMaxWidth(0.65f)
                     .statusBarsPadding(),
                 drawerShape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp),
-                drawerContainerColor = MaterialTheme.colorScheme.surface
+                drawerContainerColor = Color.Transparent
             ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(MaterialTheme.colorScheme.primary.copy(0.15f), Color.Transparent)
-                            )
-                        )
-                        .clickable {
-                            scope.launch {
-                                drawerState.snapTo(DrawerValue.Closed)
-                                onOpenProfile()
-                            }
-                        }
-                        .padding(24.dp)
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            modifier = Modifier.size(60.dp),
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(0.2f))
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                if (profileImageUri != null) {
-                                    AsyncImage(
-                                        model = profileImageUri,
-                                        contentDescription = null,
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop,
-                                        error = painterResource(id = R.drawable.app_icon_android),
-                                        placeholder = painterResource(id = R.drawable.app_icon_android)
+                    Column {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    Brush.verticalGradient(
+                                        listOf(MaterialTheme.colorScheme.primary.copy(0.15f), Color.Transparent)
                                     )
-                                } else {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.app_icon_android),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(48.dp)
+                                )
+                                .clickable {
+                                    scope.launch {
+                                        drawerState.snapTo(DrawerValue.Closed)
+                                        onOpenProfile()
+                                    }
+                                }
+                                .padding(24.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Surface(
+                                    modifier = Modifier.size(60.dp),
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(0.2f))
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        if (profileImageUri != null) {
+                                            AsyncImage(
+                                                model = profileImageUri,
+                                                contentDescription = null,
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentScale = ContentScale.Crop,
+                                                error = painterResource(id = R.drawable.app_icon_android),
+                                                placeholder = painterResource(id = R.drawable.app_icon_android)
+                                            )
+                                        } else {
+                                            Image(
+                                                painter = painterResource(id = R.drawable.app_icon_android),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(48.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column {
+                                    Text(
+                                        userName,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Black,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Surface(
+                                        color = MaterialTheme.colorScheme.primary.copy(0.2f),
+                                        shape = RoundedCornerShape(4.dp)
+                                    ) {
+                                        Text(
+                                            stringResource(R.string.premium_badge),
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    Text(
+                                        userEmail,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                                     )
                                 }
                             }
                         }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 12.dp)
+                                .verticalScroll(rememberScrollState())
+                        ) {
                             Text(
-                                userName,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.onSurface
+                                stringResource(R.string.drawer_group_main),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
                             )
-                            Surface(
-                                color = MaterialTheme.colorScheme.primary.copy(0.2f),
-                                shape = RoundedCornerShape(4.dp)
+
+                            DrawerMenuItem(
+                                icon = Icons.Default.DateRange,
+                                label = stringResource(R.string.menu_epg),
+                                onClick = {
+                                    scope.launch {
+                                        drawerState.snapTo(DrawerValue.Closed)
+                                        onOpenEpg()
+                                    }
+                                }
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(0.05f), modifier = Modifier.padding(horizontal = 16.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Text(
+                                stringResource(R.string.drawer_group_settings),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
+
+                            DrawerMenuItem(
+                                icon = Icons.Default.Settings,
+                                label = stringResource(R.string.menu_settings),
+                                onClick = {
+                                    scope.launch {
+                                        drawerState.snapTo(DrawerValue.Closed)
+                                        onOpenSettings()
+                                    }
+                                }
+                            )
+
+                            DrawerMenuItem(
+                                icon = Icons.Default.Sync,
+                                label = stringResource(R.string.menu_sync),
+                                onClick = {
+                                    viewModel.refreshPlaylist()
+                                    scope.launch { drawerState.close() }
+                                }
+                            )
+
+                            DrawerMenuItem(
+                                icon = Icons.Default.Backup,
+                                label = stringResource(R.string.menu_backup),
+                                onClick = {
+                                    scope.launch {
+                                        drawerState.close()
+                                        val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault()).format(java.util.Date())
+                                        launcher.launch("iptv_backup_$timestamp.xml")
+                                    }
+                                }
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(0.05f), modifier = Modifier.padding(horizontal = 16.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Text(
+                                stringResource(R.string.drawer_group_support),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
+
+                            DrawerMenuItem(
+                                icon = Icons.AutoMirrored.Filled.HelpOutline,
+                                label = stringResource(R.string.menu_help),
+                                onClick = {
+                                    scope.launch {
+                                        drawerState.snapTo(DrawerValue.Closed)
+                                        onOpenHelp()
+                                    }
+                                }
+                            )
+
+                            DrawerMenuItem(
+                                icon = Icons.Default.Info,
+                                label = stringResource(R.string.menu_about),
+                                onClick = {
+                                    scope.launch {
+                                        drawerState.snapTo(DrawerValue.Closed)
+                                        onOpenAbout()
+                                    }
+                                }
+                            )
+
+                            Spacer(modifier = Modifier.height(32.dp))
+                        }
+
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .clickable {
+                                    scope.launch {
+                                        drawerState.close()
+                                        isShuttingDown = true
+                                        shutdownProgress.animateTo(
+                                            targetValue = 1f,
+                                            animationSpec = tween(1200, easing = LinearEasing)
+                                        )
+                                        onLogout()
+                                    }
+                                },
+                            color = Color.Red.copy(0.1f),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, Color.Red.copy(0.2f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    stringResource(R.string.premium_badge),
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                Icon(Icons.AutoMirrored.Filled.Logout, null, tint = Color.Red)
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(stringResource(R.string.menu_logout), color = Color.Red, fontWeight = FontWeight.Bold)
                             }
-                            Text(
-                                userEmail,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                            )
                         }
+
+                        Spacer(modifier = Modifier.navigationBarsPadding())
                     }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 12.dp)
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    Text(
-                        stringResource(R.string.drawer_group_main),
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
-
-                    DrawerMenuItem(
-                        icon = Icons.Default.DateRange,
-                        label = stringResource(R.string.menu_epg),
-                        onClick = {
-                            scope.launch {
-                                drawerState.snapTo(DrawerValue.Closed)
-                                onOpenEpg()
-                            }
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(0.05f), modifier = Modifier.padding(horizontal = 16.dp))
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        stringResource(R.string.drawer_group_settings),
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
-
-                    DrawerMenuItem(
-                        icon = Icons.Default.Settings,
-                        label = stringResource(R.string.menu_settings),
-                        onClick = {
-                            scope.launch {
-                                drawerState.snapTo(DrawerValue.Closed)
-                                onOpenSettings()
-                            }
-                        }
-                    )
-
-                    DrawerMenuItem(
-                        icon = Icons.Default.Sync,
-                        label = stringResource(R.string.menu_sync),
-                        onClick = {
-                            viewModel.refreshPlaylist()
-                            scope.launch { drawerState.close() }
-                        }
-                    )
-
-                    DrawerMenuItem(
-                        icon = Icons.Default.Backup,
-                        label = stringResource(R.string.menu_backup),
-                        onClick = {
-                            scope.launch {
-                                drawerState.close()
-                                val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault()).format(java.util.Date())
-                                launcher.launch("iptv_backup_$timestamp.xml")
-                            }
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(0.05f), modifier = Modifier.padding(horizontal = 16.dp))
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        stringResource(R.string.drawer_group_support),
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
-
-                    DrawerMenuItem(
-                        icon = Icons.AutoMirrored.Filled.HelpOutline,
-                        label = stringResource(R.string.menu_help),
-                        onClick = {
-                            scope.launch {
-                                drawerState.snapTo(DrawerValue.Closed)
-                                onOpenHelp()
-                            }
-                        }
-                    )
-
-                    DrawerMenuItem(
-                        icon = Icons.Default.Info,
-                        label = stringResource(R.string.menu_about),
-                        onClick = {
-                            scope.launch {
-                                drawerState.snapTo(DrawerValue.Closed)
-                                onOpenAbout()
-                            }
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(32.dp))
-                }
-
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .clickable {
-                            scope.launch {
-                                drawerState.close()
-                                isShuttingDown = true
-                                shutdownProgress.animateTo(
-                                    targetValue = 1f,
-                                    animationSpec = tween(1200, easing = LinearEasing)
-                                )
-                                onLogout()
-                            }
-                        },
-                    color = Color.Red.copy(0.1f),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, Color.Red.copy(0.2f))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.Logout, null, tint = Color.Red)
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(stringResource(R.string.menu_logout), color = Color.Red, fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                Spacer(modifier = Modifier.navigationBarsPadding())
             }
         }
     ) {
-        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
             if (isLoading || allChannels.isEmpty()) {
                 ShimmerHomeScreen()
             } else {
@@ -523,7 +531,7 @@ fun HomeScreen(
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
                             )
                         }
-                        
+
                         // Use grid for selected group or search (2 columns)
                         if (filteredChannels.isEmpty()) {
                             item {
@@ -600,44 +608,44 @@ fun HomeScreen(
 
                         // Regular horizontal rows when no group selected
                         if (favoriteChannels.isNotEmpty()) {
-                            item { 
+                            item {
                                 ContentRow(
-                                    viewModel = viewModel, 
-                                    title = stringResource(R.string.row_favorite), 
-                                    channels = favoriteChannels, 
+                                    viewModel = viewModel,
+                                    title = stringResource(R.string.row_favorite),
+                                    channels = favoriteChannels,
                                     onSeeAllClick = { viewModel.setSelectedGroup("Favorit") },
                                     onChannelSelected = onChannelClick
-                                ) 
+                                )
                             }
                         }
 
                         if (recentlyPlayed.isNotEmpty()) {
-                            item { 
+                            item {
                                 ContentRow(
-                                    viewModel = viewModel, 
-                                    title = stringResource(R.string.row_history), 
-                                    channels = recentlyPlayed, 
+                                    viewModel = viewModel,
+                                    title = stringResource(R.string.row_history),
+                                    channels = recentlyPlayed,
                                     onSeeAllClick = { viewModel.setSelectedGroup("Terakhir Ditonton") },
                                     onChannelSelected = onChannelClick
-                                ) 
+                                )
                             }
                         }
 
                         groups.take(15).forEach { group ->
                             val groupChannels = allChannels.filter { it.group == group }
                             if (groupChannels.isNotEmpty()) {
-                                item(key = group) { 
+                                item(key = group) {
                                     ContentRow(
-                                        viewModel = viewModel, 
-                                        title = group, 
-                                        channels = groupChannels, 
+                                        viewModel = viewModel,
+                                        title = group,
+                                        channels = groupChannels,
                                         onSeeAllClick = { viewModel.setSelectedGroup(group) },
                                         onChannelSelected = onChannelClick
-                                    ) 
+                                    )
                                 }
                             }
                         }
-                        
+
                         // Remaining groups if many
                         if (groups.size > 15) {
                             item {
@@ -897,7 +905,7 @@ fun EnhancedHeroCarousel(
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
-                        .graphicsLayer { 
+                        .graphicsLayer {
                             alpha = 0.35f
                             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
                                 renderEffect = android.graphics.RenderEffect.createBlurEffect(
@@ -1055,7 +1063,7 @@ fun EnhancedHeroCarousel(
                             )
 
                             Spacer(modifier = Modifier.height(16.dp))
-                            
+
                             Button(
                                 onClick = { onPlayClick(channel) },
                                 shape = RoundedCornerShape(12.dp),
@@ -1132,47 +1140,53 @@ fun HeaderSection(
     }
 
     Surface(
-        color = MaterialTheme.colorScheme.background.copy(alpha = (if (isSearchExpanded) 1f else alpha).coerceIn(0f, 0.98f)),
+        color = if (isSearchExpanded) MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                else Color.Transparent,
         modifier = modifier.fillMaxWidth(),
-        tonalElevation = if (alpha > 0.1f) 4.dp else 0.dp
+        tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier
                 .statusBarsPadding()
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
+                .background(
+                    if (!isSearchExpanded) MaterialTheme.colorScheme.surface.copy(alpha = alpha.coerceIn(0f, 0.7f))
+                    else Color.Transparent
+                )
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (!isSearchExpanded) {
                 IconButton(
                     onClick = onMenuClick,
                     modifier = Modifier
-                        .size(44.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f), CircleShape)
-                        .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CircleShape)
+                        .size(38.dp)
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
+                        .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), CircleShape)
                 ) {
-                    Icon(Icons.Default.Menu, stringResource(R.string.content_desc_menu), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
+                    Icon(Icons.Default.Menu, stringResource(R.string.content_desc_menu), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         stringResource(R.string.brand_name),
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.primary,
-                        letterSpacing = 2.sp
+                        letterSpacing = 1.5.sp
                     )
                     Text(
                         stringResource(R.string.brand_slogan),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        fontWeight = FontWeight.Bold
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 9.sp
                     )
                 }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     HeaderActionButton(Icons.Default.Search, stringResource(R.string.content_desc_search)) { isSearchExpanded = true }
                     HeaderActionButton(Icons.Default.Refresh, stringResource(R.string.content_desc_refresh)) { onRefresh() }
                 }
@@ -1192,7 +1206,7 @@ fun HeaderSection(
 
                 TextField(
                     value = localSearchQuery,
-                    onValueChange = { 
+                    onValueChange = {
                         localSearchQuery = it
                         onSearchQueryChange(it)
                     },
@@ -1200,12 +1214,12 @@ fun HeaderSection(
                         .weight(1f)
                         .height(54.dp)
                         .clip(RoundedCornerShape(24.dp)),
-                    placeholder = { 
+                    placeholder = {
                         Text(
-                            stringResource(R.string.search_placeholder), 
-                            fontSize = 14.sp, 
+                            stringResource(R.string.search_placeholder),
+                            fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5f)
-                        ) 
+                        )
                     },
                     trailingIcon = {
                         if (localSearchQuery.isNotEmpty()) {
@@ -1246,16 +1260,17 @@ fun HeaderActionButton(
     containerColor: Color = Color.Unspecified,
     onClick: () -> Unit
 ) {
-    val finalContainerColor = if (containerColor == Color.Unspecified) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f) else containerColor
+    val finalContainerColor = if (containerColor == Color.Unspecified) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f) else containerColor
     Box(
         modifier = Modifier
-            .size(40.dp)
+            .size(36.dp)
             .clip(CircleShape)
             .background(finalContainerColor)
+            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), CircleShape)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Icon(icon, contentDescription, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
+        Icon(icon, contentDescription, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
     }
 }
 
@@ -1304,7 +1319,7 @@ fun ContentRow(
                 )
             }
         }
-        
+
         Spacer(modifier = Modifier.height(12.dp))
 
         LazyRow(
@@ -1339,7 +1354,7 @@ fun ChannelModernItem(
     )
 
     var isImageLoading by remember { mutableStateOf(true) }
-    
+
     val currentProgram by remember(channel.tvgId, channel.name) {
         viewModel.getCurrentProgram(channel)
     }.collectAsState(initial = null)
@@ -1368,7 +1383,7 @@ fun ChannelModernItem(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             border = BorderStroke(
-                1.dp, 
+                1.dp,
                 Brush.linearGradient(
                     listOf(
                         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
@@ -1398,9 +1413,9 @@ fun ChannelModernItem(
                 } else {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Icon(
-                            Icons.Default.Tv, 
-                            null, 
-                            tint = MaterialTheme.colorScheme.onSurface.copy(0.1f), 
+                            Icons.Default.Tv,
+                            null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(0.1f),
                             modifier = Modifier.size(48.dp)
                         )
                     }
@@ -1467,8 +1482,8 @@ fun ChannelModernItem(
         val programText = currentProgram?.title ?: stringResource(R.string.no_program_info)
         Text(
             text = programText,
-            color = if (currentProgram != null) 
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.8f) 
+            color = if (currentProgram != null)
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f),
             fontSize = 12.sp,
             maxLines = 1,
@@ -1496,8 +1511,8 @@ fun GroupChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
         shape = RoundedCornerShape(16.dp),
         color = containerColor,
         border = BorderStroke(
-            1.dp, 
-            if (isSelected) MaterialTheme.colorScheme.primary.copy(0.5f) 
+            1.dp,
+            if (isSelected) MaterialTheme.colorScheme.primary.copy(0.5f)
             else MaterialTheme.colorScheme.onSurface.copy(0.1f)
         ),
         modifier = Modifier
@@ -1543,16 +1558,16 @@ fun DrawerMenuItem(icon: ImageVector, label: String, onClick: () -> Unit) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    icon, 
-                    null, 
-                    tint = MaterialTheme.colorScheme.primary, 
+                    icon,
+                    null,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(18.dp)
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Text(
-                label, 
-                color = MaterialTheme.colorScheme.onSurface, 
+                label,
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold
             )

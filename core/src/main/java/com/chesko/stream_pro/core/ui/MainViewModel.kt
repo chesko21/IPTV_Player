@@ -76,6 +76,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _accentColor = MutableStateFlow(prefs.getInt("accent_color", 0xFF2979FF.toInt()))
     val accentColor: StateFlow<Int> = _accentColor
 
+    private val _backgroundType = MutableStateFlow(prefs.getString("background_type", "default") ?: "default")
+    val backgroundType: StateFlow<String> = _backgroundType
+
+    private val _backgroundColor = MutableStateFlow(prefs.getInt("background_color", 0xFF000000.toInt()))
+    val backgroundColor: StateFlow<Int> = _backgroundColor
+
+    private val _backgroundImageUri = MutableStateFlow(prefs.getString("background_image_uri", null))
+    val backgroundImageUri: StateFlow<String?> = _backgroundImageUri
+
     private val _appLanguage = MutableStateFlow(prefs.getString("app_language", "in") ?: "in")
     val appLanguage: StateFlow<String> = _appLanguage
 
@@ -826,6 +835,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setAccentColor(color: Int) {
         _accentColor.value = color
         prefs.edit().putInt("accent_color", color).apply()
+    }
+
+    fun setBackgroundType(type: String) {
+        _backgroundType.value = type
+        prefs.edit().putString("background_type", type).apply()
+    }
+
+    fun setBackgroundColor(color: Int) {
+        _backgroundColor.value = color
+        prefs.edit().putInt("background_color", color).apply()
+    }
+
+    fun setBackgroundImageUri(uri: String?) {
+        _backgroundImageUri.value = uri
+        prefs.edit().putString("background_image_uri", uri).apply()
     }
 
     fun setAppLanguage(lang: String) {

@@ -12,6 +12,7 @@
     <string name="item_dark_mode">Mode Gelap</string>
     <string name="item_language">Bahasa Aplikasi</string>
     <string name="item_accent_color">Warna Aksen</string>
+    <string name="item_background">Latar Belakang</string>
 
     <string name="group_data">Data &amp; Penyimpanan</string>
     <string name="item_clear_cache">Hapus Cache</string>
@@ -20,11 +21,15 @@
     <string name="dialog_engine_title">Pilih Engine</string>
     <string name="dialog_quality_title">Kualitas Video</string>
     <string name="dialog_buffer_title">Ukuran Buffer</string>
+    <string name="dialog_background_title">Latar Belakang</string>
 
     <string name="btn_close">Tutup</string>
     <string name="btn_cancel">Batal</string>
     <string name="btn_apply">Terapkan</string>
     <string name="btn_save">Simpan</string>
+    <string name="background_default">Default</string>
+    <string name="background_color">Warna Kustom</string>
+    <string name="background_image">Gambar Kustom</string>
     <string name="item_engine_subtitle">Saat ini: %1$s</string>
     <string name="item_quality_subtitle">Maksimal: %1$sp</string>
     <string name="item_quality_auto">Otomatis (Auto)</string>
