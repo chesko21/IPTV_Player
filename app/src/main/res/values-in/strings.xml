@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">StreamPro</string>
     <string name="settings_title">Pengaturan</string>
     <string name="group_player">Pemutar Video</string>
     <string name="item_engine_title">Player Engine</string>
@@ -11,6 +12,7 @@
     <string name="item_dark_mode">Mode Gelap</string>
     <string name="item_language">Bahasa Aplikasi</string>
     <string name="item_accent_color">Warna Aksen</string>
+    <string name="item_background">Latar Belakang</string>
 
     <string name="group_data">Data &amp; Penyimpanan</string>
     <string name="item_clear_cache">Hapus Cache</string>
@@ -19,10 +21,15 @@
     <string name="dialog_engine_title">Pilih Engine</string>
     <string name="dialog_quality_title">Kualitas Video</string>
     <string name="dialog_buffer_title">Ukuran Buffer</string>
+    <string name="dialog_background_title">Latar Belakang</string>
 
     <string name="btn_close">Tutup</string>
     <string name="btn_cancel">Batal</string>
     <string name="btn_apply">Terapkan</string>
+    <string name="btn_save">Simpan</string>
+    <string name="background_default">Default</string>
+    <string name="background_color">Warna Kustom</string>
+    <string name="background_image">Gambar Kustom</string>
     <string name="item_engine_subtitle">Saat ini: %1$s</string>
     <string name="item_quality_subtitle">Maksimal: %1$sp</string>
     <string name="item_quality_auto">Otomatis (Auto)</string>
@@ -132,7 +139,6 @@
     <string name="label_member_since">Member Sejak</string>
     <string name="btn_logout_account">Keluar dari Akun</string>
     <string name="msg_device_id_copied">ID Perangkat berhasil disalin!</string>
-    <string name="btn_save">Simpan</string>
 
     <!-- SplashScreen -->
     <string name="splash_universe_subtitle">JELAJAHI SEMESTA DIGITAL</string>
@@ -144,10 +150,10 @@
     <string name="about_version">Versi %1$s (Stabil)</string>
     <string name="about_description">Stream Pro adalah pemutar IPTV modern yang dirancang untuk memberikan pengalaman menonton terbaik dengan antarmuka yang bersih dan performa tinggi.</string>
     <string name="about_label_developer">Pengembang</string>
-    <string name="about_label_dev_team">Chesko Dev Team</string>
+    <string name="about_label_dev_team">Tim Pengembang Chesko</string>
     <string name="about_label_license">Lisensi</string>
-    <string name="about_label_license_val">Langganan Premium</string>
-    <string name="about_label_website">Website</string>
+    <string name="about_label_license_val">Berlangganan Premium</string>
+    <string name="about_label_website">Situs Web</string>
     <string name="about_support_dev">Dukung Pengembang</string>
     <string name="about_donation_msg">Jika Anda menyukai aplikasi ini, Anda dapat memberikan donasi untuk mendukung pengembangan lebih lanjut.</string>
     <string name="about_copy_number">Salin Nomor</string>

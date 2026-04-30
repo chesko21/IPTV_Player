@@ -92,6 +92,7 @@
     <!-- Login Screen -->
     <string name="tab_remote_url">REMOTE URL</string>
     <string name="tab_local_file">LOCAL FILE</string>
+    <string name="tab_restore">RESTORE XML</string>
     <string name="login_secure_msg">KONEKSI AMAN TERENKRIPSI</string>
     <string name="dialog_explore_demo">JELAJAHI DEMO</string>
     <string name="demo_playlist_label">Playlist Demo %1$d</string>
@@ -103,6 +104,9 @@
     <string name="local_repo_label">REPOSITORI LOKAL</string>
     <string name="local_repo_msg">Impor file .m3u atau .m3u8 dari penyimpanan perangkat Anda</string>
     <string name="btn_browse_files">TELUSURI FILE</string>
+    <string name="restore_label">PULIHKAN DARI CADANGAN</string>
+    <string name="restore_msg">Pulihkan saluran, favorit, dan pengaturan Anda dari file backup XML</string>
+    <string name="btn_restore_xml">PULIHKAN SEKARANG</string>
     <string name="invalid_url_protocol">Protokol URL tidak valid</string>
 
     <!-- Help Screen -->

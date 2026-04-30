@@ -6,10 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -38,13 +35,17 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
@@ -79,6 +80,7 @@ import kotlin.math.abs
 @Composable
 fun HomeScreen(
     viewModel: MainViewModel,
+    windowSize: WindowSizeClass,
     onLogout: () -> Unit,
     onOpenEpg: () -> Unit,
     onOpenProfile: () -> Unit,
@@ -109,9 +111,13 @@ fun HomeScreen(
     var showExitDialog by remember { mutableStateOf(false) }
     var isGroupsExpanded by remember { mutableStateOf(false) }
 
+    val drawerState = rememberDrawerState(initialValue = if (shouldOpenDrawer) DrawerValue.Open else DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
     // Handle system back navigation
     BackHandler {
         when {
+            drawerState.isOpen -> scope.launch { drawerState.close() }
             searchQuery.isNotEmpty() -> viewModel.setSearchQuery("")
             selectedGroup != null -> viewModel.setSelectedGroup(null)
             isGroupsExpanded -> isGroupsExpanded = false
@@ -186,9 +192,6 @@ fun HomeScreen(
         }
     )
 
-    val drawerState = rememberDrawerState(initialValue = if (shouldOpenDrawer) DrawerValue.Open else DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-
     LaunchedEffect(shouldOpenDrawer) {
         if (shouldOpenDrawer && drawerState.isClosed) {
             drawerState.open()
@@ -225,9 +228,14 @@ fun HomeScreen(
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
+            val drawerWidthFraction = when (windowSize.widthSizeClass) {
+                WindowWidthSizeClass.Compact -> 0.65f
+                WindowWidthSizeClass.Medium -> 0.45f
+                else -> 0.30f
+            }
             ModalDrawerSheet(
                 modifier = Modifier
-                    .fillMaxWidth(0.50f)
+                    .fillMaxWidth(drawerWidthFraction)
                     .statusBarsPadding(),
                 drawerShape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp),
                 drawerContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
@@ -461,7 +469,7 @@ fun HomeScreen(
                                         isShuttingDown = true
                                         shutdownProgress.animateTo(
                                             targetValue = 1f,
-                                            animationSpec = tween(1200, easing = LinearEasing)
+                                            animationSpec = tween(1500, easing = FastOutSlowInEasing)
                                         )
                                         onLogout()
                                     }
@@ -487,7 +495,19 @@ fun HomeScreen(
             }
         }
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    if (isShuttingDown) {
+                        val p = shutdownProgress.value
+                        // Smooth scale down and fade
+                        scaleX = 1f - (p * 0.08f)
+                        scaleY = 1f - (p * 0.08f)
+                        alpha = (1f - p * 0.9f).coerceIn(0f, 1f)
+                    }
+                }
+        ) {
             // Background Layer
             when (backgroundType) {
                 "color" -> Box(modifier = Modifier.fillMaxSize().background(Color(backgroundColorInt)))
@@ -515,8 +535,7 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     item {
-                        Spacer(modifier = Modifier.statusBarsPadding().height(64.dp))
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.statusBarsPadding().height(60.dp))
                     }
 
                     if (searchQuery.isEmpty()) {
@@ -530,7 +549,7 @@ fun HomeScreen(
                                             onSelectChannel(it)
                                         }
                                     )
-                                    Spacer(modifier = Modifier.height(24.dp))
+                                    Spacer(modifier = Modifier.height(14.dp))
                                 }
                             } else if (filteredChannels.isNotEmpty()) {
                                 item {
@@ -541,7 +560,7 @@ fun HomeScreen(
                                             onSelectChannel(it)
                                         }
                                     )
-                                    Spacer(modifier = Modifier.height(24.dp))
+                                    Spacer(modifier = Modifier.height(14.dp))
                                 }
                             }
                         }
@@ -552,9 +571,9 @@ fun HomeScreen(
                                     state = groupLazyListState,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(bottom = 16.dp),
+                                        .padding(bottom = 14.dp),
                                     contentPadding = PaddingValues(horizontal = 16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
                                     item {
                                         GroupChip(
@@ -637,7 +656,12 @@ fun HomeScreen(
                                 }
                             }
                         } else {
-                            val chunkedChannels = filteredChannels.chunked(2)
+                            val columns = when (windowSize.widthSizeClass) {
+                                WindowWidthSizeClass.Compact -> 2
+                                WindowWidthSizeClass.Medium -> 3
+                                else -> 4
+                            }
+                            val chunkedChannels = filteredChannels.chunked(columns)
                             items(chunkedChannels) { chunk ->
                                 Row(
                                     modifier = Modifier
@@ -656,7 +680,7 @@ fun HomeScreen(
                                             }
                                         )
                                     }
-                                    if (chunk.size < 2) {
+                                    repeat(columns - chunk.size) {
                                         Spacer(modifier = Modifier.weight(1f))
                                     }
                                 }
@@ -711,92 +735,122 @@ fun HomeScreen(
                         // Remaining groups if many
                         if (groups.size > 15) {
                             item {
-                                Spacer(modifier = Modifier.height(24.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp)
                                         .background(
-                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
-                                            RoundedCornerShape(20.dp)
+                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
+                                            RoundedCornerShape(24.dp)
                                         )
-                                        .padding(16.dp)
+                                        .border(
+                                            1.dp,
+                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                                            RoundedCornerShape(24.dp)
+                                        )
+                                        .padding(20.dp)
                                 ) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(
-                                            stringResource(R.string.other_groups),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.Black,
-                                            color = MaterialTheme.colorScheme.primary.copy(0.7f),
-                                            letterSpacing = 1.2.sp
-                                        )
-                                        Text(
-                                            if (isGroupsExpanded) stringResource(R.string.see_less) else stringResource(R.string.see_all),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Black,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.clickable { isGroupsExpanded = !isGroupsExpanded }
-                                        )
+                                        Column {
+                                            Text(
+                                                stringResource(R.string.other_groups).uppercase(),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.Black,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                letterSpacing = 1.5.sp
+                                            )
+                                            Box(
+                                                modifier = Modifier
+                                                    .width(24.dp)
+                                                    .height(2.dp)
+                                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                            )
+                                        }
+                                        Surface(
+                                            onClick = { isGroupsExpanded = !isGroupsExpanded },
+                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                            shape = RoundedCornerShape(8.dp)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    if (isGroupsExpanded) stringResource(R.string.see_less) else stringResource(R.string.see_all),
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.Black,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                                Icon(
+                                                    if (isGroupsExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                                    null,
+                                                    modifier = Modifier.size(14.dp),
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
                                     }
-                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Spacer(modifier = Modifier.height(20.dp))
 
                                     val remainingGroups = if (isGroupsExpanded) groups.drop(15) else groups.drop(15).take(6)
+                                    val otherGroupColumns = when (windowSize.widthSizeClass) {
+                                        WindowWidthSizeClass.Compact -> 2
+                                        WindowWidthSizeClass.Medium -> 3
+                                        else -> 4
+                                    }
                                     Column(
-                                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally
+                                        verticalArrangement = Arrangement.spacedBy(10.dp)
                                     ) {
-                                        remainingGroups.chunked(2).forEach { chunk ->
+                                        remainingGroups.chunked(otherGroupColumns).forEach { chunk ->
                                             Row(
                                                 modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
+                                                horizontalArrangement = Arrangement.spacedBy(10.dp)
                                             ) {
                                                 chunk.forEach { group ->
-                                                    Card(
+                                                    Surface(
                                                         onClick = { viewModel.setSelectedGroup(group) },
-                                                        modifier = Modifier.weight(1f, fill = chunk.size > 1),
+                                                        modifier = Modifier.weight(1f),
                                                         shape = RoundedCornerShape(16.dp),
-                                                        colors = CardDefaults.cardColors(
-                                                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                                                        ),
-                                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
                                                     ) {
-                                                        Column(
-                                                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                                            verticalArrangement = Arrangement.Center
+                                                        Row(
+                                                            modifier = Modifier.padding(12.dp),
+                                                            verticalAlignment = Alignment.CenterVertically
                                                         ) {
                                                             Box(
                                                                 modifier = Modifier
-                                                                    .size(54.dp)
-                                                                    .background(MaterialTheme.colorScheme.primary.copy(0.1f), CircleShape)
-                                                                    .padding(10.dp),
+                                                                    .size(36.dp)
+                                                                    .background(MaterialTheme.colorScheme.primary.copy(0.12f), CircleShape),
                                                                 contentAlignment = Alignment.Center
                                                             ) {
-                                                                Image(
-                                                                    painter = painterResource(id = R.drawable.app_icon_android),
-                                                                    contentDescription = null,
-                                                                    modifier = Modifier.fillMaxSize(),
-                                                                    contentScale = ContentScale.Fit
+                                                                Icon(
+                                                                    Icons.Default.Folder,
+                                                                    null,
+                                                                    tint = MaterialTheme.colorScheme.primary,
+                                                                    modifier = Modifier.size(18.dp)
                                                                 )
                                                             }
-                                                            Spacer(modifier = Modifier.height(10.dp))
+                                                            Spacer(modifier = Modifier.width(12.dp))
                                                             Text(
                                                                 group,
                                                                 style = MaterialTheme.typography.labelMedium,
-                                                                fontWeight = FontWeight.ExtraBold,
+                                                                fontWeight = FontWeight.Bold,
                                                                 color = MaterialTheme.colorScheme.onSurface,
                                                                 maxLines = 1,
-                                                                overflow = TextOverflow.Ellipsis,
-                                                                textAlign = TextAlign.Center
+                                                                overflow = TextOverflow.Ellipsis
                                                             )
                                                         }
                                                     }
                                                 }
-                                                if (chunk.size < 2) Spacer(modifier = Modifier.weight(1f))
+                                                repeat(otherGroupColumns - chunk.size) {
+                                                    Spacer(modifier = Modifier.weight(1f))
+                                                }
                                             }
                                         }
                                     }
@@ -820,64 +874,144 @@ fun HomeScreen(
                 modifier = Modifier.statusBarsPadding()
             )
 
-            // 1. UNIVERSAL SHUTDOWN ANIMATION OVERLAY
+            // 1. UNIVERSAL SHUTDOWN ANIMATION OVERLAY (REFINED UNIVERSE THEME)
             if (isShuttingDown) {
+                val progress = shutdownProgress.value
+                
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = shutdownProgress.value.coerceIn(0f, 1f)))
+                        .background(Color.Black.copy(alpha = (progress * 1.5f).coerceIn(0f, 1f)))
                 ) {
-                    // CRT Shutdown Line Effect
-                    val lineScaleY = (1f - (shutdownProgress.value * 1.2f)).coerceAtLeast(0.002f)
-                    val lineAlpha = (1f - shutdownProgress.value * 0.8f).coerceAtLeast(0f)
-
-                    // Horizontal Energy Beam
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .fillMaxWidth()
-                            .height(2.dp)
-                            .graphicsLayer {
-                                scaleY = lineScaleY * 100f
-                                alpha = lineAlpha
-                            }
-                            .background(
-                                Brush.horizontalGradient(
-                                    listOf(Color.Transparent, MaterialTheme.colorScheme.primary, Color.White, MaterialTheme.colorScheme.primary, Color.Transparent)
-                                )
+                    // Cosmic Warp Effect (Stars moving towards viewer)
+                    androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                        val center = Offset(size.width / 2, size.height / 2)
+                        val particleCount = 120
+                        val random = java.util.Random(42) // Consistent seed
+                        
+                        for (i in 0 until particleCount) {
+                            val angle = random.nextFloat() * 2 * Math.PI
+                            val startDist = random.nextFloat() * size.width
+                            // Accelerate outwards
+                            val currentDist = (startDist + (progress * progress * size.width * 2f)) % (size.width * 1.5f)
+                            
+                            val x = center.x + (Math.cos(angle) * currentDist).toFloat()
+                            val y = center.y + (Math.sin(angle) * currentDist).toFloat()
+                            
+                            val starAlpha = (1f - (currentDist / (size.width * 1.2f))).coerceIn(0f, 1f) * progress
+                            val starSize = (1f + (currentDist / size.width) * 3f).dp.toPx()
+                            
+                            drawCircle(
+                                brush = Brush.radialGradient(
+                                    colors = listOf(Color.White, Color.Transparent),
+                                    center = Offset(x, y),
+                                    radius = starSize
+                                ),
+                                radius = starSize,
+                                center = Offset(x, y),
+                                alpha = starAlpha
                             )
-                    )
+                        }
+                    }
 
-                    // Central Singularity Collapse
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(100.dp)
-                            .graphicsLayer {
-                                scaleX = (1f - shutdownProgress.value * 1.5f).coerceAtLeast(0f)
-                                scaleY = (1f - shutdownProgress.value * 1.5f).coerceAtLeast(0f)
-                                alpha = (1f - shutdownProgress.value * 2f).coerceAtLeast(0f)
-                            }
-                            .background(Color.White, CircleShape)
-                            .blur((20.dp * shutdownProgress.value).coerceAtLeast(0.1.dp))
-                    )
+                    // Stage 1: Text Presentation (Modern, Minimal, Elegant)
+                    val textAlpha = when {
+                        progress < 0.15f -> progress / 0.15f
+                        progress < 0.55f -> 1f
+                        progress < 0.85f -> 1f - (progress - 0.55f) / 0.3f
+                        else -> 0f
+                    }.coerceIn(0f, 1f)
 
-                    // Cinematic Status Text
-                    Text(
-                        text = stringResource(R.string.departure_msg),
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 4.sp,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(top = 180.dp)
-                            .graphicsLayer {
-                                alpha = (1f - shutdownProgress.value * 2.5f).coerceAtLeast(0f)
-                                scaleX = 1f + shutdownProgress.value * 0.5f
-                                translationY = shutdownProgress.value * 50f
-                            }
-                    )
+                    if (textAlpha > 0f) {
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .graphicsLayer {
+                                    alpha = textAlpha
+                                    scaleX = 0.85f + progress * 0.3f
+                                    scaleY = 0.85f + progress * 0.3f
+                                    translationY = -progress * 40f
+                                },
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = stringResource(R.string.departure_msg).uppercase(),
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                                letterSpacing = (12 + progress * 24).sp,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .width((40 + progress * 100).dp)
+                                    .height(1.dp)
+                                    .background(
+                                        Brush.horizontalGradient(
+                                            listOf(Color.Transparent, Color.White.copy(0.5f), Color.Transparent)
+                                        )
+                                    )
+                            )
+                        }
+                    }
+
+                    // Stage 2: CRT Collapse (begins at 0.4)
+                    val crtProgress = ((progress - 0.4f) / 0.6f).coerceIn(0f, 1f)
+                    
+                    if (progress > 0.4f) {
+                        val vScale = if (crtProgress < 0.75f) {
+                            (1f - (crtProgress / 0.75f)).coerceAtLeast(0.001f)
+                        } else 0.001f
+                        
+                        val hScale = if (crtProgress < 0.75f) 1f 
+                                    else (1f - (crtProgress - 0.75f) / 0.2f).coerceAtLeast(0.001f)
+                        
+                        val beamAlpha = if (crtProgress < 0.95f) 1f 
+                                       else (1f - (crtProgress - 0.95f) / 0.05f).coerceIn(0f, 1f)
+
+                        // Elegant Cosmic Beam
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .fillMaxWidth()
+                                .height(2.dp)
+                                .graphicsLayer {
+                                    scaleY = vScale * 600f
+                                    scaleX = hScale
+                                    alpha = beamAlpha
+                                }
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(
+                                            Color.Transparent, 
+                                            Color(0xFF00E5FF).copy(0.8f), 
+                                            Color.White, 
+                                            Color(0xFFD500F9).copy(0.8f), 
+                                            Color.Transparent
+                                        )
+                                    )
+                                )
+                                .blur(if (vScale > 0.05f) 12.dp else 2.dp)
+                        )
+                    }
+
+                    // Final Singularity Flash
+                    if (crtProgress > 0.9f) {
+                        val dotScale = (1f - (crtProgress - 0.9f) / 0.1f).coerceIn(0f, 1f)
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .size(4.dp)
+                                .graphicsLayer {
+                                    scaleX = dotScale * 5f
+                                    scaleY = dotScale * 5f
+                                    alpha = dotScale
+                                }
+                                .background(Color.White, CircleShape)
+                                .blur(4.dp)
+                        )
+                    }
                 }
             }
 
@@ -1055,18 +1189,18 @@ fun EnhancedHeroCarousel(
                     Row(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(28.dp),
+                            .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Surface(
                             modifier = Modifier
-                                .size(100.dp)
+                                .size(80.dp)
                                 .shadow(
-                                    elevation = 16.dp,
-                                    shape = RoundedCornerShape(20.dp),
+                                    elevation = 12.dp,
+                                    shape = RoundedCornerShape(16.dp),
                                     clip = true
                                 ),
-                            shape = RoundedCornerShape(20.dp),
+                            shape = RoundedCornerShape(16.dp),
                             color = Color.Black.copy(alpha = 0.3f),
                             border = BorderStroke(
                                 1.dp,
@@ -1090,7 +1224,7 @@ fun EnhancedHeroCarousel(
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(20.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
 
                         Column(
                             modifier = Modifier.weight(1f),
@@ -1102,7 +1236,7 @@ fun EnhancedHeroCarousel(
                             ) {
                                 Text(
                                     text = (channel.group?.uppercase() ?: stringResource(R.string.carousel_rec)),
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onPrimary,
                                     fontWeight = FontWeight.ExtraBold,
@@ -1111,7 +1245,7 @@ fun EnhancedHeroCarousel(
                                 )
                             }
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
 
                             Text(
                                 text = channel.name,
@@ -1120,25 +1254,30 @@ fun EnhancedHeroCarousel(
                                 color = Color.White,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                fontSize = 22.sp,
-                                lineHeight = 26.sp
+                                fontSize = 18.sp,
+                                lineHeight = 22.sp
                             )
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
 
                             Button(
                                 onClick = { onPlayClick(channel) },
-                                shape = RoundedCornerShape(10.dp),
+                                shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
                                     contentColor = MaterialTheme.colorScheme.onPrimary
                                 ),
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                                modifier = Modifier.height(38.dp)
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                modifier = Modifier.heightIn(min = 32.dp)
                             ) {
                                 Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text(stringResource(R.string.carousel_watch_now), fontWeight = FontWeight.Black, fontSize = 9.sp)
+                                Text(
+                                    text = stringResource(R.string.carousel_watch_now),
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 10.sp,
+                                    maxLines = 1
+                                )
                             }
                         }
                     }
@@ -1202,22 +1341,23 @@ fun HeaderSection(
     }
 
     Surface(
-        color = if (isSearchExpanded) MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                else Color.Transparent,
+        color = if (isSearchExpanded) MaterialTheme.colorScheme.surface
+                else MaterialTheme.colorScheme.surface.copy(alpha = alpha.coerceIn(0f, 0.95f)),
         modifier = modifier.fillMaxWidth(),
-        tonalElevation = 0.dp
+        tonalElevation = 4.dp,
+        shadowElevation = if (alpha > 0.5f) 4.dp else 0.dp
     ) {
-        Row(
-            modifier = Modifier
-                .statusBarsPadding()
-                .fillMaxWidth()
-                .background(
-                    if (!isSearchExpanded) MaterialTheme.colorScheme.surface.copy(alpha = alpha.coerceIn(0f, 0.7f))
-                    else Color.Transparent
-                )
-                .padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
+            Row(
+                modifier = Modifier
+                    .widthIn(max = 1200.dp)
+                    .fillMaxWidth()
+                    .padding(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
             if (!isSearchExpanded) {
                 IconButton(
                     onClick = onMenuClick,
@@ -1228,6 +1368,14 @@ fun HeaderSection(
                 ) {
                     Icon(Icons.Default.Menu, stringResource(R.string.content_desc_menu), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
                 }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Image(
+                    painter = painterResource(id = R.drawable.app_icon_android),
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp)
+                )
 
                 Spacer(modifier = Modifier.width(10.dp))
 
@@ -1317,6 +1465,7 @@ fun HeaderSection(
         }
     }
 }
+}
 
 @Composable
 fun HeaderActionButton(
@@ -1347,59 +1496,118 @@ fun ContentRow(
     onSeeAllClick: () -> Unit,
     onChannelSelected: (IptvChannel) -> Unit
 ) {
-    Column(modifier = Modifier.padding(vertical = 12.dp)) {
+    Column(modifier = Modifier.padding(bottom = 12.dp)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.Bottom,
+                .padding(horizontal = 16.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
-                Text(
-                    text = title.uppercase(),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    letterSpacing = 1.sp
-                )
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = title.uppercase(),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        letterSpacing = 1.2.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    // Scroll Affordance Indicator
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        repeat(3) { i ->
+                            Box(
+                                modifier = Modifier
+                                    .size(width = (4 + (i * 2)).dp, height = 2.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.3f + (i * 0.2f)),
+                                        CircleShape
+                                    )
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(2.dp))
                 Box(
                     modifier = Modifier
-                        .width(40.dp)
+                        .width(28.dp)
                         .height(3.dp)
-                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(MaterialTheme.colorScheme.primary, Color.Transparent)
+                            ),
+                            CircleShape
+                        )
                 )
             }
             Surface(
                 onClick = onSeeAllClick,
-                color = Color.Transparent,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.row_see_all, channels.size),
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.ExtraBold
-                )
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.row_see_all, channels.size),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Black
+                    )
+                    Icon(
+                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            items(channels, key = { it.url }) { channel ->
-                ChannelModernItem(
-                    viewModel = viewModel,
-                    channel = channel,
-                    modifier = Modifier.width(150.dp),
-                    onClick = { onChannelSelected(channel) }
-                )
+        Box(modifier = Modifier.fillMaxWidth()) {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(channels, key = { it.url }) { channel ->
+                    ChannelModernItem(
+                        viewModel = viewModel,
+                        channel = channel,
+                        modifier = Modifier.width(160.dp),
+                        onClick = { onChannelSelected(channel) }
+                    )
+                }
             }
+            
+            // Subtle edge fade to indicate more content
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .fillMaxHeight()
+                    .width(32.dp)
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(Color.Transparent, MaterialTheme.colorScheme.background.copy(alpha = 0.5f))
+                        )
+                    )
+            )
         }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+        )
     }
 }
 
@@ -1581,22 +1789,22 @@ fun GroupChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
             else MaterialTheme.colorScheme.onSurface.copy(0.1f)
         ),
         modifier = Modifier
-            .height(44.dp)
+            .height(34.dp)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
     ) {
         Box(
-            modifier = Modifier.padding(horizontal = 24.dp),
+            modifier = Modifier.padding(horizontal = 16.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = text,
                 color = contentColor,
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
-                letterSpacing = 0.5.sp
+                letterSpacing = 0.4.sp
             )
         }
     }

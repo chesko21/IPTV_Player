@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vlc_error_discontinuity">ข้อผิดพลาดในการเล่น (ปัญหาความไม่ต่อเนื่อง/เซิร์ฟเวอร์)</string>
+    <string name="player_error_format">ข้อผิดพลาด: %1$s</string>
+    <string name="exo_error_link_dead">ลิงก์เสีย (404)</string>
+    <string name="exo_error_connection_failed">การเชื่อมต่อล้มเหลว</string>
+    <string name="exo_error_timeout">หมดเวลาการเชื่อมต่อ (TIMEOUT)</string>
+    <string name="exo_error_ssl">ข้อผิดพลาด SSL (โปรดใช้ HTTPS)</string>
+    <string name="exo_error_file_not_found">ไม่พบไฟล์</string>
+    <string name="exo_error_decode_failed">การถอดรหัสล้มเหลว</string>
+    <string name="exo_error_unsupported">รูปแบบที่ไม่รองรับ</string>
+    <string name="exo_error_generic">ข้อผิดพลาด (%1$s)</string>
+    <string name="brand_name">StreamPro</string>
+
+    <!-- MainViewModel Strings -->
+    <string name="error_invalid_url">URL M3U ไม่ถูกต้อง โปรดตรวจสอบ URL และลองอีกครั้ง</string>
+    <string name="error_connection_failed">การเชื่อมต่อล้มเหลว: %1$s</string>
+    <string name="error_no_internet">การเชื่อมต่ออินเทอร์เน็ตไม่พร้อมใช้งาน</string>
+    <string name="error_host_not_found">โหลดล้มเหลว: ไม่พบโฮสต์ ตรวจสอบการเชื่อมต่อหรือ URL</string>
+    <string name="error_connection_refused">โหลดล้มเหลว: การเชื่อมต่อถูกปฏิเสธหรือเซิร์ฟเวอร์ปิดอยู่</string>
+    <string name="error_socket_timeout">โหลดล้มเหลว: หมดเวลาการเชื่อมต่อ (Timeout)</string>
+    <string name="error_load_playlist_failed">โหลดเพลย์ลิสต์ล้มเหลว: %1$s</string>
+    <string name="error_save_parse_failed">บันทึก/แยกไฟล์ล้มเหลว: %1$s</string>
+    <string name="error_no_channels_found">ไม่พบช่องในเพลย์ลิสต์</string>
+    <string name="error_backup_failed">สำรองข้อมูลล้มเหลว: %1$s</string>
+    <string name="error_restore_failed">คืนค่าล้มเหลว: %1$s</string>
+    <string name="error_invalid_backup_file">ไฟล์สำรองข้อมูลไม่ถูกต้องหรือว่างเปล่า</string>
+    <string name="error_demo_load_failed">โหลดเพลย์ลิสต์เดโมล้มเหลว ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณ</string>
+    <string name="error_demo_generic_failed">โหลดเดโมล้มเหลว: %1$s</string>
+    <string name="error_save_photo_failed">บันทึกรูปภาพล้มเหลว: %1$s</string>
+
+    <string name="success_backup">สำรองข้อมูลสำเร็จ</string>
+    <string name="success_restore">คืนค่าข้อมูลสำเร็จ</string>
+    <string name="success_cache_cleared">ล้างแคชสำเร็จ</string>
+
+    <string name="group_favorites">รายการโปรด</string>
+    <string name="group_recently_played">ดูล่าสุด</string>
+    <string name="group_other">อื่นๆ</string>
+
+    <string name="default_user_name">ผู้ใช้ Stream Pro</string>
+    <string name="default_user_email">user@streampro.com</string>
+    <string name="default_member_since_date">มกราคม 2026</string>
+    <string name="member_since_format">d MMMM yyyy</string>
+</resources>

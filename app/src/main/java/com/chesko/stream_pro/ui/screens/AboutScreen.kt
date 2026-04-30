@@ -31,13 +31,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import com.chesko.stream_pro.BuildConfig
 import com.chesko.stream_pro.R
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutScreen(onBack: () -> Unit) {
+fun AboutScreen(
+    windowSize: WindowSizeClass,
+    onBack: () -> Unit
+) {
     val currentYear = remember { Calendar.getInstance().get(Calendar.YEAR) }
     var isBackInvoked by remember { mutableStateOf(false) }
 
@@ -74,15 +79,25 @@ fun AboutScreen(onBack: () -> Unit) {
         },
         containerColor = Color.Transparent
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
-                .padding(top = 8.dp, bottom = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(padding),
+            contentAlignment = Alignment.TopCenter
         ) {
+            val contentWidth = when (windowSize.widthSizeClass) {
+                WindowWidthSizeClass.Compact -> Modifier.fillMaxWidth()
+                WindowWidthSizeClass.Medium -> Modifier.width(480.dp)
+                else -> Modifier.width(560.dp)
+            }
+
+            Column(
+                modifier = contentWidth
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp)
+                    .padding(top = 8.dp, bottom = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
             // App Logo - More Compact
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Image(
@@ -178,6 +193,7 @@ fun AboutScreen(onBack: () -> Unit) {
             )
         }
     }
+}
 }
 
 @Composable

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vlc_error_discontinuity">播放错误（不连续性/服务器问题）</string>
+    <string name="player_error_format">错误: %1$s</string>
+    <string name="exo_error_link_dead">链接失效 (404)</string>
+    <string name="exo_error_connection_failed">连接失败</string>
+    <string name="exo_error_timeout">连接超时 (TIMEOUT)</string>
+    <string name="exo_error_ssl">SSL 错误 (请使用 HTTPS)</string>
+    <string name="exo_error_file_not_found">文件未找到</string>
+    <string name="exo_error_decode_failed">解码失败</string>
+    <string name="exo_error_unsupported">不支持的格式</string>
+    <string name="exo_error_generic">错误 (%1$s)</string>
+    <string name="brand_name">StreamPro</string>
+
+    <!-- MainViewModel Strings -->
+    <string name="error_invalid_url">无效的 M3U URL。请检查 URL 并重试。</string>
+    <string name="error_connection_failed">连接失败: %1$s</string>
+    <string name="error_no_internet">网络连接不可用</string>
+    <string name="error_host_not_found">加载失败：未找到主机。请检查网络或 URL。</string>
+    <string name="error_connection_refused">加载失败：连接被拒绝或服务器已关闭。</string>
+    <string name="error_socket_timeout">加载失败：连接超时。</string>
+    <string name="error_load_playlist_failed">无法加载播放列表: %1$s</string>
+    <string name="error_save_parse_failed">无法保存/解析文件: %1$s</string>
+    <string name="error_no_channels_found">播放列表中未找到频道。</string>
+    <string name="error_backup_failed">备份失败: %1$s</string>
+    <string name="error_restore_failed">恢复失败: %1$s</string>
+    <string name="error_invalid_backup_file">备份文件无效或为空</string>
+    <string name="error_demo_load_failed">无法加载演示播放列表。请检查您的网络连接。</string>
+    <string name="error_demo_generic_failed">无法加载演示内容: %1$s</string>
+    <string name="error_save_photo_failed">无法保存照片: %1$s</string>
+
+    <string name="success_backup">数据备份成功</string>
+    <string name="success_restore">数据恢复成功</string>
+    <string name="success_cache_cleared">缓存已成功清除</string>
+
+    <string name="group_favorites">收藏</string>
+    <string name="group_recently_played">最近播放</string>
+    <string name="group_other">其他</string>
+
+    <string name="default_user_name">Stream Pro 用户</string>
+    <string name="default_user_email">user@streampro.com</string>
+    <string name="default_member_since_date">2026年1月</string>
+    <string name="member_since_format">yyyy年M月d日</string>
+</resources>

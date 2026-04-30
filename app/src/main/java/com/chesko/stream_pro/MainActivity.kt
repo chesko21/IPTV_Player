@@ -32,6 +32,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -45,10 +47,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.ColorUtils
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -90,6 +95,7 @@ class MainActivity : ComponentActivity() {
         super.attachBaseContext(LocaleHelper.applyLocale(newBase, lang))
     }
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -108,10 +114,32 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
+            val windowSize = calculateWindowSizeClass(this)
             val viewModel: MainViewModel = viewModel()
             val darkMode by viewModel.darkMode.collectAsState()
             val accentColorInt by viewModel.accentColor.collectAsState()
             val networkStatus by viewModel.networkStatus.collectAsState()
+            val backgroundType by viewModel.backgroundType.collectAsState()
+            val backgroundColorInt by viewModel.backgroundColor.collectAsState()
+            val context = LocalContext.current
+
+            LaunchedEffect(backgroundType, backgroundColorInt, darkMode) {
+                val window = (context as? Activity)?.window ?: return@LaunchedEffect
+                val controller = WindowCompat.getInsetsController(window, window.decorView)
+                
+                val statusBarColor = when (backgroundType) {
+                    "color" -> Color(backgroundColorInt)
+                    else -> if (darkMode) Color(0xFF0A0A0A) else Color.White
+                }
+                
+                // Set the status bar appearance (icons/text) based on background luminance
+                controller.isAppearanceLightStatusBars = statusBarColor.luminance() > 0.5f
+                
+                // Suppress deprecation warning as we are using it for specific dynamic color matching 
+                // in an edge-to-edge context where the TopAppBar might be transparent.
+                @Suppress("DEPRECATION")
+                window.statusBarColor = statusBarColor.toArgb()
+            }
 
             IPTV_PlayerTheme(
                 darkTheme = darkMode,
@@ -218,6 +246,7 @@ class MainActivity : ComponentActivity() {
                                 composable("login") {
                                     LoginScreen(
                                         viewModel = viewModel,
+                                        windowSize = windowSize,
                                         onNavigateToHome = {
                                             navController.navigate("home") {
                                                 popUpTo("login") { inclusive = true }
@@ -238,6 +267,7 @@ class MainActivity : ComponentActivity() {
 
                                     HomeScreen(
                                         viewModel = viewModel,
+                                        windowSize = windowSize,
                                         onLogout = {
                                             viewModel.deleteCurrentPlaylist()
                                             navController.navigate("login") {
@@ -274,19 +304,19 @@ class MainActivity : ComponentActivity() {
                                 }
 
                                 composable("profile") {
-                                    ProfileScreen(viewModel = viewModel, onBack = safeBack)
+                                    ProfileScreen(viewModel = viewModel, windowSize = windowSize, onBack = safeBack)
                                 }
 
                                 composable("settings") {
-                                    SettingsScreen(viewModel = viewModel, onBack = safeBack)
+                                    SettingsScreen(viewModel = viewModel, windowSize = windowSize, onBack = safeBack)
                                 }
 
                                 composable("about") {
-                                    AboutScreen(onBack = safeBack)
+                                    AboutScreen(windowSize = windowSize, onBack = safeBack)
                                 }
 
                                 composable("help") {
-                                    HelpScreen(onBack = safeBack)
+                                    HelpScreen(windowSize = windowSize, onBack = safeBack)
                                 }
 
                                 composable("epg") {
@@ -297,6 +327,7 @@ class MainActivity : ComponentActivity() {
                                         remember { moshi.adapter(IptvChannel::class.java) }
                                     EpgScreen(
                                         viewModel = viewModel,
+                                        windowSize = windowSize,
                                         onBack = safeBack,
                                         onSelectChannel = { channel ->
                                             val currentTime = System.currentTimeMillis()
@@ -337,6 +368,7 @@ class MainActivity : ComponentActivity() {
                                         PlayerScreen(
                                             viewModel = viewModel,
                                             channel = channel,
+                                            windowSize = windowSize,
                                             onBack = {
                                                 if (navController.currentDestination?.route?.startsWith(
                                                         "player"

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import android.content.Context
+import com.chesko.stream_pro.core.R
 import com.chesko.stream_pro.core.data.local.AppDatabase
 import com.chesko.stream_pro.core.data.local.ChannelRepository
 import com.chesko.stream_pro.core.data.model.IptvChannel
@@ -13,6 +14,7 @@ import com.chesko.stream_pro.core.data.parser.EpgParser
 import com.chesko.stream_pro.core.utils.NetworkObserver
 import android.net.Uri
 import android.provider.Settings
+import android.util.Xml
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -20,7 +22,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
 import java.io.File
+import java.io.InputStream
 import java.util.concurrent.TimeUnit
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -88,10 +93,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _appLanguage = MutableStateFlow(prefs.getString("app_language", "in") ?: "in")
     val appLanguage: StateFlow<String> = _appLanguage
 
-    private val _userName = MutableStateFlow(prefs.getString("user_name", "Stream Pro User") ?: "Stream Pro User")
+    private val _userName = MutableStateFlow(prefs.getString("user_name", application.getString(R.string.default_user_name)) ?: application.getString(R.string.default_user_name))
     val userName: StateFlow<String> = _userName
 
-    private val _userEmail = MutableStateFlow(prefs.getString("user_email", "user@streampro.com") ?: "user@streampro.com")
+    private val _userEmail = MutableStateFlow(prefs.getString("user_email", application.getString(R.string.default_user_email)) ?: application.getString(R.string.default_user_email))
     val userEmail: StateFlow<String> = _userEmail
 
     private val _profileImageUri = MutableStateFlow(prefs.getString("profile_image_uri", null))
@@ -127,36 +132,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return try {
             val installTime = getApplication<Application>().packageManager
                 .getPackageInfo(getApplication<Application>().packageName, 0).firstInstallTime
-            val sdf = java.text.SimpleDateFormat("d MMMM yyyy", java.util.Locale.getDefault())
+            val sdf = java.text.SimpleDateFormat(getApplication<Application>().getString(R.string.member_since_format), java.util.Locale.getDefault())
             sdf.format(java.util.Date(installTime))
         } catch (e: Exception) {
-            "January 2026"
+            getApplication<Application>().getString(R.string.default_member_since_date)
         }
     }
 
     companion object {
-        private const val URL1 = "iuuqt;00sfcsboe/mz0VQQM3137"
-        private const val URL2 = "iuuqt;00sbx/hjuivcvtfsdpoufou/dpn0njnjqjqj330mbmbkp0sfgt0ifbet0nbjo0qmbzmjtu36"
-        private const val URL3 = "iuuqt;00uwh/tipsu/hz0HFVMJTBMMPUU37"
-        private const val URL4 = "iuuqt;00djybs/xfc/je0hwjtjpo2/n4v"
-
-        private const val URL5 = "iuuq;00blnb/tfsw11/ofu0qsfnjvn/iunm"
-
+        private const val CONFIG_URL = "iuuqt;00sbx/hjuivcvtfsdpoufou/dpn0diftlp320JQUW`Qmbzfs0sfgt0ifbet0nbtufs0efnp`dpogjh/ktpo" // https://raw.githubusercontent.com/chesko21/IPTV_Player/refs/heads/master/demo_config.json
 
         private fun decryptUrl(input: String): String {
             return input.map { (it.code - 1).toChar() }.joinToString("")
         }
 
-        val DEMO_URLS = listOf(
-            decryptUrl(URL1),
-            decryptUrl(URL2),
-            decryptUrl(URL3),
-            decryptUrl(URL4),
-            decryptUrl(URL5),
-        )
-        val BASE_URL = DEMO_URLS[0]
+        val DEMO_URLS = emptyList<String>()
 
-        val GLOBAL_EPG_URLS = listOf<String>(
+        val GLOBAL_EPG_URLS = listOf(
             "https://www.open-epg.com/files/indonesia1.xml",
             "https://www.open-epg.com/files/indonesia2.xml",
             "https://www.open-epg.com/files/indonesia3.xml",
@@ -169,9 +161,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _randomCarouselChannels = MutableStateFlow<List<IptvChannel>>(emptyList())
     val randomCarouselChannels: StateFlow<List<IptvChannel>> = _randomCarouselChannels
 
-    // EPG Cache to avoid redundant reloads in EpgScreen
     private val _epgCache = MutableStateFlow<Map<Int, List<EpgProgram>>>(emptyMap())
     val epgCache: StateFlow<Map<Int, List<EpgProgram>>> = _epgCache
+
+    private val _dynamicDemoUrls = MutableStateFlow<List<String>>(emptyList())
+    val dynamicDemoUrls: StateFlow<List<String>> = _dynamicDemoUrls
 
     init {
         val database = AppDatabase.getDatabase(application)
@@ -179,7 +173,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val epgDao = database.epgDao()
         repository = ChannelRepository(channelDao, epgDao)
 
-        _lastUrl.value = prefs?.getString("last_m3u_url", "") ?: ""
+        _lastUrl.value = prefs.getString("last_m3u_url", "") ?: ""
 
         checkAndClearCache()
 
@@ -201,10 +195,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             emptyList()
         )
 
-        // Pre-fetch EPG on initialization with a slight delay to let the system breathe
         viewModelScope.launch {
-            delay(5000) // 5 seconds delay before starting background task
+            delay(5000)
             checkAndRefreshEpgIfNeeded()
+        }
+
+        fetchRemoteConfig()
+    }
+
+    private fun fetchRemoteConfig() {
+        viewModelScope.launch {
+            try {
+                val configRequest = Request.Builder()
+                    .url(decryptUrl(CONFIG_URL))
+                    .build()
+                val configResponse = withContext(Dispatchers.IO) { httpClient.newCall(configRequest).execute() }
+                if (configResponse.isSuccessful) {
+                    val json = configResponse.body?.string() ?: ""
+                    val urls = parseRemoteConfig(json)
+                    if (!urls.isNullOrEmpty()) {
+                        _dynamicDemoUrls.value = urls
+                    }
+                }
+            } catch (e: Exception) { }
         }
     }
 
@@ -219,17 +232,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                        calendarLast.get(java.util.Calendar.YEAR) != calendarNow.get(java.util.Calendar.YEAR)
 
         if (isNewDay || lastEpgUpdate == 0L) {
-            val lastUrl = prefs.getString("last_m3u_url", "")
-            if (!lastUrl.isNullOrBlank()) {
+            val lastUrlStored = prefs.getString("last_m3u_url", "")
+            if (!lastUrlStored.isNullOrBlank()) {
                 val epgUrls = mutableSetOf<String>()
                 epgUrls.addAll(GLOBAL_EPG_URLS)
                 
-                // If it's a specific URL, try to get EPG from its content too
-                if (lastUrl.startsWith("http")) {
+                if (lastUrlStored.startsWith("http")) {
                     try {
-                        val content = fetchRawContent(lastUrl)
+                        val content = fetchRawContent(lastUrlStored)
                         epgUrls.addAll(M3uParser.extractEpgUrls(content))
-                    } catch (_: Exception) {}
+                    } catch (e: Exception) {}
                 }
                 
                 epgUrls.take(5).forEach { epgUrl ->
@@ -237,7 +249,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         fetchEpg(epgUrl) { batch ->
                             repository.insertEpgBatch(batch)
                         }
-                    } catch (_: Exception) {}
+                    } catch (e: Exception) {}
                 }
                 repository.cleanupOldEpg()
                 prefs.edit().putLong("last_epg_update", currentTime).apply()
@@ -264,8 +276,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val history = array[5] as List<IptvChannel>
 
         val baseList = when (group) {
-            "Favorit" -> favorites
-            "Terakhir Ditonton" -> history
+            getApplication<Application>().getString(R.string.group_favorites) -> favorites
+            getApplication<Application>().getString(R.string.group_recently_played) -> history
             else -> channels
         }
 
@@ -307,8 +319,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             val matchesGroup = when (group) {
-                null, "Favorit", "Terakhir Ditonton" -> true
-                "Other" -> channel.group.isNullOrBlank()
+                null, getApplication<Application>().getString(R.string.group_favorites), getApplication<Application>().getString(R.string.group_recently_played) -> true
+                getApplication<Application>().getString(R.string.group_other) -> channel.group.isNullOrBlank()
                 else -> channel.group == group
             }
             
@@ -321,6 +333,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     val groups = allChannels.map { channels ->
+        val context = getApplication<Application>()
         val existingGroups = channels.mapNotNull { it.group }
             .filter { it.isNotBlank() }
             .distinct()
@@ -328,7 +341,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         
         val hasNoGroup = channels.any { it.group.isNullOrBlank() }
         if (hasNoGroup) {
-            existingGroups + "Other"
+            existingGroups + context.getString(R.string.group_other)
         } else {
             existingGroups
         }
@@ -359,11 +372,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 _connectionStatus.value = isValid
                 if (!isValid) {
-                    _errorMessage.value = "Invalid M3U URL. Please check the URL and try again."
+                    _errorMessage.value = getApplication<Application>().getString(R.string.error_invalid_url)
                 }
             } catch (e: Exception) {
                 _connectionStatus.value = false
-                _errorMessage.value = "Connection failed: ${e.message}"
+                _errorMessage.value = getApplication<Application>().getString(R.string.error_connection_failed, e.message ?: "")
             } finally {
                 _isCheckingConnection.value = false
             }
@@ -372,8 +385,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadPlaylist(url: String, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
+            val context = getApplication<Application>()
             if (networkStatus.value is NetworkObserver.NetworkStatus.Lost) {
-                _errorMessage.value = "Koneksi internet tidak tersedia"
+                _errorMessage.value = context.getString(R.string.error_no_internet)
                 _isLoading.value = false
                 return@launch
             }
@@ -393,11 +407,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 processM3uContent(m3uContent, url, onSuccess)
             } catch (e: Exception) {
-                val errorMsg = when {
-                    e is java.net.UnknownHostException -> "Gagal memuat: Host tidak ditemukan. Periksa koneksi atau URL."
-                    e is java.net.ConnectException -> "Gagal memuat: Koneksi ditolak atau server sedang down."
-                    e is java.net.SocketTimeoutException -> "Gagal memuat: Waktu koneksi habis (Timeout)."
-                    else -> "Failed to load playlist: ${e.message}"
+                val errorMsg = when (e) {
+                    is java.net.UnknownHostException -> context.getString(R.string.error_host_not_found)
+                    is java.net.ConnectException -> context.getString(R.string.error_connection_refused)
+                    is java.net.SocketTimeoutException -> context.getString(R.string.error_socket_timeout)
+                    else -> context.getString(R.string.error_load_playlist_failed, e.message ?: "")
                 }
                 _errorMessage.value = errorMsg
                 _isLoading.value = false
@@ -407,16 +421,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadPlaylistFromFile(content: String, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
+            val context = getApplication<Application>()
             _isLoading.value = true
             _errorMessage.value = null
             try {
-                val internalFile = File(getApplication<Application>().filesDir, "last_local_playlist.m3u")
+                val internalFile = File(context.filesDir, "last_local_playlist.m3u")
                 withContext(Dispatchers.IO) {
                     internalFile.writeText(content)
                 }
                 processM3uContent(content, "file://${internalFile.absolutePath}", onSuccess)
             } catch (e: Exception) {
-                _errorMessage.value = "Failed to save/parse file: ${e.message}"
+                _errorMessage.value = context.getString(R.string.error_save_parse_failed, e.message ?: "")
                 _isLoading.value = false
             }
         }
@@ -437,10 +452,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         if (channels.isEmpty()) {
-            _errorMessage.value = "No channels found in the playlist."
+            _errorMessage.value = getApplication<Application>().getString(R.string.error_no_channels_found)
             _isLoading.value = false
         } else {
-            // Reset cache if source is changing
             val previousUrl = prefs.getString("last_m3u_url", "")
             if (urlSource != null && urlSource != previousUrl && previousUrl?.isNotBlank() == true) {
                 repository.clearEpg()
@@ -453,7 +467,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
             urlSource?.let {
                 _lastUrl.value = it
-                prefs?.edit()?.apply {
+                prefs.edit().apply {
                     putString("last_m3u_url", it)
                     putLong("last_m3u_update", System.currentTimeMillis())
                     apply()
@@ -496,44 +510,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private suspend fun fetchM3u(url: String): List<IptvChannel> {
-        val content = fetchRawContent(url)
-        return M3uParser.parse(content)
-    }
-
     fun toggleFavorite(channel: IptvChannel) {
         viewModelScope.launch {
             val targetUrl = channel.url.trim()
-            // Cek langsung ke database apakah channel ini saat ini favorit
             val existingChannel = repository.getChannelByUrl(targetUrl)
             val currentlyFavorite = existingChannel?.isFavorite ?: false
-            
-            // Toggle statusnya
             repository.updateFavoriteStatusByUrl(targetUrl, !currentlyFavorite)
-        }
-    }
-
-    fun removeFromFavorites(url: String) {
-        viewModelScope.launch {
-            repository.updateFavoriteStatusByUrl(url, false)
         }
     }
 
     fun markAsPlayed(channel: IptvChannel) {
         viewModelScope.launch {
             repository.markAsPlayed(channel)
-        }
-    }
-
-    fun clearRecentlyPlayed() {
-        viewModelScope.launch {
-            repository.clearRecentlyPlayed()
-        }
-    }
-
-    fun clearFavorites() {
-        viewModelScope.launch {
-            repository.clearFavorites()
         }
     }
 
@@ -589,45 +577,121 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun saveBackupToUri(uri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
+            val context = getApplication<Application>()
             try {
                 val xmlContent = exportChannelsToXml()
-                getApplication<Application>().contentResolver.openOutputStream(uri)?.use { outputStream ->
+                context.contentResolver.openOutputStream(uri)?.use { outputStream ->
                     outputStream.write(xmlContent.toByteArray())
                 }
                 withContext(Dispatchers.Main) {
-                    _errorMessage.value = "Berhasil mencadangkan data"
+                    _errorMessage.value = context.getString(R.string.success_backup)
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    _errorMessage.value = "Gagal mencadangkan: ${e.message}"
+                    _errorMessage.value = context.getString(R.string.error_backup_failed, e.message ?: "")
                 }
             }
         }
     }
 
-    fun saveBackupXml(onComplete: (String) -> Unit = {}) {
+    fun restoreBackupFromUri(uri: Uri, onSuccess: () -> Unit = {}) {
         viewModelScope.launch(Dispatchers.IO) {
+            val context = getApplication<Application>()
             try {
-                val xmlContent = exportChannelsToXml()
-                val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault()).format(java.util.Date())
-                val fileName = "iptv_backup_$timestamp.xml"
-
-                val backupDir = getApplication<Application>().getExternalFilesDir("Backups")
-                if (backupDir?.exists() == false) backupDir.mkdirs()
-                
-                val file = File(backupDir, fileName)
-                file.writeText(xmlContent)
-                
-                withContext(Dispatchers.Main) {
-                    onComplete(file.absolutePath)
-                    _errorMessage.value = "Backup success: $fileName"
+                _isLoading.value = true
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val channels = parseBackupXml(inputStream)
+                if (channels.isNotEmpty()) {
+                    repository.syncChannels(channels)
+                    _lastUrl.value = "backup_restore"
+                    prefs.edit().apply {
+                        putString("last_m3u_url", "backup_restore")
+                        putLong("last_m3u_update", System.currentTimeMillis())
+                        apply()
+                    }
+                    withContext(Dispatchers.Main) {
+                        onSuccess()
+                        _errorMessage.value = context.getString(R.string.success_restore)
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        _errorMessage.value = context.getString(R.string.error_invalid_backup_file)
+                    }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    _errorMessage.value = "Backup failed: ${e.message}"
+                    _errorMessage.value = context.getString(R.string.error_restore_failed, e.message ?: "")
+                }
+            } finally {
+                withContext(Dispatchers.Main) {
+                    _isLoading.value = false
                 }
             }
         }
+    }
+
+    private fun parseBackupXml(inputStream: InputStream?): List<IptvChannel> {
+        if (inputStream == null) return emptyList()
+        val channels = mutableListOf<IptvChannel>()
+        try {
+            val factory = XmlPullParserFactory.newInstance()
+            val parser = factory.newPullParser()
+            parser.setInput(inputStream, "UTF-8")
+            
+            var eventType = parser.eventType
+            var currentChannel: MutableMap<String, String>? = null
+            var currentTag: String? = null
+            
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                when (eventType) {
+                    XmlPullParser.START_TAG -> {
+                        currentTag = parser.name
+                        if (currentTag == "channel") {
+                            currentChannel = mutableMapOf()
+                        }
+                    }
+                    XmlPullParser.TEXT -> {
+                        val text = parser.text.trim()
+                        if (text.isNotEmpty() && currentChannel != null && currentTag != null) {
+                            currentChannel[currentTag] = text
+                        }
+                    }
+                    XmlPullParser.END_TAG -> {
+                        if (parser.name == "channel" && currentChannel != null) {
+                            channels.add(
+                                IptvChannel(
+                                    name = currentChannel["name"] ?: "",
+                                    url = currentChannel["url"] ?: "",
+                                    logo = currentChannel["logo"],
+                                    group = currentChannel["group"],
+                                    tvgId = currentChannel["tvgId"],
+                                    tvgName = currentChannel["tvgName"],
+                                    channelNumber = currentChannel["channelNumber"],
+                                    userAgent = currentChannel["userAgent"],
+                                    referrer = currentChannel["referrer"],
+                                    cookie = currentChannel["cookie"],
+                                    drmConfig = currentChannel["drmConfig"],
+                                    drmType = currentChannel["drmType"],
+                                    drmKey = currentChannel["drmKey"],
+                                    drmKeyId = currentChannel["drmKeyId"],
+                                    drmLicenseUrl = currentChannel["drmLicenseUrl"],
+                                    isFavorite = currentChannel["isFavorite"]?.toBoolean() ?: false,
+                                    lastPlayed = currentChannel["lastPlayed"]?.toLongOrNull()
+                                )
+                            )
+                            currentChannel = null
+                        }
+                        currentTag = null
+                    }
+                }
+                eventType = parser.next()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            inputStream.close()
+        }
+        return channels
     }
 
     fun exportChannelsToXml(): String {
@@ -641,10 +705,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             xmlBuilder.append("        <name>${escapeXml(channel.name)}</name>\n")
             xmlBuilder.append("        <url>${escapeXml(channel.url)}</url>\n")
             xmlBuilder.append("        <logo>${escapeXml(channel.logo ?: "")}</logo>\n")
-            xmlBuilder.append("        <group>${escapeXml(channel.group ?: "Uncategorized")}</group>\n")
+            xmlBuilder.append("        <group>${escapeXml(channel.group ?: "")}</group>\n")
             xmlBuilder.append("        <tvgId>${escapeXml(channel.tvgId ?: "")}</tvgId>\n")
+            xmlBuilder.append("        <tvgName>${escapeXml(channel.tvgName ?: "")}</tvgName>\n")
+            xmlBuilder.append("        <channelNumber>${escapeXml(channel.channelNumber ?: "")}</channelNumber>\n")
             xmlBuilder.append("        <userAgent>${escapeXml(channel.userAgent ?: "")}</userAgent>\n")
+            xmlBuilder.append("        <referrer>${escapeXml(channel.referrer ?: "")}</referrer>\n")
+            xmlBuilder.append("        <cookie>${escapeXml(channel.cookie ?: "")}</cookie>\n")
             xmlBuilder.append("        <drmConfig>${escapeXml(channel.drmConfig ?: "")}</drmConfig>\n")
+            xmlBuilder.append("        <drmType>${escapeXml(channel.drmType ?: "")}</drmType>\n")
+            xmlBuilder.append("        <drmKey>${escapeXml(channel.drmKey ?: "")}</drmKey>\n")
+            xmlBuilder.append("        <drmKeyId>${escapeXml(channel.drmKeyId ?: "")}</drmKeyId>\n")
+            xmlBuilder.append("        <drmLicenseUrl>${escapeXml(channel.drmLicenseUrl ?: "")}</drmLicenseUrl>\n")
+            xmlBuilder.append("        <isFavorite>${channel.isFavorite}</isFavorite>\n")
+            xmlBuilder.append("        <lastPlayed>${channel.lastPlayed ?: ""}</lastPlayed>\n")
             xmlBuilder.append("    </channel>\n")
         }
         
@@ -662,6 +736,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadDemoPlaylist(onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
+            val context = getApplication<Application>()
             _isLoading.value = true
             _errorMessage.value = null
             
@@ -670,7 +745,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val allDemoChannels = mutableListOf<IptvChannel>()
                     val allEpgUrls = mutableSetOf<String>()
 
-                    DEMO_URLS.forEach { url ->
+                    // 1. Try to fetch dynamic URLs from GitHub
+                    val remoteUrls = try {
+                        val configRequest = Request.Builder()
+                            .url(decryptUrl(CONFIG_URL))
+                            .build()
+                        val configResponse = httpClient.newCall(configRequest).execute()
+                        if (configResponse.isSuccessful) {
+                            val json = configResponse.body?.string() ?: ""
+                            parseRemoteConfig(json)
+                        } else null
+                    } catch (e: Exception) {
+                        null
+                    }
+
+                    // 2. Use remote URLs if available, otherwise fallback to hardcoded
+                    val urlsToLoad = if (!remoteUrls.isNullOrEmpty()) remoteUrls else DEMO_URLS
+
+                    urlsToLoad.forEach { url ->
                         try {
                             val request = Request.Builder()
                                 .url(url)
@@ -691,15 +783,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val allEpgUrls = result.second
 
                 if (allDemoChannels.isEmpty()) {
-                    _errorMessage.value = "Gagal memuat playlist demo. Periksa koneksi internet Anda."
+                    _errorMessage.value = context.getString(R.string.error_demo_load_failed)
                     _isLoading.value = false
                     return@launch
                 }
 
-                if (allDemoChannels.isNotEmpty()) {
-                    repository.syncChannels(allDemoChannels)
-                    _randomCarouselChannels.value = allDemoChannels.shuffled().take(10)
-                }
+                repository.syncChannels(allDemoChannels)
+                _randomCarouselChannels.value = allDemoChannels.shuffled().take(10)
 
                 _lastUrl.value = "combined_demo"
                 prefs.edit().apply {
@@ -714,7 +804,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     _isLoading.value = false
                 }
 
-                // Gunakan EPG dari playlist + GLOBAL_EPG_URLS
                 val epgUrls = (allEpgUrls + GLOBAL_EPG_URLS).distinct()
                 if (epgUrls.isNotEmpty()) {
                     viewModelScope.launch {
@@ -722,9 +811,39 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Gagal memuat demo: ${e.message}"
+                _errorMessage.value = context.getString(R.string.error_demo_generic_failed, e.message ?: "")
                 _isLoading.value = false
             }
+        }
+    }
+
+    private fun parseRemoteConfig(json: String): List<String>? {
+        return try {
+            val urls = mutableListOf<String>()
+            val regex = Regex("\"url\"\\s*:\\s*\"([^\"]+)\"")
+            regex.findAll(json).forEach { match ->
+                urls.add(match.groupValues[1])
+            }
+            if (urls.isNotEmpty()) urls else null
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun deleteCurrentPlaylist() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            repository.clearAllChannels()
+            repository.clearEpg()
+            repository.clearRecentlyPlayed()
+            _lastUrl.value = ""
+            prefs.edit().apply {
+                remove("last_m3u_url")
+                remove("last_m3u_update")
+                remove("last_epg_update")
+                apply()
+            }
+            _isLoading.value = false
         }
     }
 
@@ -743,21 +862,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun deleteCurrentPlaylist() {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.clearAllChannels()
-            _lastUrl.value = ""
-            prefs.edit().apply {
-                remove("last_m3u_url")
-                remove("last_m3u_update")
-                apply()
-            }
-            withContext(Dispatchers.Main) {
-                _isLoading.value = false
-            }
-        }
-    }
-
     fun updateProfile(name: String, email: String, imageUri: String? = null) {
         _userName.value = name
         _userEmail.value = email
@@ -772,8 +876,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun saveProfileImage(uri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
+            val context = getApplication<Application>()
             try {
-                val context = getApplication<Application>()
                 val inputStream = context.contentResolver.openInputStream(uri)
                 if (inputStream != null) {
                     val file = File(context.filesDir, "profile_picture.jpg")
@@ -787,7 +891,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    _errorMessage.value = "Gagal menyimpan foto: ${e.message}"
+                    _errorMessage.value = context.getString(R.string.error_save_photo_failed, e.message ?: "")
                 }
             }
         }
@@ -859,12 +963,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearCache() {
         viewModelScope.launch(Dispatchers.IO) {
+            val context = getApplication<Application>()
             _isLoading.value = true
             repository.clearEpg()
             prefs.edit().putLong("last_epg_update", 0L).apply()
-            getApplication<Application>().cacheDir.deleteRecursively()
+            context.cacheDir.deleteRecursively()
             _isLoading.value = false
-            _errorMessage.value = "Cache berhasil dihapus"
+            _errorMessage.value = context.getString(R.string.success_cache_cleared)
         }
     }
 }

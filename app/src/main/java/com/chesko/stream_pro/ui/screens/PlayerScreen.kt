@@ -72,6 +72,8 @@ import com.chesko.stream_pro.core.utils.PlayerUtils
 import com.chesko.stream_pro.core.utils.NetworkObserver
 import com.chesko.stream_pro.core.player.VlcVideoPlayer
 import com.chesko.stream_pro.ui.components.shimmerEffect
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.content.pm.ApplicationInfo
@@ -300,10 +302,11 @@ fun PlayerTheme(content: @Composable () -> Unit) {
 fun PlayerScreen(
     viewModel: MainViewModel,
     channel: IptvChannel,
+    windowSize: WindowSizeClass,
     onBack: () -> Unit
 ) {
     PlayerTheme {
-        PlayerScreenContent(viewModel, channel, onBack)
+        PlayerScreenContent(viewModel, channel, windowSize, onBack)
     }
 }
 
@@ -313,6 +316,7 @@ fun PlayerScreen(
 fun PlayerScreenContent(
     viewModel: MainViewModel,
     channel: IptvChannel,
+    windowSize: WindowSizeClass,
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -1502,72 +1506,72 @@ fun ControlOverlay(
                 modifier = Modifier.height(110.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val isError = isPlaybackStuck || loadingStatus.contains("Gagal", true) || loadingStatus.contains("Error", true)
-                    
-                    Box(contentAlignment = Alignment.Center) {
-                        // Reduced glow size
-                        if (isPlayingState && !isBuffering) {
-                            Box(
-                                modifier = Modifier
-                                    .size(72.dp)
-                                    .background(
-                                        Brush.radialGradient(
-                                            listOf(MaterialTheme.colorScheme.primary.copy(0.2f), Color.Transparent)
-                                        ),
-                                        CircleShape
-                                    )
-                            )
-                        }
-
-                        Surface(
-                            onClick = { 
-                                if (isError) onReload() 
-                                else {
-                                    if (playerEngine == "VLC") {
-                                        vlcPlayer?.let { if (it.isPlaying) it.pause() else it.play() }
-                                    } else {
-                                        exoPlayer?.let { if (it.isPlaying) it.pause() else it.play() }
-                                    }
-                                }
-                            },
-                            modifier = Modifier.size(64.dp),
-                            shape = CircleShape,
-                            color = Color.Black.copy(alpha = 0.6f),
-                            border = BorderStroke(1.dp, Brush.linearGradient(listOf(Color.White.copy(0.2f), Color.Transparent))),
-                            shadowElevation = 8.dp
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = if (isError) Icons.Default.Refresh else if (isPlayingState) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(32.dp)
+                val isError = isPlaybackStuck || loadingStatus.contains("Gagal", true) || loadingStatus.contains("Error", true)
+                
+                Box(contentAlignment = Alignment.Center) {
+                    // Reduced glow size
+                    if (isPlayingState && !isBuffering) {
+                        Box(
+                            modifier = Modifier
+                                .size(72.dp)
+                                .background(
+                                    Brush.radialGradient(
+                                        listOf(MaterialTheme.colorScheme.primary.copy(0.2f), Color.Transparent)
+                                    ),
+                                    CircleShape
                                 )
-                            }
-                        }
-                        
-                        if (isBuffering) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(80.dp),
-                                color = MaterialTheme.colorScheme.primary,
-                                strokeWidth = 2.dp,
-                                trackColor = Color.White.copy(0.05f)
-                            )
-                        }
-                    }
-                    
-                    if (loadingStatus.isNotEmpty() && !isPlaybackStuck) {
-                        Text(
-                            text = loadingStatus.uppercase(),
-                            modifier = Modifier.padding(top = 12.dp),
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 1.sp,
-                            textAlign = TextAlign.Center
                         )
                     }
+
+                    Surface(
+                        onClick = { 
+                            if (isError) onReload() 
+                            else {
+                                if (playerEngine == "VLC") {
+                                    vlcPlayer?.let { if (it.isPlaying) it.pause() else it.play() }
+                                } else {
+                                    exoPlayer?.let { if (it.isPlaying) it.pause() else it.play() }
+                                }
+                            }
+                        },
+                        modifier = Modifier.size(64.dp),
+                        shape = CircleShape,
+                        color = Color.Black.copy(alpha = 0.6f),
+                        border = BorderStroke(1.dp, Brush.linearGradient(listOf(Color.White.copy(0.2f), Color.Transparent))),
+                        shadowElevation = 8.dp
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = if (isError) Icons.Default.Refresh else if (isPlayingState) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
+                    
+                    if (isBuffering) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(80.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            strokeWidth = 2.dp,
+                            trackColor = Color.White.copy(0.05f)
+                        )
+                    }
+                }
+                
+                if (loadingStatus.isNotEmpty() && !isPlaybackStuck) {
+                    Text(
+                        text = loadingStatus.uppercase(),
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 0.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 1.sp,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
 

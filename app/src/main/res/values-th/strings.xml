@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">StreamPro</string>
+    <string name="settings_title">การตั้งค่า</string>
+    <string name="group_player">เครื่องเล่นวิดีโอ</string>
+    <string name="item_engine_title">เอนจินเครื่องเล่น</string>
+    <string name="item_quality_title">คุณภาพวิดีโอ</string>
+    <string name="item_hw_title">การถอดรหัสฮาร์ดแวร์</string>
+    <string name="item_buffer_title">ขนาดบัฟเฟอร์</string>
+
+    <string name="group_display">การแสดงผล</string>
+    <string name="item_dark_mode">โหมดมืด</string>
+    <string name="item_language">ภาษาของแอป</string>
+    <string name="item_accent_color">สีเน้น</string>
+    <string name="item_background">พื้นหลัง</string>
+
+    <string name="group_data">ข้อมูลและพื้นที่จัดเก็บ</string>
+    <string name="item_clear_cache">ล้างแคช</string>
+
+    <string name="dialog_language_title">เลือกภาษา</string>
+    <string name="dialog_engine_title">เลือกเอนจิน</string>
+    <string name="dialog_quality_title">คุณภาพวิดีโอ</string>
+    <string name="dialog_buffer_title">ขนาดบัฟเฟอร์</string>
+    <string name="dialog_background_title">พื้นหลัง</string>
+
+    <string name="btn_close">ปิด</string>
+    <string name="btn_cancel">ยกเลิก</string>
+    <string name="btn_apply">นำไปใช้</string>
+    <string name="btn_save">บันทึก</string>
+    <string name="background_default">เริ่มต้น</string>
+    <string name="background_color">สีที่กำหนดเอง</string>
+    <string name="background_image">รูปภาพที่กำหนดเอง</string>
+    <string name="item_engine_subtitle">ปัจจุบัน: %1$s</string>
+    <string name="item_quality_subtitle">สูงสุด: %1$sp</string>
+    <string name="item_quality_auto">อัตโนมัติ</string>
+    <string name="item_hw_subtitle_on">โหมด: ฮาร์ดแวร์ (ประสิทธิภาพสูง)</string>
+    <string name="item_hw_subtitle_off">โหมด: ซอฟต์แวร์ (เสถียรกว่า)</string>
+    <string name="item_buffer_subtitle">บัฟเฟอร์ปัจจุบัน: %1$ss</string>
+    <string name="item_dark_mode_subtitle">เปิดใช้งานธีมมืดถาวร</string>
+    <string name="item_language_subtitle">ปัจจุบัน: %1$s</string>
+    <string name="item_accent_subtitle">เลือกสีประจำแอป</string>
+    <string name="item_cache_subtitle">ล้างข้อมูลแอปชั่วคราว</string>
+    <string name="unit_seconds">%1$d วินาที</string>
+
+    <string name="dialog_color_desc">ปรับแต่งธีมแอป</string>
+    <string name="dialog_color_custom">สีที่กำหนดเอง</string>
+
+    <!-- Brand -->
+    <string name="brand_name">STREAMPRO</string>
+    <string name="brand_slogan">ความบันเทิงระดับพรีเมียม</string>
+    <string name="status_live">ถ่ายทอดสด</string>
+    <string name="departure_msg">กำลังออกจากจักรวาล</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_desc_search">ค้นหา</string>
+    <string name="content_desc_refresh">รีเฟรช</string>
+    <string name="content_desc_menu">เมนู</string>
+    <string name="content_desc_close_search">ปิดการค้นหา</string>
+    <string name="content_desc_scroll_top">กลับไปด้านบน</string>
+    <string name="content_desc_drm">DRM</string>
+
+    <!-- Home Screen -->
+    <string name="exit_confirm_title">ยืนยันการออก</string>
+    <string name="exit_confirm_msg">คุณแน่ใจหรือไม่ว่าต้องการออก?</string>
+    <string name="btn_exit">ออก</string>
+    <string name="premium_badge">พรีเมียม</string>
+    <string name="drawer_group_main">หน้าหลัก</string>
+    <string name="drawer_group_settings">การตั้งค่า</string>
+    <string name="drawer_group_support">สนับสนุน</string>
+    <string name="menu_epg">ผังรายการทีวี</string>
+    <string name="menu_settings">การตั้งค่า</string>
+    <string name="menu_sync">ซิงค์</string>
+    <string name="menu_backup">สำรองข้อมูล</string>
+    <string name="menu_help">ช่วยเหลือ</string>
+    <string name="menu_about">เกี่ยวกับ</string>
+    <string name="menu_logout">ออกจากระบบ</string>
+    <string name="carousel_rec">แนะนำสำหรับคุณ</string>
+    <string name="carousel_watch_now">ดูตอนนี้</string>
+    <string name="group_all">ทั้งหมด</string>
+    <string name="search_results">ผลการค้นหา</string>
+    <string name="search_not_found_title">ขออภัย! ไม่พบช่อง</string>
+    <string name="search_not_found_msg">ลองใช้คำหลักอื่นหรือตรวจสอบการเชื่อมต่อของคุณ</string>
+    <string name="row_favorite">รายการโปรด</string>
+    <string name="row_history">ดูล่าสุด</string>
+    <string name="row_see_all">ดูทั้งหมด (%1$d)</string>
+    <string name="other_groups">กลุ่มอื่นๆ</string>
+    <string name="see_less">ดูน้อยลง</string>
+    <string name="see_all">ดูทั้งหมด</string>
+    <string name="search_placeholder">ค้นหาช่องหรือกลุ่ม...</string>
+    <string name="no_program_info">ไม่มีข้อมูลรายการ</string>
+
+    <!-- Login Screen -->
+    <string name="tab_remote_url">URL ระยะไกล</string>
+    <string name="tab_local_file">ไฟล์ในเครื่อง</string>
+    <string name="login_secure_msg">การเชื่อมต่อที่ปลอดภัยและเข้ารหัส</string>
+    <string name="dialog_explore_demo">สำรวจเดโม</string>
+    <string name="demo_playlist_label">เดโมเพลย์ลิสต์ %1$d</string>
+    <string name="demo_playlist_name">เพลย์ลิสต์สากล %1$d</string>
+    <string name="m3u_endpoint_label">M3U PLAYLIST ENDPOINT</string>
+    <string name="url_placeholder">https://your-provider.com/playlist.m3u</string>
+    <string name="btn_connect">เชื่อมต่อ</string>
+    <string name="btn_demo">เดโม</string>
+    <string name="local_repo_label">ที่เก็บข้อมูลในเครื่อง</string>
+    <string name="local_repo_msg">นำเข้าไฟล์ .m3u หรือ .m3u8 จากที่เก็บข้อมูลในเครื่องของคุณ</string>
+    <string name="btn_browse_files">เรียกดูไฟล์</string>
+    <string name="invalid_url_protocol">โปรโตคอล URL ไม่ถูกต้อง</string>
+
+    <!-- Help Screen -->
+    <string name="help_center_title">ศูนย์ช่วยเหลือ</string>
+    <string name="faq_title">คำถามที่พบบ่อย</string>
+    <string name="faq_subtitle">ค้นหาคำตอบสำหรับปัญหาของคุณด้านล่าง</string>
+    <string name="help_more_title">ยังต้องการความช่วยเหลือ?</string>
+    <string name="help_more_msg">ติดต่อทีมสนับสนุนของเราทางอีเมลที่ https://chesko-25.vercel.app เพื่อขอความช่วยเหลือเพิ่มเติม</string>
+
+    <string name="faq_q1">วิธีเพิ่มเพลย์ลิสต์?</string>
+    <string name="faq_a1">คุณสามารถเพิ่มเพลย์ลิสต์ได้โดยกดปุ่ม \'เพิ่ม\' ที่หน้าจอเข้าสู่ระบบ จากนั้นป้อน URL M3U ที่ถูกต้องหรือเลือกไฟล์จากที่เก็บข้อมูลของคุณ</string>
+    <string name="faq_q2">ทำไมช่องถึงเล่นไม่ได้?</string>
+    <string name="faq_a2">ตรวจสอบให้แน่ใจว่าการเชื่อมต่ออินเทอร์เน็ตของคุณเสถียร บางช่องอาจต้องใช้ VPN หรือมีข้อจำกัดด้านภูมิภาค หากปัญหายังคงอยู่ ให้ติดต่อผู้ให้บริการเพลย์ลิสต์ของคุณ</string>
+    <string name="faq_q3">วิธีดูผังรายการทีวี (EPG)?</string>
+    <string name="faq_a3">เปิดเมนูด้านข้าง (ไอคอนสามขีดมุมซ้ายบน) แล้วเลือก \'ผังรายการทีวี\' EPG จะถูกดาวน์โหลดโดยอัตโนมัติหากแหล่งเพลย์ลิสต์มีให้</string>
+    <string name="faq_q4">วิธีเพิ่มในรายการโปรด?</string>
+    <string name="faq_a4">ขณะเล่นวิดีโอ ให้กดไอคอน \'ดาว\' ในส่วนควบคุมเครื่องเล่น หรือคุณสามารถกดค้างที่รายการช่องในหน้าหลัก</string>
+    <string name="faq_q5">แอปทำงานช้า ต้องทำอย่างไร?</string>
+    <string name="faq_a5">คุณสามารถลองล้างแคชในการตั้งค่า Android หรือลดจำนวนเพลย์ลิสต์ที่เปิดใช้งานหากมีมากเกินไป</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">โปรไฟล์ของฉัน</string>
+    <string name="edit_name">แก้ไขชื่อ</string>
+    <string name="edit_email">แก้ไขอีเมล</string>
+    <string name="label_name">ชื่อ</string>
+    <string name="label_email">อีเมล</string>
+    <string name="premium_member">สมาชิกพรีเมียม</string>
+    <string name="stat_favorite">โปรด</string>
+    <string name="stat_playlist">เพลย์ลิสต์</string>
+    <string name="stat_expired">หมดอายุ</string>
+    <string name="stat_expired_never">ตลอดชีพ</string>
+    <string name="account_info">ข้อมูลบัญชี</string>
+    <string name="label_device_id">ไอดีอุปกรณ์</string>
+    <string name="label_member_since">สมาชิกตั้งแต่</string>
+    <string name="btn_logout_account">ออกจากระบบ</string>
+    <string name="msg_device_id_copied">คัดลอกไอดีอุปกรณ์แล้ว!</string>
+
+    <!-- SplashScreen -->
+    <string name="splash_universe_subtitle">สำรวจจักรวาลดิจิทัล</string>
+    <string name="splash_initializing">กำลังเริ่มระบบ</string>
+    <string name="splash_designed_by">ออกแบบโดย CHESKO</string>
+
+    <!-- About Screen -->
+    <string name="about_title">เกี่ยวกับแอป</string>
+    <string name="about_version">เวอร์ชัน %1$s (เสถียร)</string>
+    <string name="about_description">Stream Pro คือเครื่องเล่น IPTV ที่ทันสมัย ออกแบบมาเพื่อมอบประสบการณ์การรับชมที่ดีที่สุดด้วยอินเทอร์เฟซที่สะอาดตาและประสิทธิภาพสูง</string>
+    <string name="about_label_developer">ผู้พัฒนา</string>
+    <string name="about_label_dev_team">ทีมพัฒนา Chesko</string>
+    <string name="about_label_license">ใบอนุญาต</string>
+    <string name="about_label_license_val">สมาชิกพรีเมียม</string>
+    <string name="about_label_website">เว็บไซต์</string>
+    <string name="about_support_dev">สนับสนุนผู้พัฒนา</string>
+    <string name="about_donation_msg">หากคุณชอบแอปนี้ คุณสามารถบริจาคเพื่อสนับสนุนการพัฒนาต่อไป</string>
+    <string name="about_copy_number">คัดลอกหมายเลข</string>
+    <string name="about_label_dana_name">ชื่อ: Bae***** Ati**</string>
+    <string name="about_footer_rights">© %1$d Stream Pro IPTV. สงวนลิขสิทธิ์.</string>
+
+    <!-- EPG Screen -->
+    <string name="epg_title">ผังรายการทีวี</string>
+    <string name="epg_search_placeholder">ค้นหาช่อง...</string>
+    <string name="epg_no_program">ไม่มีข้อมูลผังรายการ</string>
+
+    <!-- Network Notif -->
+    <string name="net_lost">การเชื่อมต่ออินเทอร์เน็ตขาดหาย</string>
+    <string name="net_restored">การเชื่อมต่ออินเทอร์เน็ตกลับมาใช้งานได้</string>
+
+    <!-- Player Screen -->
+    <string name="player_loading_default">กำลังเชื่อมต่อ...</string>
+    <string name="player_loading_video">กำลังโหลดวิดีโอ...</string>
+    <string name="player_loading_stream">กำลังโหลดสตรีม...</string>
+    <string name="player_preparing">กำลังเตรียมการ...</string>
+    <string name="player_ended">สิ้นสุดการออกอากาศ</string>
+    <string name="player_loading_vlc">กำลังโหลดวิดีโอ (VLC)...</string>
+    <string name="player_fallback_vlc">กำลังเปลี่ยนเป็น VLC...</string>
+    <string name="player_exo_fallback">Exo ล้มเหลว กำลังลอง VLC...</string>
+    <string name="player_error_load">ไม่สามารถโหลดสตรีมได้</string>
+    <string name="player_error_vlc">ข้อผิดพลาด VLC: %1$s</string>
+    <string name="player_on_air">กำลังออนแอร์</string>
+    <string name="player_next">ถัดไป: %1$s</string>
+    <string name="player_connection_lost">การเชื่อมต่อขาดหาย</string>
+    <string name="player_link_dead">ไม่มีสัญญาณ / ลิงก์เสีย</string>
+    <string name="player_stopped">หยุดการเล่นวิดีโอ</string>
+    <string name="player_menu_audio">ตัวเลือกเสียง</string>
+    <string name="player_menu_subtitle">คำบรรยาย / CC</string>
+    <string name="player_menu_quality">คุณภาพวิดีโอ</string>
+    <string name="player_boost">เร่งเสียง</string>
+    <string name="player_mute">ปิดเสียง</string>
+    <string name="player_no_subtitle">ไม่มีคำบรรยาย</string>
+    <string name="player_disable">ปิดใช้งาน</string>
+    <string name="player_auto">อัตโนมัติ</string>
+    <string name="player_default">เริ่มต้น</string>
+    <string name="player_debug_title">ข้อมูลดีบัก</string>
+    <string name="player_channels_title">ช่อง</string>
+    <string name="loading_message">กำลังสำรวจจักรวาล</string>
+</resources>

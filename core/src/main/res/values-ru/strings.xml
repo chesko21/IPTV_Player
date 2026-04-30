@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vlc_error_discontinuity">Ошибка воспроизведения (проблема с прерывистостью/сервером)</string>
+    <string name="player_error_format">Ошибка: %1$s</string>
+    <string name="exo_error_link_dead">ССЫЛКА НЕ РАБОТАЕТ (404)</string>
+    <string name="exo_error_connection_failed">ОШИБКА СОЕДИНЕНИЯ</string>
+    <string name="exo_error_timeout">ВРЕМЯ ОЖИДАНИЯ ИСТЕКЛО (TIMEOUT)</string>
+    <string name="exo_error_ssl">ОШИБКА SSL (используйте HTTPS)</string>
+    <string name="exo_error_file_not_found">ФАЙЛ НЕ НАЙДЕН</string>
+    <string name="exo_error_decode_failed">ОШИБКА ДЕКОДИРОВАНИЯ</string>
+    <string name="exo_error_unsupported">ФОРМАТ НЕ ПОДДЕРЖИВАЕТСЯ</string>
+    <string name="exo_error_generic">ОШИБКА (%1$s)</string>
+    <string name="brand_name">StreamPro</string>
+
+    <!-- MainViewModel Strings -->
+    <string name="error_invalid_url">Неверный URL M3U. Проверьте URL и попробуйте снова.</string>
+    <string name="error_connection_failed">Ошибка подключения: %1$s</string>
+    <string name="error_no_internet">Интернет-соединение недоступно</string>
+    <string name="error_host_not_found">Ошибка загрузки: Хост не найден. Проверьте соединение или URL.</string>
+    <string name="error_connection_refused">Ошибка загрузки: В соединении отказано или сервер недоступен.</string>
+    <string name="error_socket_timeout">Ошибка загрузки: Время ожидания соединения истекло.</string>
+    <string name="error_load_playlist_failed">Не удалось загрузить плейлист: %1$s</string>
+    <string name="error_save_parse_failed">Ошибка сохранения/анализа файла: %1$s</string>
+    <string name="error_no_channels_found">Каналы в плейлисте не найдены.</string>
+    <string name="error_backup_failed">Ошибка резервного копирования: %1$s</string>
+    <string name="error_restore_failed">Ошибка восстановления: %1$s</string>
+    <string name="error_invalid_backup_file">Файл резервной копии недействителен или пуст</string>
+    <string name="error_demo_load_failed">Не удалось загрузить демо-плейлист. Проверьте интернет-соединение.</string>
+    <string name="error_demo_generic_failed">Ошибка загрузки демо: %1$s</string>
+    <string name="error_save_photo_failed">Ошибка сохранения фото: %1$s</string>
+
+    <string name="success_backup">Резервное копирование успешно завершено</string>
+    <string name="success_restore">Данные успешно восстановлены</string>
+    <string name="success_cache_cleared">Кэш успешно очищен</string>
+
+    <string name="group_favorites">Избранное</string>
+    <string name="group_recently_played">История просмотра</string>
+    <string name="group_other">Другое</string>
+
+    <string name="default_user_name">Пользователь Stream Pro</string>
+    <string name="default_user_email">user@streampro.com</string>
+    <string name="default_member_since_date">Январь 2026</string>
+    <string name="member_since_format">d MMMM yyyy</string>
+</resources>

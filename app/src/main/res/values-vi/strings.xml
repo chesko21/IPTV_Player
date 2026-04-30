@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">StreamPro</string>
+    <string name="settings_title">Cài đặt</string>
+    <string name="group_player">Trình phát video</string>
+    <string name="item_engine_title">Công cụ phát</string>
+    <string name="item_quality_title">Chất lượng video</string>
+    <string name="item_hw_title">Giải mã phần cứng</string>
+    <string name="item_buffer_title">Kích thước bộ đệm</string>
+
+    <string name="group_display">Hiển thị</string>
+    <string name="item_dark_mode">Chế độ tối</string>
+    <string name="item_language">Ngôn ngữ ứng dụng</string>
+    <string name="item_accent_color">Màu nhấn</string>
+    <string name="item_background">Hình nền</string>
+
+    <string name="group_data">Dữ liệu và bộ nhớ</string>
+    <string name="item_clear_cache">Xóa bộ nhớ đệm</string>
+
+    <string name="dialog_language_title">Chọn ngôn ngữ</string>
+    <string name="dialog_engine_title">Chọn công cụ</string>
+    <string name="dialog_quality_title">Chất lượng video</string>
+    <string name="dialog_buffer_title">Kích thước bộ đệm</string>
+    <string name="dialog_background_title">Hình nền</string>
+
+    <string name="btn_close">Đóng</string>
+    <string name="btn_cancel">Hủy</string>
+    <string name="btn_apply">Áp dụng</string>
+    <string name="btn_save">Lưu</string>
+    <string name="background_default">Mặc định</string>
+    <string name="background_color">Màu tùy chỉnh</string>
+    <string name="background_image">Ảnh tùy chỉnh</string>
+    <string name="item_engine_subtitle">Hiện tại: %1$s</string>
+    <string name="item_quality_subtitle">Tối đa: %1$sp</string>
+    <string name="item_quality_auto">Tự động</string>
+    <string name="item_hw_subtitle_on">Chế độ: Phần cứng (Hiệu suất cao)</string>
+    <string name="item_hw_subtitle_off">Chế độ: Phần mềm (Ổn định hơn)</string>
+    <string name="item_buffer_subtitle">Bộ đệm hiện tại: %1$ss</string>
+    <string name="item_dark_mode_subtitle">Kích hoạt giao diện tối vĩnh viễn</string>
+    <string name="item_language_subtitle">Hiện tại: %1$s</string>
+    <string name="item_accent_subtitle">Chọn màu sắc nhận diện ứng dụng</string>
+    <string name="item_cache_subtitle">Xóa dữ liệu ứng dụng tạm thời</string>
+    <string name="unit_seconds">%1$d Giây</string>
+
+    <string name="dialog_color_desc">Cá nhân hóa giao diện ứng dụng</string>
+    <string name="dialog_color_custom">Màu tùy chỉnh</string>
+
+    <!-- Brand -->
+    <string name="brand_name">STREAMPRO</string>
+    <string name="brand_slogan">Giải trí đỉnh cao</string>
+    <string name="status_live">TRỰC TIẾP</string>
+    <string name="departure_msg">THOÁT KHỎI VŨ TRỤ</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_desc_search">Tìm kiếm</string>
+    <string name="content_desc_refresh">Làm mới</string>
+    <string name="content_desc_menu">Menu</string>
+    <string name="content_desc_close_search">Đóng tìm kiếm</string>
+    <string name="content_desc_scroll_top">Về đầu trang</string>
+    <string name="content_desc_drm">DRM</string>
+
+    <!-- Home Screen -->
+    <string name="exit_confirm_title">Xác nhận thoát</string>
+    <string name="exit_confirm_msg">Bạn có chắc chắn muốn thoát không?</string>
+    <string name="btn_exit">THOÁT</string>
+    <string name="premium_badge">PREMIUM</string>
+    <string name="drawer_group_main">CHÍNH</string>
+    <string name="drawer_group_settings">CÀI ĐẶT</string>
+    <string name="drawer_group_support">HỖ TRỢ</string>
+    <string name="menu_epg">Lịch phát sóng</string>
+    <string name="menu_settings">Cài đặt</string>
+    <string name="menu_sync">Đồng bộ</string>
+    <string name="menu_backup">Sao lưu</string>
+    <string name="menu_help">Trợ giúp</string>
+    <string name="menu_about">Giới thiệu</string>
+    <string name="menu_logout">Đăng xuất</string>
+    <string name="carousel_rec">GỢI Ý</string>
+    <string name="carousel_watch_now">XEM NGAY</string>
+    <string name="group_all">Tất cả</string>
+    <string name="search_results">Kết quả tìm kiếm</string>
+    <string name="search_not_found_title">Rất tiếc! Không tìm thấy kênh</string>
+    <string name="search_not_found_msg">Thử từ khóa khác hoặc kiểm tra kết nối của bạn</string>
+    <string name="row_favorite">Yêu thích</string>
+    <string name="row_history">Đã xem gần đây</string>
+    <string name="row_see_all">XEM TẤT CẢ (%1$d)</string>
+    <string name="other_groups">NHÓM KHÁC</string>
+    <string name="see_less">THU GỌN</string>
+    <string name="see_all">XEM TẤT CẢ</string>
+    <string name="search_placeholder">Tìm kiếm kênh hoặc nhóm...</string>
+    <string name="no_program_info">Không có thông tin chương trình</string>
+
+    <!-- Login Screen -->
+    <string name="tab_remote_url">URL TỪ XA</string>
+    <string name="tab_local_file">TẬP TIN CỤC BỘ</string>
+    <string name="login_secure_msg">KẾT NỐI BẢO MẬT ĐƯỢC MÃ HÓA</string>
+    <string name="dialog_explore_demo">KHÁM PHÁ DEMO</string>
+    <string name="demo_playlist_label">Danh sách phát Demo %1$d</string>
+    <string name="demo_playlist_name">Danh sách phát quốc tế %1$d</string>
+    <string name="m3u_endpoint_label">ĐỊA CHỈ PLAYLIST M3U</string>
+    <string name="url_placeholder">https://provider.com/playlist.m3u</string>
+    <string name="btn_connect">KẾT NỐI</string>
+    <string name="btn_demo">DEMO</string>
+    <string name="local_repo_label">KHO LƯU TRỮ CỤC BỘ</string>
+    <string name="local_repo_msg">Nhập tập tin .m3u hoặc .m3u8 từ bộ nhớ thiết bị của bạn</string>
+    <string name="btn_browse_files">DUYỆT TẬP TIN</string>
+    <string name="invalid_url_protocol">Giao thức URL không hợp lệ</string>
+
+    <!-- Help Screen -->
+    <string name="help_center_title">Trung tâm hỗ trợ</string>
+    <string name="faq_title">Câu hỏi thường gặp</string>
+    <string name="faq_subtitle">Tìm câu trả lời cho vấn đề của bạn bên dưới</string>
+    <string name="help_more_title">Vẫn cần hỗ trợ?</string>
+    <string name="help_more_msg">Liên hệ với đội ngũ hỗ trợ của chúng tôi qua email tại https://chesko-25.vercel.app để được giúp đỡ thêm.</string>
+
+    <string name="faq_q1">Cách thêm danh sách phát?</string>
+    <string name="faq_a1">Bạn có thể thêm danh sách phát bằng cách nhấn nút \'Thêm\' ở màn hình đăng nhập, sau đó nhập URL M3U hợp lệ hoặc chọn tập tin từ bộ nhớ thiết bị.</string>
+    <string name="faq_q2">Tại sao kênh không phát được?</string>
+    <string name="faq_a2">Đảm bảo kết nối internet ổn định. Một số kênh có thể yêu cầu VPN hoặc bị giới hạn khu vực. Nếu sự cố vẫn tiếp diễn, hãy liên hệ với nhà cung cấp danh sách phát của bạn.</string>
+    <string name="faq_q3">Cách xem lịch phát sóng (EPG)?</string>
+    <string name="faq_a3">Mở Menu Drawer (biểu tượng ba gạch góc trên bên trái) rồi chọn \'Lịch phát sóng\'. EPG sẽ tự động được tải xuống nếu nguồn danh sách phát có cung cấp.</string>
+    <string name="faq_q4">Cách thêm vào Yêu thích?</string>
+    <string name="faq_a4">Khi đang phát video, nhấn biểu tượng \'Sao\' trong trình điều khiển. Hoặc bạn có thể nhấn giữ vào mục kênh trong danh sách chính.</string>
+    <string name="faq_q5">Ứng dụng cảm thấy chậm, phải làm gì?</string>
+    <string name="faq_a5">Bạn có thể thử xóa bộ nhớ đệm trong Cài đặt Android, hoặc giảm số lượng danh sách phát đang hoạt động nếu quá nhiều.</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">Hồ sơ của tôi</string>
+    <string name="edit_name">Sửa tên</string>
+    <string name="edit_email">Sửa email</string>
+    <string name="label_name">Tên</string>
+    <string name="label_email">Email</string>
+    <string name="premium_member">THÀNH VIÊN PREMIUM</string>
+    <string name="stat_favorite">Yêu thích</string>
+    <string name="stat_playlist">Playlist</string>
+    <string name="stat_expired">Hết hạn</string>
+    <string name="stat_expired_never">Vĩnh viễn</string>
+    <string name="account_info">Thông tin tài khoản</string>
+    <string name="label_device_id">ID thiết bị</string>
+    <string name="label_member_since">Thành viên từ</string>
+    <string name="btn_logout_account">Đăng xuất tài khoản</string>
+    <string name="msg_device_id_copied">Đã sao chép ID thiết bị!</string>
+
+    <!-- SplashScreen -->
+    <string name="splash_universe_subtitle">KHÁM PHÁ VŨ TRỤ SỐ</string>
+    <string name="splash_initializing">ĐANG KHỞI TẠO HỆ THỐNG</string>
+    <string name="splash_designed_by">THIẾT KẾ BỞI CHESKO</string>
+
+    <!-- About Screen -->
+    <string name="about_title">Về ứng dụng</string>
+    <string name="about_version">Phiên bản %1$s (Ổn định)</string>
+    <string name="about_description">Stream Pro là trình phát IPTV hiện đại được thiết kế để mang lại trải nghiệm xem tốt nhất với giao diện sạch sẽ và hiệu suất cao.</string>
+    <string name="about_label_developer">Nhà phát triển</string>
+    <string name="about_label_dev_team">Đội ngũ phát triển Chesko</string>
+    <string name="about_label_license">Giấy phép</string>
+    <string name="about_label_license_val">Đăng ký Premium</string>
+    <string name="about_label_website">Trang web</string>
+    <string name="about_support_dev">Hỗ trợ nhà phát triển</string>
+    <string name="about_donation_msg">Nếu bạn thích ứng dụng này, bạn có thể đóng góp để hỗ trợ phát triển thêm.</string>
+    <string name="about_copy_number">Sao chép số</string>
+    <string name="about_label_dana_name">Tên: Bae***** Ati**</string>
+    <string name="about_footer_rights">© %1$d Stream Pro IPTV. Bảo lưu mọi quyền.</string>
+
+    <!-- EPG Screen -->
+    <string name="epg_title">LỊCH PHÁT SÓNG</string>
+    <string name="epg_search_placeholder">Tìm kênh...</string>
+    <string name="epg_no_program">Không có lịch phát sóng</string>
+
+    <!-- Network Notif -->
+    <string name="net_lost">Mất kết nối internet</string>
+    <string name="net_restored">Đã kết nối lại internet</string>
+
+    <!-- Player Screen -->
+    <string name="player_loading_default">Đang kết nối...</string>
+    <string name="player_loading_video">Đang tải video...</string>
+    <string name="player_loading_stream">Đang tải luồng...</string>
+    <string name="player_preparing">Đang chuẩn bị...</string>
+    <string name="player_ended">Kết thúc phát sóng</string>
+    <string name="player_loading_vlc">Đang tải video (VLC)...</string>
+    <string name="player_fallback_vlc">Chuyển sang VLC...</string>
+    <string name="player_exo_fallback">Exo thất bại, đang thử VLC...</string>
+    <string name="player_error_load">Tải luồng thất bại</string>
+    <string name="player_error_vlc">Lỗi VLC: %1$s</string>
+    <string name="player_on_air">ĐANG PHÁT SÓNG</string>
+    <string name="player_next">TIẾP THEO: %1$s</string>
+    <string name="player_connection_lost">Mất kết nối</string>
+    <string name="player_link_dead">KHÔNG CÓ TÍN HIỆU / LINK HỎNG</string>
+    <string name="player_stopped">Đã dừng phát video.</string>
+    <string name="player_menu_audio">TÙY CHỌN ÂM THANH</string>
+    <string name="player_menu_subtitle">PHỤ ĐỀ / CC</string>
+    <string name="player_menu_quality">CHẤT LƯỢNG VIDEO</string>
+    <string name="player_boost">Tăng cường</string>
+    <string name="player_mute">Tắt tiếng</string>
+    <string name="player_no_subtitle">Không có phụ đề</string>
+    <string name="player_disable">Vô hiệu hóa</string>
+    <string name="player_auto">Tự động</string>
+    <string name="player_default">Mặc định</string>
+    <string name="player_debug_title">Thông tin gỡ lỗi</string>
+    <string name="player_channels_title">KÊNH</string>
+    <string name="loading_message">ĐANG KHÁM PHÁ</string>
+</resources>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vlc_error_discontinuity">Error de reproducción (Problema de discontinuidad/servidor)</string>
+    <string name="player_error_format">Error: %1$s</string>
+    <string name="exo_error_link_dead">ENLACE CAÍDO (404)</string>
+    <string name="exo_error_connection_failed">CONEXIÓN FALLIDA</string>
+    <string name="exo_error_timeout">TIEMPO AGOTADO (TIMEOUT)</string>
+    <string name="exo_error_ssl">ERROR SSL (Usa HTTPS)</string>
+    <string name="exo_error_file_not_found">ARCHIVO NO ENCONTRADO</string>
+    <string name="exo_error_decode_failed">ERROR DE DECODIFICACIÓN</string>
+    <string name="exo_error_unsupported">FORMATO NO COMPATIBLE</string>
+    <string name="exo_error_generic">ERROR (%1$s)</string>
+    <string name="brand_name">StreamPro</string>
+
+    <!-- MainViewModel Strings -->
+    <string name="error_invalid_url">URL M3U no válida. Por favor, comprueba la URL e inténtalo de nuevo.</string>
+    <string name="error_connection_failed">Error de conexión: %1$s</string>
+    <string name="error_no_internet">Conexión a internet no disponible</string>
+    <string name="error_host_not_found">Error al cargar: Host no encontrado. Comprueba la conexión o URL.</string>
+    <string name="error_connection_refused">Error al cargar: Conexión rechazada o el servidor está caído.</string>
+    <string name="error_socket_timeout">Error al cargar: Tiempo de conexión agotado (Timeout).</string>
+    <string name="error_load_playlist_failed">Error al cargar la lista: %1$s</string>
+    <string name="error_save_parse_failed">Error al guardar/procesar el archivo: %1$s</string>
+    <string name="error_no_channels_found">No se encontraron canales en la lista.</string>
+    <string name="error_backup_failed">Error en la copia de seguridad: %1$s</string>
+    <string name="error_restore_failed">Error en la restauración: %1$s</string>
+    <string name="error_invalid_backup_file">Archivo de copia de seguridad no válido o vacío</string>
+    <string name="error_demo_load_failed">Error al cargar la lista demo. Comprueba tu conexión a internet.</string>
+    <string name="error_demo_generic_failed">Error al cargar la demo: %1$s</string>
+    <string name="error_save_photo_failed">Error al guardar la foto: %1$s</string>
+
+    <string name="success_backup">Copia de seguridad realizada con éxito</string>
+    <string name="success_restore">Datos restaurados con éxito</string>
+    <string name="success_cache_cleared">Caché borrada con éxito</string>
+
+    <string name="group_favorites">Favoritos</string>
+    <string name="group_recently_played">Visto Recientemente</string>
+    <string name="group_other">Otros</string>
+
+    <string name="default_user_name">Usuario Stream Pro</string>
+    <string name="default_user_email">user@streampro.com</string>
+    <string name="default_member_since_date">Enero 2026</string>
+    <string name="member_since_format">d \'de\' MMMM \'de\' yyyy</string>
+</resources>

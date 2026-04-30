@@ -52,6 +52,8 @@ import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.FolderZip
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.SettingsBackupRestore
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -71,6 +73,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -103,6 +106,8 @@ import com.chesko.stream_pro.R
 import com.chesko.stream_pro.core.ui.MainViewModel
 import com.chesko.stream_pro.core.utils.NetworkObserver
 import com.chesko.stream_pro.ui.components.shimmerEffect
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import kotlinx.coroutines.launch
 
 /**
@@ -112,9 +117,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     viewModel: MainViewModel,
+    windowSize: WindowSizeClass,
     onNavigateToHome: () -> Unit
 ) {
     val lastUrl by viewModel.lastUrl.collectAsState()
+    val dynamicDemoUrls by viewModel.dynamicDemoUrls.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val isLoading by viewModel.isLoading.collectAsState()
@@ -160,6 +167,12 @@ fun LoginScreen(
         }
     }
 
+    val restorePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { viewModel.restoreBackupFromUri(it, onNavigateToHome) }
+    }
+
     Scaffold(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
@@ -173,8 +186,8 @@ fun LoginScreen(
         },
         containerColor = Color.Transparent,
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
-    ) { _ ->
-        Box(modifier = Modifier.fillMaxSize()) {
+    ) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             MovingPosterWall()
 
             Box(
@@ -200,9 +213,14 @@ fun LoginScreen(
                     },
                 contentAlignment = Alignment.Center
             ) {
+                val containerWidth = when (windowSize.widthSizeClass) {
+                    WindowWidthSizeClass.Compact -> Modifier.fillMaxWidth()
+                    WindowWidthSizeClass.Medium -> Modifier.width(440.dp)
+                    else -> Modifier.width(500.dp)
+                }
+
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = containerWidth
                         .padding(horizontal = 28.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -252,6 +270,12 @@ fun LoginScreen(
                                             modifier = Modifier.weight(1f),
                                             onClick = { selectedTab = 1 }
                                         )
+                                        LoginMethodTab(
+                                            text = stringResource(R.string.tab_restore),
+                                            isSelected = selectedTab == 2,
+                                            modifier = Modifier.weight(1f),
+                                            onClick = { selectedTab = 2 }
+                                        )
                                     }
 
                                     AnimatedContent(
@@ -267,6 +291,7 @@ fun LoginScreen(
                                                 onUrlChange = { url = it },
                                                 isLoading = isLoading,
                                                 isOffline = isOffline,
+                                                dynamicDemoUrls = dynamicDemoUrls,
                                                 onConnect = {
                                                     if (!url.startsWith("http")) {
                                                         scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.invalid_url_protocol)) }
@@ -288,6 +313,10 @@ fun LoginScreen(
                                             1 -> FileSlide(
                                                 isLoading = isLoading,
                                                 onPickFile = { filePickerLauncher.launch("*/*") }
+                                            )
+                                            2 -> RestoreSlide(
+                                                isLoading = isLoading,
+                                                onRestore = { restorePickerLauncher.launch("text/xml") }
                                             )
                                         }
                                     }
@@ -355,6 +384,7 @@ fun UrlSlide(
     onUrlChange: (String) -> Unit,
     isLoading: Boolean,
     isOffline: Boolean = false,
+    dynamicDemoUrls: List<String>,
     onConnect: () -> Unit,
     onDemo: (String) -> Unit
 ) {
@@ -363,40 +393,40 @@ fun UrlSlide(
     if (showDemoDialog) {
         Dialog(onDismissRequest = { showDemoDialog = false }) {
             Surface(
-                modifier = Modifier.width(220.dp),
+                modifier = Modifier.width(240.dp),
                 shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                tonalElevation = 16.dp,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.1f))
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 8.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
                         stringResource(R.string.dialog_explore_demo),
                         fontWeight = FontWeight.Black,
                         letterSpacing = 1.sp,
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.primary
                     )
 
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        MainViewModel.DEMO_URLS.forEachIndexed { index, demoUrl ->
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        dynamicDemoUrls.forEachIndexed { index, demoUrl ->
                             Surface(
                                 onClick = { showDemoDialog = false; onDemo(demoUrl) },
-                                shape = RoundedCornerShape(12.dp),
-                                color = MaterialTheme.colorScheme.onSurface.copy(0.05f),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.06f))
+                                shape = RoundedCornerShape(14.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.08f))
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp).fillMaxWidth(),
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp).fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.Default.Dns, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
-                                    Spacer(Modifier.width(10.dp))
-                                    Text(stringResource(R.string.demo_playlist_label, index + 1), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                    Icon(Icons.Default.Dns, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(stringResource(R.string.demo_playlist_label, index + 1), fontWeight = FontWeight.ExtraBold, fontSize = 13.sp)
                                 }
                             }
                         }
@@ -415,8 +445,8 @@ fun UrlSlide(
     }
 
     val context = LocalContext.current
-    val displayUrl = remember(url) {
-        val demoIndex = MainViewModel.DEMO_URLS.indexOf(url)
+    val displayUrl = remember(url, dynamicDemoUrls) {
+        val demoIndex = dynamicDemoUrls.indexOf(url)
         if (demoIndex != -1) context.getString(R.string.demo_playlist_name, demoIndex + 1) else url
     }
 
@@ -433,7 +463,7 @@ fun UrlSlide(
         OutlinedTextField(
             value = displayUrl,
             onValueChange = { newValue ->
-                if (MainViewModel.DEMO_URLS.contains(url)) {
+                if (dynamicDemoUrls.contains(url)) {
                     onUrlChange(newValue)
                 } else {
                     onUrlChange(newValue)
@@ -451,7 +481,7 @@ fun UrlSlide(
                     }
                 }
             },
-            readOnly = MainViewModel.DEMO_URLS.contains(url),
+            readOnly = dynamicDemoUrls.contains(url),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -519,6 +549,43 @@ fun FileSlide(isLoading: Boolean, onPickFile: () -> Unit) {
             Icon(Icons.Default.FolderZip, null, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Text(stringResource(R.string.btn_browse_files), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+        }
+    }
+}
+
+@Composable
+fun RestoreSlide(isLoading: Boolean, onRestore: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(vertical = 10.dp)) {
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .background(MaterialTheme.colorScheme.primary.copy(0.1f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Default.SettingsBackupRestore, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(stringResource(R.string.restore_label), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Black, letterSpacing = 1.sp, fontSize = 14.sp)
+        Text(
+            stringResource(R.string.restore_msg),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(0.4f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = onRestore,
+            enabled = !isLoading,
+            modifier = Modifier.fillMaxWidth().height(42.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+        ) {
+            Icon(Icons.Default.CloudUpload, null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(stringResource(R.string.btn_restore_xml), fontWeight = FontWeight.Bold, fontSize = 12.sp)
         }
     }
 }

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">StreamPro</string>
+    <string name="settings_title">Настройки</string>
+    <string name="group_player">Видеоплеер</string>
+    <string name="item_engine_title">Движок плеера</string>
+    <string name="item_quality_title">Качество видео</string>
+    <string name="item_hw_title">Аппаратное декодирование</string>
+    <string name="item_buffer_title">Размер буфера</string>
+
+    <string name="group_display">Экран</string>
+    <string name="item_dark_mode">Темная тема</string>
+    <string name="item_language">Язык приложения</string>
+    <string name="item_accent_color">Цвет акцента</string>
+    <string name="item_background">Фон</string>
+
+    <string name="group_data">Данные и память</string>
+    <string name="item_clear_cache">Очистить кэш</string>
+
+    <string name="dialog_language_title">Выберите язык</string>
+    <string name="dialog_engine_title">Выберите движок</string>
+    <string name="dialog_quality_title">Качество видео</string>
+    <string name="dialog_buffer_title">Размер буфера</string>
+    <string name="dialog_background_title">Фон</string>
+
+    <string name="btn_close">Закрыть</string>
+    <string name="btn_cancel">Отмена</string>
+    <string name="btn_apply">Применить</string>
+    <string name="btn_save">Сохранить</string>
+    <string name="background_default">По умолчанию</string>
+    <string name="background_color">Свой цвет</string>
+    <string name="background_image">Свое фото</string>
+    <string name="item_engine_subtitle">Сейчас: %1$s</string>
+    <string name="item_quality_subtitle">Максимум: %1$sp</string>
+    <string name="item_quality_auto">Авто</string>
+    <string name="item_hw_subtitle_on">Режим: Аппаратный (Высокая скорость)</string>
+    <string name="item_hw_subtitle_off">Режим: Программный (Стабильнее)</string>
+    <string name="item_buffer_subtitle">Текущий буфер: %1$ss</string>
+    <string name="item_dark_mode_subtitle">Включить темную тему навсегда</string>
+    <string name="item_language_subtitle">Сейчас: %1$s</string>
+    <string name="item_accent_subtitle">Выбрать основной цвет приложения</string>
+    <string name="item_cache_subtitle">Очистить временные данные</string>
+    <string name="unit_seconds">%1$d Сек.</string>
+
+    <string name="dialog_color_desc">Персонализация темы приложения</string>
+    <string name="dialog_color_custom">Свой цвет</string>
+
+    <!-- Brand -->
+    <string name="brand_name">STREAMPRO</string>
+    <string name="brand_slogan">Премиум развлечения</string>
+    <string name="status_live">ПРЯМОЙ ЭФИР</string>
+    <string name="departure_msg">ВЫХОД ИЗ ВСЕЛЕННОЙ</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_desc_search">Поиск</string>
+    <string name="content_desc_refresh">Обновить</string>
+    <string name="content_desc_menu">Меню</string>
+    <string name="content_desc_close_search">Закрыть поиск</string>
+    <string name="content_desc_scroll_top">Вернуться наверх</string>
+    <string name="content_desc_drm">DRM</string>
+
+    <!-- Home Screen -->
+    <string name="exit_confirm_title">Подтверждение выхода</string>
+    <string name="exit_confirm_msg">Вы уверены, что хотите выйти?</string>
+    <string name="btn_exit">ВЫХОД</string>
+    <string name="premium_badge">ПРЕМИУМ</string>
+    <string name="drawer_group_main">ГЛАВНОЕ</string>
+    <string name="drawer_group_settings">НАСТРОЙКИ</string>
+    <string name="drawer_group_support">ПОДДЕРЖКА</string>
+    <string name="menu_epg">ТВ Программа</string>
+    <string name="menu_settings">Настройки</string>
+    <string name="menu_sync">Синхронизация</string>
+    <string name="menu_backup">Резервная копия</string>
+    <string name="menu_help">Помощь</string>
+    <string name="menu_about">О приложении</string>
+    <string name="menu_logout">Выйти</string>
+    <string name="carousel_rec">РЕКОМЕНДАЦИИ</string>
+    <string name="carousel_watch_now">СМОТРЕТЬ</string>
+    <string name="group_all">Все</string>
+    <string name="search_results">Результаты поиска</string>
+    <string name="search_not_found_title">Упс! Канал не найден</string>
+    <string name="search_not_found_msg">Попробуйте другое слово или проверьте сеть</string>
+    <string name="row_favorite">Избранное</string>
+    <string name="row_history">История просмотра</string>
+    <string name="row_see_all">СМОТРЕТЬ ВСЕ (%1$d)</string>
+    <string name="other_groups">ДРУГИЕ ГРУППЫ</string>
+    <string name="see_less">СКРЫТЬ</string>
+    <string name="see_all">ВСЕ</string>
+    <string name="search_placeholder">Поиск канала или группы…</string>
+    <string name="no_program_info">Нет информации о программе</string>
+
+    <!-- Login Screen -->
+    <string name="tab_remote_url">УДАЛЕННЫЙ URL</string>
+    <string name="tab_local_file">ЛОКАЛЬНЫЙ ФАЙЛ</string>
+    <string name="login_secure_msg">БЕЗОПАСНОЕ ШИФРОВАННОЕ СОЕДИНЕНИЕ</string>
+    <string name="dialog_explore_demo">ДЕМО РЕЖИМ</string>
+    <string name="demo_playlist_label">Демо плейлист %1$d</string>
+    <string name="demo_playlist_name">Универсальный плейлист %1$d</string>
+    <string name="m3u_endpoint_label">M3U URL ПЛЕЙЛИСТА</string>
+    <string name="url_placeholder">https://your-provider.com/playlist.m3u</string>
+    <string name="btn_connect">ПОДКЛЮЧИТЬ</string>
+    <string name="btn_demo">ДЕМО</string>
+    <string name="local_repo_label">ЛОКАЛЬНОЕ ХРАНИЛИЩЕ</string>
+    <string name="local_repo_msg">Импорт .m3u или .m3u8 файлов из памяти устройства</string>
+    <string name="btn_browse_files">ОБЗОР ФАЙЛОВ</string>
+
+    <!-- Help Screen -->
+    <string name="help_center_title">Центр помощи</string>
+    <string name="faq_title">Частые вопросы</string>
+    <string name="faq_subtitle">Найдите ответы на свои вопросы ниже</string>
+    <string name="help_more_title">Нужна помощь?</string>
+    <string name="help_more_msg">Свяжитесь с нами по email: https://chesko-25.vercel.app</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">Мой профиль</string>
+    <string name="edit_name">Изменить имя</string>
+    <string name="edit_email">Изменить email</string>
+    <string name="label_name">Имя</string>
+    <string name="label_email">Email</string>
+    <string name="premium_member">ПРЕМИУМ ПОЛЬЗОВАТЕЛЬ</string>
+    <string name="stat_favorite">Избранное</string>
+    <string name="stat_playlist">Плейлисты</string>
+    <string name="stat_expired">Истекает</string>
+    <string name="stat_expired_never">Никогда</string>
+    <string name="account_info">Информация об аккаунте</string>
+    <string name="label_device_id">ID устройства</string>
+    <string name="label_member_since">В приложении с</string>
+    <string name="btn_logout_account">Выйти из аккаунта</string>
+    <string name="msg_device_id_copied">ID устройства скопирован!</string>
+
+    <!-- SplashScreen -->
+    <string name="splash_universe_subtitle">ИССЛЕДУЙТЕ ЦИФРОВУЮ ВСЕЛЕННУЮ</string>
+    <string name="splash_initializing">ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ</string>
+    <string name="splash_designed_by">ДИЗАЙН CHESKO</string>
+
+    <!-- About Screen -->
+    <string name="about_title">О приложении</string>
+    <string name="about_version">Версия %1$s (Стабильная)</string>
+    <string name="about_description">Stream Pro — современный IPTV плеер для лучшего качества просмотра.</string>
+    <string name="about_label_developer">Разработчик</string>
+    <string name="about_label_dev_team">Команда Chesko</string>
+    <string name="about_label_license">Лицензия</string>
+    <string name="about_label_license_val">Премиум подписка</string>
+    <string name="about_label_website">Сайт</string>
+    <string name="about_footer_rights">© %1$d Stream Pro IPTV. Все права защищены.</string>
+
+    <!-- EPG Screen -->
+    <string name="epg_title">ТВ ПРОГРАММА</string>
+    <string name="epg_search_placeholder">Поиск канала…</string>
+    <string name="epg_no_program">Программа передач недоступна</string>
+
+    <!-- Player Screen -->
+    <string name="player_loading_default">Подключение…</string>
+    <string name="player_loading_video">Загрузка видео…</string>
+    <string name="player_loading_stream">Загрузка потока…</string>
+    <string name="player_preparing">Подготовка…</string>
+    <string name="player_ended">Трансляция завершена</string>
+    <string name="player_loading_vlc">Загрузка видео (VLC)…</string>
+    <string name="player_error_load">Ошибка загрузки потока</string>
+    <string name="player_on_air">В ЭФИРЕ</string>
+    <string name="player_next">ДАЛЕЕ: %1$s</string>
+    <string name="player_connection_lost">Связь прервана</string>
+    <string name="player_link_dead">НЕТ СИГНАЛА / ССЫЛКА НЕ РАБОТАЕТ</string>
+    <string name="player_stopped">Видео остановлено.</string>
+    <string name="player_menu_audio">АУДИО</string>
+    <string name="player_menu_subtitle">СУБТИТРЫ</string>
+    <string name="player_menu_quality">КАЧЕСТВО</string>
+    <string name="player_boost">Усиление</string>
+    <string name="player_mute">Без звука</string>
+    <string name="player_no_subtitle">Без субтитров</string>
+    <string name="player_disable">Выключить</string>
+    <string name="player_auto">Авто</string>
+    <string name="player_default">По умолчанию</string>
+    <string name="player_debug_title">Отладка</string>
+    <string name="player_channels_title">КАНАЛЫ</string>
+    <string name="loading_message">ЗАГРУЗКА ВСЕЛЕННОЙ</string>
+</resources>

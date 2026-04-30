@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">StreamPro</string>
+    <string name="settings_title">设置</string>
+    <string name="group_player">视频播放器</string>
+    <string name="item_engine_title">播放引擎</string>
+    <string name="item_quality_title">视频质量</string>
+    <string name="item_hw_title">硬件解码</string>
+    <string name="item_buffer_title">缓冲大小</string>
+
+    <string name="group_display">显示设置</string>
+    <string name="item_dark_mode">深色模式</string>
+    <string name="item_language">应用语言</string>
+    <string name="item_accent_color">主题颜色</string>
+    <string name="item_background">背景设置</string>
+
+    <string name="group_data">数据和存储</string>
+    <string name="item_clear_cache">清除缓存</string>
+
+    <string name="dialog_language_title">选择语言</string>
+    <string name="dialog_engine_title">选择引擎</string>
+    <string name="dialog_quality_title">视频质量</string>
+    <string name="dialog_buffer_title">缓冲大小</string>
+    <string name="dialog_background_title">背景设置</string>
+
+    <string name="btn_close">关闭</string>
+    <string name="btn_cancel">取消</string>
+    <string name="btn_apply">应用</string>
+    <string name="btn_save">保存</string>
+    <string name="background_default">默认</string>
+    <string name="background_color">自定义颜色</string>
+    <string name="background_image">自定义图片</string>
+    <string name="item_engine_subtitle">当前: %1$s</string>
+    <string name="item_quality_subtitle">最高: %1$sp</string>
+    <string name="item_quality_auto">自动</string>
+    <string name="item_hw_subtitle_on">模式: 硬件解码 (高性能)</string>
+    <string name="item_hw_subtitle_off">模式: 软件解码 (更稳定)</string>
+    <string name="item_buffer_subtitle">当前缓冲: %1$ss</string>
+    <string name="item_dark_mode_subtitle">启用永久深色主题</string>
+    <string name="item_language_subtitle">当前: %1$s</string>
+    <string name="item_accent_subtitle">选择应用标识颜色</string>
+    <string name="item_cache_subtitle">清除应用临时数据</string>
+    <string name="unit_seconds">%1$d 秒</string>
+
+    <string name="dialog_color_desc">个性化应用主题</string>
+    <string name="dialog_color_custom">自定义颜色</string>
+
+    <!-- Brand -->
+    <string name="brand_name">STREAMPRO</string>
+    <string name="brand_slogan">顶级娱乐体验</string>
+    <string name="status_live">直播</string>
+    <string name="departure_msg">正在退出</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_desc_search">搜索</string>
+    <string name="content_desc_refresh">刷新</string>
+    <string name="content_desc_menu">菜单</string>
+    <string name="content_desc_close_search">关闭搜索</string>
+    <string name="content_desc_scroll_top">返回顶部</string>
+    <string name="content_desc_drm">数字版权管理</string>
+
+    <!-- Home Screen -->
+    <string name="exit_confirm_title">退出确认</string>
+    <string name="exit_confirm_msg">您确定要退出吗？</string>
+    <string name="btn_exit">退出</string>
+    <string name="premium_badge">高级版</string>
+    <string name="drawer_group_main">主要</string>
+    <string name="drawer_group_settings">设置</string>
+    <string name="drawer_group_support">支持</string>
+    <string name="menu_epg">节目指南</string>
+    <string name="menu_settings">设置</string>
+    <string name="menu_sync">同步</string>
+    <string name="menu_backup">备份</string>
+    <string name="menu_help">帮助</string>
+    <string name="menu_about">关于</string>
+    <string name="menu_logout">退出登录</string>
+    <string name="carousel_rec">为您推荐</string>
+    <string name="carousel_watch_now">立即观看</string>
+    <string name="group_all">全部</string>
+    <string name="search_results">搜索结果</string>
+    <string name="search_not_found_title">抱歉！未找到频道</string>
+    <string name="search_not_found_msg">请尝试其他关键词或检查网络连接</string>
+    <string name="row_favorite">收藏</string>
+    <string name="row_history">最近播放</string>
+    <string name="row_see_all">查看全部 (%1$d)</string>
+    <string name="other_groups">其他分组</string>
+    <string name="see_less">收起</string>
+    <string name="see_all">查看全部</string>
+    <string name="search_placeholder">搜索频道或分组...</string>
+    <string name="no_program_info">暂无节目信息</string>
+
+    <!-- Login Screen -->
+    <string name="tab_remote_url">远程链接</string>
+    <string name="tab_local_file">本地文件</string>
+    <string name="login_secure_msg">安全加密连接</string>
+    <string name="dialog_explore_demo">探索演示</string>
+    <string name="demo_playlist_label">演示播放列表 %1$d</string>
+    <string name="demo_playlist_name">通用播放列表 %1$d</string>
+    <string name="m3u_endpoint_label">M3U 播放列表地址</string>
+    <string name="url_placeholder">https://your-provider.com/playlist.m3u</string>
+    <string name="btn_connect">连接</string>
+    <string name="btn_demo">演示</string>
+    <string name="local_repo_label">本地存储</string>
+    <string name="local_repo_msg">从设备存储导入 .m3u 或 .m3u8 文件</string>
+    <string name="btn_browse_files">浏览文件</string>
+    <string name="invalid_url_protocol">无效的 URL 协议</string>
+
+    <!-- Help Screen -->
+    <string name="help_center_title">帮助中心</string>
+    <string name="faq_title">常见问题</string>
+    <string name="faq_subtitle">在下方查找问题的答案</string>
+    <string name="help_more_title">仍需帮助？</string>
+    <string name="help_more_msg">请通过电子邮件联系我们的支持团队：https://chesko-25.vercel.app</string>
+
+    <string name="faq_q1">如何添加播放列表？</string>
+    <string name="faq_a1">您可以在登录界面点击“添加”按钮，输入有效的 M3U 链接或从设备中选择文件。</string>
+    <string name="faq_q2">为什么频道无法播放？</string>
+    <string name="faq_a2">请确保网络连接稳定。某些频道可能需要 VPN 或有地区限制。如果问题持续，请联系提供商。</string>
+    <string name="faq_q3">如何查看节目指南 (EPG)？</string>
+    <string name="faq_a3">打开侧边栏菜单，选择“节目指南”。如果播放列表提供 EPG 链接，它将自动下载。</string>
+    <string name="faq_q4">如何添加到收藏？</string>
+    <string name="faq_a4">播放视频时，点击播放控制栏中的“星号”图标。或者在主页列表中长按频道项。</string>
+    <string name="faq_q5">应用运行缓慢怎么办？</string>
+    <string name="faq_a5">您可以尝试在安卓设置中清除缓存，或者减少同时启用的播放列表数量。</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">个人资料</string>
+    <string name="edit_name">修改姓名</string>
+    <string name="edit_email">修改邮箱</string>
+    <string name="label_name">姓名</string>
+    <string name="label_email">邮箱</string>
+    <string name="premium_member">高级会员</string>
+    <string name="stat_favorite">收藏</string>
+    <string name="stat_playlist">列表</string>
+    <string name="stat_expired">过期时间</string>
+    <string name="stat_expired_never">永久有效</string>
+    <string name="account_info">账户信息</string>
+    <string name="label_device_id">设备 ID</string>
+    <string name="label_member_since">加入时间</string>
+    <string name="btn_logout_account">退出账户</string>
+    <string name="msg_device_id_copied">设备 ID 已复制！</string>
+
+    <!-- SplashScreen -->
+    <string name="splash_universe_subtitle">探索数字世界</string>
+    <string name="splash_initializing">系统初始化中</string>
+    <string name="splash_designed_by">由 CHESKO 设计</string>
+
+    <!-- About Screen -->
+    <string name="about_title">关于应用</string>
+    <string name="about_version">版本 %1$s (稳定版)</string>
+    <string name="about_description">Stream Pro 是一款现代 IPTV 播放器，旨在通过简洁的界面和高性能提供最佳观看体验。</string>
+    <string name="about_label_developer">开发者</string>
+    <string name="about_label_dev_team">Chesko 开发团队</string>
+    <string name="about_label_license">许可</string>
+    <string name="about_label_license_val">高级版订阅</string>
+    <string name="about_label_website">官方网站</string>
+    <string name="about_support_dev">支持开发者</string>
+    <string name="about_donation_msg">如果您喜欢此应用，可以进行捐赠以支持进一步开发。</string>
+    <string name="about_copy_number">复制账号</string>
+    <string name="about_label_dana_name">持卡人: Bae***** Ati**</string>
+    <string name="about_footer_rights">© %1$d Stream Pro IPTV。保留所有权利。</string>
+
+    <!-- EPG Screen -->
+    <string name="epg_title">节目指南</string>
+    <string name="epg_search_placeholder">搜索频道...</string>
+    <string name="epg_no_program">暂无播放计划</string>
+
+    <!-- Network Notif -->
+    <string name="net_lost">网络连接已断开</string>
+    <string name="net_restored">网络连接已恢复</string>
+
+    <!-- Player Screen -->
+    <string name="player_loading_default">正在连接...</string>
+    <string name="player_loading_video">正在加载视频...</string>
+    <string name="player_loading_stream">正在加载流媒体...</string>
+    <string name="player_preparing">正在准备...</string>
+    <string name="player_ended">播放已结束</string>
+    <string name="player_loading_vlc">正在加载视频 (VLC)...</string>
+    <string name="player_fallback_vlc">切换至 VLC...</string>
+    <string name="player_exo_fallback">Exo 失败，尝试 VLC...</string>
+    <string name="player_error_load">无法加载媒体流</string>
+    <string name="player_error_vlc">VLC 错误: %1$s</string>
+    <string name="player_on_air">直播中</string>
+    <string name="player_next">下一节目: %1$s</string>
+    <string name="player_connection_lost">连接断开</string>
+    <string name="player_link_dead">无信号 / 链接失效</string>
+    <string name="player_stopped">视频已停止播放。</string>
+    <string name="player_menu_audio">音频选项</string>
+    <string name="player_menu_subtitle">字幕 / CC</string>
+    <string name="player_menu_quality">视频质量</string>
+    <string name="player_boost">增强</string>
+    <string name="player_mute">静音</string>
+    <string name="player_no_subtitle">无字幕</string>
+    <string name="player_disable">禁用</string>
+    <string name="player_auto">自动</string>
+    <string name="player_default">默认</string>
+    <string name="player_debug_title">调试信息</string>
+    <string name="player_channels_title">频道列表</string>
+    <string name="loading_message">正在探索</string>
+</resources>

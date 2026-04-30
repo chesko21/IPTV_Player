@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -48,6 +50,7 @@ import java.util.*
 @Composable
 fun EpgScreen(
     viewModel: MainViewModel,
+    windowSize: WindowSizeClass,
     onBack: () -> Unit,
     onSelectChannel: (IptvChannel) -> Unit
 ) {
@@ -103,8 +106,16 @@ fun EpgScreen(
     }
     val (startTime, endTime, timeSlots) = timeData
 
-    val channelColumnWidth = 100.dp
-    val slotWidth = 200.dp
+    val channelColumnWidth = when (windowSize.widthSizeClass) {
+        WindowWidthSizeClass.Compact -> 100.dp
+        WindowWidthSizeClass.Medium -> 120.dp
+        else -> 140.dp
+    }
+    val slotWidth = when (windowSize.widthSizeClass) {
+        WindowWidthSizeClass.Compact -> 180.dp
+        WindowWidthSizeClass.Medium -> 220.dp
+        else -> 260.dp
+    }
     val density = androidx.compose.ui.platform.LocalDensity.current.density
 
     // Optimized: Smoother scroll positioning
@@ -205,24 +216,22 @@ fun EpgScreen(
 
                 // Optimized: Only show tabs when not searching and groups exist
                 if (groups.isNotEmpty() && !isSearchActive) {
-                    ScrollableTabRow(
+                    SecondaryScrollableTabRow(
                         selectedTabIndex = pagerState.currentPage,
                         containerColor = Color.Transparent,
                         contentColor = MaterialTheme.colorScheme.primary,
                         edgePadding = 16.dp,
                         divider = {},
-                        indicator = { tabPositions ->
-                            if (tabPositions.isNotEmpty()) {
-                                Box(
-                                    modifier = Modifier
-                                        .tabIndicatorOffset(tabPositions[pagerState.currentPage])
-                                        .fillMaxWidth()
-                                        .height(2.dp)
-                                        .padding(horizontal = 12.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary)
-                                )
-                            }
+                        indicator = {
+                            Box(
+                                modifier = Modifier
+                                    .tabIndicatorOffset(pagerState.currentPage)
+                                    .fillMaxWidth()
+                                    .height(3.dp)
+                                    .padding(horizontal = 12.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary)
+                            )
                         }
                     ) {
                         groups.forEachIndexed { index, group ->

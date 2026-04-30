@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">StreamPro</string>
+    <string name="settings_title">Ajustes</string>
+    <string name="group_player">Reproductor de Vídeo</string>
+    <string name="item_engine_title">Motor del Reproductor</string>
+    <string name="item_quality_title">Calidad de Vídeo</string>
+    <string name="item_hw_title">Decodificador por Hardware</string>
+    <string name="item_buffer_title">Tamaño de Búfer</string>
+
+    <string name="group_display">Pantalla</string>
+    <string name="item_dark_mode">Modo Oscuro</string>
+    <string name="item_language">Idioma de la Aplicación</string>
+    <string name="item_accent_color">Color de Acento</string>
+    <string name="item_background">Fondo</string>
+
+    <string name="group_data">Datos y Almacenamiento</string>
+    <string name="item_clear_cache">Borrar Caché</string>
+
+    <string name="dialog_language_title">Seleccionar Idioma</string>
+    <string name="dialog_engine_title">Seleccionar Motor</string>
+    <string name="dialog_quality_title">Calidad de Vídeo</string>
+    <string name="dialog_buffer_title">Tamaño de Búfer</string>
+    <string name="dialog_background_title">Fondo</string>
+
+    <string name="btn_close">Cerrar</string>
+    <string name="btn_cancel">Cancelar</string>
+    <string name="btn_apply">Aplicar</string>
+    <string name="btn_save">Guardar</string>
+    <string name="background_default">Predeterminado</string>
+    <string name="background_color">Color Personalizado</string>
+    <string name="background_image">Imagen Personalizada</string>
+    <string name="item_engine_subtitle">Actual: %1$s</string>
+    <string name="item_quality_subtitle">Máximo: %1$sp</string>
+    <string name="item_quality_auto">Automático</string>
+    <string name="item_hw_subtitle_on">Modo: Hardware (Alto Rendimiento)</string>
+    <string name="item_hw_subtitle_off">Modo: Software (Más Estable)</string>
+    <string name="item_buffer_subtitle">Búfer actual: %1$ss</string>
+    <string name="item_dark_mode_subtitle">Habilitar tema oscuro permanente</string>
+    <string name="item_language_subtitle">Actual: %1$s</string>
+    <string name="item_accent_subtitle">Seleccionar color de identidad</string>
+    <string name="item_cache_subtitle">Limpiar datos temporales</string>
+    <string name="unit_seconds">%1$d Segundos</string>
+
+    <string name="dialog_color_desc">Personalizar tema de la aplicación</string>
+    <string name="dialog_color_custom">Color Personalizado</string>
+
+    <!-- Brand -->
+    <string name="brand_name">STREAMPRO</string>
+    <string name="brand_slogan">Entretenimiento Premium</string>
+    <string name="status_live">EN VIVO</string>
+    <string name="departure_msg">SALIENDO DEL UNIVERSO</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_desc_search">Buscar</string>
+    <string name="content_desc_refresh">Actualizar</string>
+    <string name="content_desc_menu">Menú</string>
+    <string name="content_desc_close_search">Cerrar Búsqueda</string>
+    <string name="content_desc_scroll_top">Volver arriba</string>
+    <string name="content_desc_drm">DRM</string>
+
+    <!-- Home Screen -->
+    <string name="exit_confirm_title">Confirmación de Salida</string>
+    <string name="exit_confirm_msg">¿Estás seguro de que quieres salir?</string>
+    <string name="btn_exit">SALIR</string>
+    <string name="premium_badge">PREMIUM</string>
+    <string name="drawer_group_main">PRINCIPAL</string>
+    <string name="drawer_group_settings">AJUSTES</string>
+    <string name="drawer_group_support">SOPORTE</string>
+    <string name="menu_epg">Guía de TV</string>
+    <string name="menu_settings">Ajustes</string>
+    <string name="menu_sync">Sincronizar</string>
+    <string name="menu_backup">Copia de Seguridad</string>
+    <string name="menu_help">Ayuda</string>
+    <string name="menu_about">Acerca de</string>
+    <string name="menu_logout">Cerrar Sesión</string>
+    <string name="carousel_rec">RECOMENDACIONES</string>
+    <string name="carousel_watch_now">VER AHORA</string>
+    <string name="group_all">Todo</string>
+    <string name="search_results">Resultados de Búsqueda</string>
+    <string name="search_not_found_title">¡Vaya! Canal no encontrado</string>
+    <string name="search_not_found_msg">Prueba con otra palabra clave o revisa tu conexión</string>
+    <string name="row_favorite">Favoritos</string>
+    <string name="row_history">Visto Recientemente</string>
+    <string name="row_see_all">VER TODO (%1$d)</string>
+    <string name="other_groups">OTROS GRUPOS</string>
+    <string name="see_less">VER MENOS</string>
+    <string name="see_all">VER TODO</string>
+    <string name="search_placeholder">Buscar canal o grupo…</string>
+    <string name="no_program_info">Sin info de programa</string>
+
+    <!-- Login Screen -->
+    <string name="tab_remote_url">URL REMOTA</string>
+    <string name="tab_local_file">ARCHIVO LOCAL</string>
+    <string name="login_secure_msg">CONEXIÓN SEGURA CIFRADA</string>
+    <string name="dialog_explore_demo">EXPLORAR DEMO</string>
+    <string name="demo_playlist_label">Lista Demo %1$d</string>
+    <string name="demo_playlist_name">Lista Universal %1$d</string>
+    <string name="m3u_endpoint_label">PUNTO DE ACCESO M3U</string>
+    <string name="url_placeholder">https://tu-proveedor.com/playlist.m3u</string>
+    <string name="btn_connect">CONECTAR</string>
+    <string name="btn_demo">DEMO</string>
+    <string name="local_repo_label">REPOSITORIO LOCAL</string>
+    <string name="local_repo_msg">Importar archivos .m3u o .m3u8 desde tu dispositivo</string>
+    <string name="btn_browse_files">BUSCAR ARCHIVOS</string>
+    <string name="invalid_url_protocol">Protocolo de URL no válido</string>
+
+    <!-- Help Screen -->
+    <string name="help_center_title">Centro de Ayuda</string>
+    <string name="faq_title">Preguntas Frecuentes</string>
+    <string name="faq_subtitle">Encuentra respuestas a tus problemas abajo</string>
+    <string name="help_more_title">¿Aún necesitas ayuda?</string>
+    <string name="help_more_msg">Contacta a nuestro equipo vía email en https://chesko-25.vercel.app para más ayuda.</string>
+
+    <string name="faq_q1">¿Cómo añadir una lista?</string>
+    <string name="faq_a1">Puedes añadir una lista presionando el botón \'Añadir\' en la pantalla de inicio, luego ingresa una URL M3U válida o selecciona un archivo.</string>
+    <string name="faq_q2">¿Por qué no se reproduce el canal?</string>
+    <string name="faq_a2">Asegúrate de que tu conexión sea estable. Algunos canales requieren VPN o tienen restricciones regionales.</string>
+    <string name="faq_q3">¿Cómo ver la guía de TV (EPG)?</string>
+    <string name="faq_a3">Abre el menú lateral y selecciona \'Guía de TV\'. El EPG se descargará automáticamente si la fuente lo permite.</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">Mi Perfil</string>
+    <string name="edit_name">Editar Nombre</string>
+    <string name="edit_email">Editar Email</string>
+    <string name="label_name">Nombre</string>
+    <string name="label_email">Email</string>
+    <string name="premium_member">MIEMBRO PREMIUM</string>
+    <string name="stat_favorite">Favoritos</string>
+    <string name="stat_playlist">Listas</string>
+    <string name="stat_expired">Vence</string>
+    <string name="stat_expired_never">Nunca</string>
+    <string name="account_info">Información de Cuenta</string>
+    <string name="label_device_id">ID de Dispositivo</string>
+    <string name="label_member_since">Miembro desde</string>
+    <string name="btn_logout_account">Cerrar Sesión</string>
+    <string name="msg_device_id_copied">¡ID de dispositivo copiado!</string>
+
+    <!-- SplashScreen -->
+    <string name="splash_universe_subtitle">EXPLORA EL UNIVERSO DIGITAL</string>
+    <string name="splash_initializing">INICIALIZANDO SISTEMA</string>
+    <string name="splash_designed_by">DISEÑADO POR CHESKO</string>
+
+    <!-- About Screen -->
+    <string name="about_title">Acerca de la App</string>
+    <string name="about_version">Versión %1$s (Estable)</string>
+    <string name="about_description">Stream Pro es un reproductor IPTV moderno diseñado para brindar la mejor experiencia con una interfaz limpia.</string>
+    <string name="about_label_developer">Desarrollador</string>
+    <string name="about_label_dev_team">Equipo Chesko</string>
+    <string name="about_label_license">Licencia</string>
+    <string name="about_label_license_val">Suscripción Premium</string>
+    <string name="about_label_website">Sitio Web</string>
+    <string name="about_support_dev">Apoyar Desarrollador</string>
+    <string name="about_footer_rights">© %1$d Stream Pro IPTV. Todos los derechos reservados.</string>
+
+    <!-- EPG Screen -->
+    <string name="epg_title">GUÍA DE TV</string>
+    <string name="epg_search_placeholder">Buscar canal…</string>
+    <string name="epg_no_program">No hay programación disponible</string>
+
+    <!-- Network Notif -->
+    <string name="net_lost">Conexión a internet perdida</string>
+    <string name="net_restored">Conexión a internet restaurada</string>
+
+    <!-- Player Screen -->
+    <string name="player_loading_default">Conectando…</string>
+    <string name="player_loading_video">Cargando Vídeo…</string>
+    <string name="player_loading_stream">Cargando Streaming…</string>
+    <string name="player_preparing">Preparando…</string>
+    <string name="player_ended">Emisión Finalizada</string>
+    <string name="player_loading_vlc">Cargando Vídeo (VLC)…</string>
+    <string name="player_error_load">Error al cargar streaming</string>
+    <string name="player_on_air">EN EMISIÓN</string>
+    <string name="player_next">PRÓXIMO: %1$s</string>
+    <string name="player_connection_lost">Conexión Perdida</string>
+    <string name="player_link_dead">SIN SEÑAL / ENLACE CAÍDO</string>
+    <string name="player_stopped">El vídeo se detuvo.</string>
+    <string name="player_menu_audio">OPCIONES DE AUDIO</string>
+    <string name="player_menu_subtitle">SUBTÍTULOS / CC</string>
+    <string name="player_menu_quality">CALIDAD DE VÍDEO</string>
+    <string name="player_boost">Potenciar</string>
+    <string name="player_mute">Silenciar</string>
+    <string name="player_no_subtitle">Sin Subtítulos</string>
+    <string name="player_disable">Desactivar</string>
+    <string name="player_auto">Automático</string>
+    <string name="player_default">Predeterminado</string>
+    <string name="player_debug_title">Info de Depuración</string>
+    <string name="player_channels_title">CANALES</string>
+    <string name="loading_message">EXPLORANDO EL UNIVERSO</string>
+</resources>

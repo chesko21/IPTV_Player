@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vlc_error_discontinuity">Lỗi phát lại (Vấn đề về gián đoạn/máy chủ)</string>
+    <string name="player_error_format">Lỗi: %1$s</string>
+    <string name="exo_error_link_dead">LINK HỎNG (404)</string>
+    <string name="exo_error_connection_failed">KẾT NỐI THẤT BẠI</string>
+    <string name="exo_error_timeout">HẾT THỜI GIAN CHỜ (TIMEOUT)</string>
+    <string name="exo_error_ssl">LỖI SSL (Sử dụng HTTPS)</string>
+    <string name="exo_error_file_not_found">TẬP TIN KHÔNG TÌM THẤY</string>
+    <string name="exo_error_decode_failed">LỖI GIẢI MÃ</string>
+    <string name="exo_error_unsupported">ĐỊNH DẠNG KHÔNG ĐƯỢC HỖ TRỢ</string>
+    <string name="exo_error_generic">LỖI (%1$s)</string>
+    <string name="brand_name">StreamPro</string>
+
+    <!-- MainViewModel Strings -->
+    <string name="error_invalid_url">URL M3U không hợp lệ. Vui lòng kiểm tra lại URL.</string>
+    <string name="error_connection_failed">Kết nối thất bại: %1$s</string>
+    <string name="error_no_internet">Kết nối internet không khả dụng</string>
+    <string name="error_host_not_found">Tải thất bại: Không tìm thấy máy chủ. Kiểm tra kết nối hoặc URL.</string>
+    <string name="error_connection_refused">Tải thất bại: Kết nối bị từ chối hoặc máy chủ đang ngoại tuyến.</string>
+    <string name="error_socket_timeout">Tải thất bại: Hết thời gian chờ kết nối (Timeout).</string>
+    <string name="error_load_playlist_failed">Không thể tải danh sách phát: %1$s</string>
+    <string name="error_save_parse_failed">Không thể lưu/phân tích tập tin: %1$s</string>
+    <string name="error_no_channels_found">Không tìm thấy kênh nào trong danh sách phát.</string>
+    <string name="error_backup_failed">Sao lưu thất bại: %1$s</string>
+    <string name="error_restore_failed">Khôi phục thất bại: %1$s</string>
+    <string name="error_invalid_backup_file">Tập tin sao lưu không hợp lệ hoặc trống</string>
+    <string name="error_demo_load_failed">Không thể tải danh sách phát demo. Kiểm tra kết nối internet.</string>
+    <string name="error_demo_generic_failed">Không thể tải demo: %1$s</string>
+    <string name="error_save_photo_failed">Không thể lưu ảnh: %1$s</string>
+
+    <string name="success_backup">Sao lưu dữ liệu thành công</string>
+    <string name="success_restore">Khôi phục dữ liệu thành công</string>
+    <string name="success_cache_cleared">Đã xóa bộ nhớ đệm thành công</string>
+
+    <string name="group_favorites">Yêu thích</string>
+    <string name="group_recently_played">Đã xem gần đây</string>
+    <string name="group_other">Khác</string>
+
+    <string name="default_user_name">Người dùng Stream Pro</string>
+    <string name="default_user_email">user@streampro.com</string>
+    <string name="default_member_since_date">Tháng 1 năm 2026</string>
+    <string name="member_since_format">d MMMM yyyy</string>
+</resources>

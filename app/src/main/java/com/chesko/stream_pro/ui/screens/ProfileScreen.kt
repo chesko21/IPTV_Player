@@ -16,6 +16,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,7 +48,11 @@ import com.chesko.stream_pro.core.ui.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
+fun ProfileScreen(
+    viewModel: MainViewModel,
+    windowSize: WindowSizeClass,
+    onBack: () -> Unit
+) {
     val userName by viewModel.userName.collectAsState()
     val userEmail by viewModel.userEmail.collectAsState()
     val profileImageUri by viewModel.profileImageUri.collectAsState()
@@ -172,190 +178,295 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
+        val contentPadding = if (windowSize.widthSizeClass == WindowWidthSizeClass.Expanded) 48.dp else 20.dp
+        
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = contentPadding)
                 .padding(top = 8.dp, bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Profile Image
-            Box(
-                modifier = Modifier
-                    .size(110.dp)
-                    .clickable { launcher.launch("image/*") },
-                contentAlignment = Alignment.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                        .border(3.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                    contentAlignment = Alignment.Center
+            if (windowSize.widthSizeClass == WindowWidthSizeClass.Expanded) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(48.dp),
+                    verticalAlignment = Alignment.Top
                 ) {
-                    key(profileImageUri, refreshTrigger) {
-                        if (profileImageUri != null) {
-                            AsyncImage(
-                                model = profileImageUri,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Icon(
-                                Icons.Default.Person,
-                                contentDescription = null,
-                                modifier = Modifier.size(44.dp),
-                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                            )
-                        }
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        ProfileHeader(
+                            profileImageUri,
+                            refreshTrigger,
+                            launcher,
+                            userName,
+                            userEmail,
+                            onEditName = {
+                                tempName = userName
+                                showEditNameDialog = true
+                            }
+                        )
+                        
+                        Spacer(modifier = Modifier.height(32.dp))
+                        
+                        StatsRow(favoriteChannels)
+                    }
+                    
+                    Column(
+                        modifier = Modifier.weight(1.2f),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        ProfileDetails(
+                            userEmail,
+                            deviceId,
+                            memberSince,
+                            onEditEmail = {
+                                tempEmail = userEmail
+                                showEditEmailDialog = true
+                            },
+                            clipboardManager,
+                            snackbarHostState,
+                            context,
+                            scope
+                        )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        LogoutButton()
                     }
                 }
-
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
-                        .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
-                        .padding(4.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.CameraAlt,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(14.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // User Info
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable {
+            } else {
+                ProfileHeader(
+                    profileImageUri,
+                    refreshTrigger,
+                    launcher,
+                    userName,
+                    userEmail,
+                    onEditName = {
                         tempName = userName
                         showEditNameDialog = true
                     }
-                ) {
-                    Text(
-                        userName,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Icon(
-                        Icons.Default.Edit,
-                        contentDescription = "Edit",
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
-                    )
-                }
+                )
 
-                Text(
+                Spacer(modifier = Modifier.height(24.dp))
+
+                StatsRow(favoriteChannels)
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                ProfileDetails(
                     userEmail,
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Stats Row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f), RoundedCornerShape(12.dp))
-                    .padding(vertical = 16.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                MinimalStatItem(
-                    value = favoriteChannels.size.toString(),
-                    label = stringResource(R.string.stat_favorite)
-                )
-                MinimalStatItem(
-                    value = "1",
-                    label = stringResource(R.string.stat_playlist)
-                )
-                MinimalStatItem(
-                    value = "∞",
-                    label = stringResource(R.string.stat_expired)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Details Section
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    stringResource(R.string.account_info),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
-                )
-
-                MinimalDetailItem(
-                    icon = Icons.Default.Email,
-                    label = stringResource(R.string.label_email),
-                    value = userEmail,
-                    onClick = {
+                    deviceId,
+                    memberSince,
+                    onEditEmail = {
                         tempEmail = userEmail
                         showEditEmailDialog = true
+                    },
+                    clipboardManager,
+                    snackbarHostState,
+                    context,
+                    scope
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                LogoutButton()
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileHeader(
+    profileImageUri: String?,
+    refreshTrigger: Int,
+    launcher: androidx.activity.result.ActivityResultLauncher<String>,
+    userName: String,
+    userEmail: String,
+    onEditName: () -> Unit
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        // Profile Image
+        Box(
+            modifier = Modifier
+                .size(110.dp)
+                .clickable { launcher.launch("image/*") },
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape)
+                    .border(3.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                key(profileImageUri, refreshTrigger) {
+                    if (profileImageUri != null) {
+                        AsyncImage(
+                            model = profileImageUri,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.size(44.dp),
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        )
                     }
-                )
-                MinimalDetailItem(
-                    icon = Icons.Default.ContentCopy,
-                    label = stringResource(R.string.label_device_id),
-                    value = deviceId.take(12) + "...",
-                    onClick = {
-                        scope.launch {
-                            clipboardManager.setClipEntry(androidx.compose.ui.platform.ClipEntry(ClipData.newPlainText("Device ID", deviceId)))
-                            snackbarHostState.showSnackbar(context.getString(R.string.msg_device_id_copied))
-                        }
-                    }
-                )
-                MinimalDetailItem(
-                    icon = Icons.Default.DateRange,
-                    label = stringResource(R.string.label_member_since),
-                    value = memberSince
-                )
+                }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Logout Button
-            OutlinedButton(
-                onClick = { /* viewModel.logout() */ },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                ),
-                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
+                    .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                    .padding(4.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.AutoMirrored.Filled.Logout,
+                    Icons.Default.CameraAlt,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    stringResource(R.string.btn_logout_account),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(14.dp)
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // User Info
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { onEditName() }
+            ) {
+                Text(
+                    userName,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                )
+            }
+
+            Text(
+                userEmail,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun StatsRow(favoriteChannels: List<com.chesko.stream_pro.core.data.model.IptvChannel>) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f), RoundedCornerShape(12.dp))
+            .padding(vertical = 16.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        MinimalStatItem(
+            value = favoriteChannels.size.toString(),
+            label = stringResource(R.string.stat_favorite)
+        )
+        MinimalStatItem(
+            value = "1",
+            label = stringResource(R.string.stat_playlist)
+        )
+        MinimalStatItem(
+            value = "∞",
+            label = stringResource(R.string.stat_expired)
+        )
+    }
+}
+
+@Composable
+fun ProfileDetails(
+    userEmail: String,
+    deviceId: String,
+    memberSince: String,
+    onEditEmail: () -> Unit,
+    clipboardManager: androidx.compose.ui.platform.Clipboard,
+    snackbarHostState: SnackbarHostState,
+    context: android.content.Context,
+    scope: kotlinx.coroutines.CoroutineScope
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            stringResource(R.string.account_info),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+        )
+
+        MinimalDetailItem(
+            icon = Icons.Default.Email,
+            label = stringResource(R.string.label_email),
+            value = userEmail,
+            onClick = onEditEmail
+        )
+        MinimalDetailItem(
+            icon = Icons.Default.ContentCopy,
+            label = stringResource(R.string.label_device_id),
+            value = deviceId.take(12) + "...",
+            onClick = {
+                scope.launch {
+                    clipboardManager.setClipEntry(androidx.compose.ui.platform.ClipEntry(android.content.ClipData.newPlainText("Device ID", deviceId)))
+                    snackbarHostState.showSnackbar(context.getString(R.string.msg_device_id_copied))
+                }
+            }
+        )
+        MinimalDetailItem(
+            icon = Icons.Default.DateRange,
+            label = stringResource(R.string.label_member_since),
+            value = memberSince
+        )
+    }
+}
+
+@Composable
+fun LogoutButton() {
+    OutlinedButton(
+        onClick = { /* viewModel.logout() */ },
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = MaterialTheme.colorScheme.error
+        ),
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
+    ) {
+        Icon(
+            Icons.AutoMirrored.Filled.Logout,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            stringResource(R.string.btn_logout_account),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 

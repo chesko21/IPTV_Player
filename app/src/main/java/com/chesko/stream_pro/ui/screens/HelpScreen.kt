@@ -22,11 +22,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import com.chesko.stream_pro.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HelpScreen(onBack: () -> Unit) {
+fun HelpScreen(
+    windowSize: WindowSizeClass,
+    onBack: () -> Unit
+) {
     var isBackInvoked by remember { mutableStateOf(false) }
     val faqList = listOf(
         FaqItem(
@@ -84,13 +89,23 @@ fun HelpScreen(onBack: () -> Unit) {
         },
         containerColor = Color.Transparent
     ) { padding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            contentAlignment = Alignment.TopCenter
         ) {
+            val contentWidth = when (windowSize.widthSizeClass) {
+                WindowWidthSizeClass.Compact -> Modifier.fillMaxWidth()
+                WindowWidthSizeClass.Medium -> Modifier.width(480.dp)
+                else -> Modifier.width(560.dp)
+            }
+
+            LazyColumn(
+                modifier = contentWidth,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
             // Header Section - More Compact
             item {
                 Column(
@@ -156,6 +171,7 @@ fun HelpScreen(onBack: () -> Unit) {
             }
         }
     }
+}
 }
 
 data class FaqItem(val question: String, val answer: String)

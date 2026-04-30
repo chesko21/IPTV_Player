@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">StreamPro</string>
+    <string name="settings_title">設定</string>
+    <string name="group_player">ビデオプレーヤー</string>
+    <string name="item_engine_title">再生エンジン</string>
+    <string name="item_quality_title">画質</string>
+    <string name="item_hw_title">ハードウェアデコード</string>
+    <string name="item_buffer_title">バッファサイズ</string>
+
+    <string name="group_display">表示設定</string>
+    <string name="item_dark_mode">ダークモード</string>
+    <string name="item_language">アプリの言語</string>
+    <string name="item_accent_color">アクセントカラー</string>
+    <string name="item_background">背景設定</string>
+
+    <string name="group_data">データとストレージ</string>
+    <string name="item_clear_cache">キャッシュを消去</string>
+
+    <string name="dialog_language_title">言語を選択</string>
+    <string name="dialog_engine_title">エンジンを選択</string>
+    <string name="dialog_quality_title">画質設定</string>
+    <string name="dialog_buffer_title">バッファサイズ</string>
+    <string name="dialog_background_title">背景設定</string>
+
+    <string name="btn_close">閉じる</string>
+    <string name="btn_cancel">キャンセル</string>
+    <string name="btn_apply">適用</string>
+    <string name="btn_save">保存</string>
+    <string name="background_default">デフォルト</string>
+    <string name="background_color">カスタムカラー</string>
+    <string name="background_image">カスタム画像</string>
+    <string name="item_engine_subtitle">現在: %1$s</string>
+    <string name="item_quality_subtitle">最大: %1$sp</string>
+    <string name="item_quality_auto">自動</string>
+    <string name="item_hw_subtitle_on">モード: ハードウェア (高パフォーマンス)</string>
+    <string name="item_hw_subtitle_off">モード: ソフトウェア (安定性重視)</string>
+    <string name="item_buffer_subtitle">現在のバッファ: %1$ss</string>
+    <string name="item_dark_mode_subtitle">ダークテーマを常に有効にする</string>
+    <string name="item_language_subtitle">現在: %1$s</string>
+    <string name="item_accent_subtitle">アプリのブランドカラーを選択</string>
+    <string name="item_cache_subtitle">アプリの一時データを削除</string>
+    <string name="unit_seconds">%1$d 秒</string>
+
+    <string name="dialog_color_desc">アプリのテーマをカスタマイズ</string>
+    <string name="dialog_color_custom">カスタムカラー</string>
+
+    <!-- Brand -->
+    <string name="brand_name">STREAMPRO</string>
+    <string name="brand_slogan">プレミアムエンターテインメント</string>
+    <string name="status_live">ライブ</string>
+    <string name="departure_msg">宇宙から退出中</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_desc_search">検索</string>
+    <string name="content_desc_refresh">更新</string>
+    <string name="content_desc_menu">メニュー</string>
+    <string name="content_desc_close_search">検索を閉じる</string>
+    <string name="content_desc_scroll_top">トップへ戻る</string>
+    <string name="content_desc_drm">DRM</string>
+
+    <!-- Home Screen -->
+    <string name="exit_confirm_title">終了の確認</string>
+    <string name="exit_confirm_msg">アプリを終了しますか？</string>
+    <string name="btn_exit">終了</string>
+    <string name="premium_badge">プレミアム</string>
+    <string name="drawer_group_main">メイン</string>
+    <string name="drawer_group_settings">設定</string>
+    <string name="drawer_group_support">サポート</string>
+    <string name="menu_epg">番組表</string>
+    <string name="menu_settings">設定</string>
+    <string name="menu_sync">同期</string>
+    <string name="menu_backup">バックアップ</string>
+    <string name="menu_help">ヘルプ</string>
+    <string name="menu_about">アプリについて</string>
+    <string name="menu_logout">ログアウト</string>
+    <string name="carousel_rec">おすすめ</string>
+    <string name="carousel_watch_now">今すぐ見る</string>
+    <string name="group_all">すべて</string>
+    <string name="search_results">検索結果</string>
+    <string name="search_not_found_title">チャンネルが見つかりません</string>
+    <string name="search_not_found_msg">別のキーワードを試すか、接続を確認してください</string>
+    <string name="row_favorite">お気に入り</string>
+    <string name="row_history">最近見たチャンネル</string>
+    <string name="row_see_all">すべて表示 (%1$d)</string>
+    <string name="other_groups">その他のグループ</string>
+    <string name="see_less">折りたたむ</string>
+    <string name="see_all">すべて見る</string>
+    <string name="search_placeholder">チャンネルまたはグループを検索…</string>
+    <string name="no_program_info">番組情報なし</string>
+
+    <!-- Login Screen -->
+    <string name="tab_remote_url">リモートURL</string>
+    <string name="tab_local_file">ローカルファイル</string>
+    <string name="login_secure_msg">暗号化された安全な接続</string>
+    <string name="dialog_explore_demo">デモを探索</string>
+    <string name="demo_playlist_label">デモプレイリスト %1$d</string>
+    <string name="demo_playlist_name">ユニバーサルプレイリスト %1$d</string>
+    <string name="m3u_endpoint_label">M3Uプレイリストのエンドポイント</string>
+    <string name="url_placeholder">https://your-provider.com/playlist.m3u</string>
+    <string name="btn_connect">接続</string>
+    <string name="btn_demo">デモ</string>
+    <string name="local_repo_label">ローカルリポジトリ</string>
+    <string name="local_repo_msg">デバイスから .m3u/.m3u8 ファイルをインポート</string>
+    <string name="btn_browse_files">ファイルを参照</string>
+
+    <!-- Help Screen -->
+    <string name="help_center_title">ヘルプセンター</string>
+    <string name="faq_title">よくある質問</string>
+    <string name="faq_subtitle">お困りの際はこちらをご覧ください</string>
+    <string name="help_more_title">解決しない場合</string>
+    <string name="help_more_msg">サポートチーム（https://chesko-25.vercel.app）までメールでお問い合わせください。</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">マイプロフィール</string>
+    <string name="edit_name">名前を編集</string>
+    <string name="edit_email">メールを編集</string>
+    <string name="label_name">名前</string>
+    <string name="label_email">メールアドレス</string>
+    <string name="premium_member">プレミアム会員</string>
+    <string name="stat_favorite">お気に入り</string>
+    <string name="stat_playlist">リスト</string>
+    <string name="stat_expired">有効期限</string>
+    <string name="stat_expired_never">無期限</string>
+    <string name="account_info">アカウント情報</string>
+    <string name="label_device_id">デバイスID</string>
+    <string name="label_member_since">会員登録日</string>
+    <string name="btn_logout_account">ログアウト</string>
+    <string name="msg_device_id_copied">デバイスIDをコピーしました！</string>
+
+    <!-- SplashScreen -->
+    <string name="splash_universe_subtitle">デジタル宇宙を探索</string>
+    <string name="splash_initializing">システムを初期化中</string>
+    <string name="splash_designed_by">DESIGNED BY CHESKO</string>
+
+    <!-- About Screen -->
+    <string name="about_title">アプリについて</string>
+    <string name="about_version">バージョン %1$s (安定版)</string>
+    <string name="about_description">Stream Proは、最高の視聴体験を提供するモダンなIPTVプレーヤーです。</string>
+    <string name="about_label_developer">開発者</string>
+    <string name="about_label_dev_team">Chesko開発チーム</string>
+    <string name="about_label_license">ライセンス</string>
+    <string name="about_label_license_val">プレミアムサブスクリプション</string>
+    <string name="about_label_website">ウェブサイト</string>
+    <string name="about_footer_rights">© %1$d Stream Pro IPTV. All rights reserved.</string>
+
+    <!-- EPG Screen -->
+    <string name="epg_title">番組表</string>
+    <string name="epg_search_placeholder">チャンネルを検索…</string>
+    <string name="epg_no_program">放送予定はありません</string>
+
+    <!-- Player Screen -->
+    <string name="player_loading_default">接続中…</string>
+    <string name="player_loading_video">ビデオを読み込み中…</string>
+    <string name="player_loading_stream">ストリームを読み込み中…</string>
+    <string name="player_preparing">準備中…</string>
+    <string name="player_ended">放送終了</string>
+    <string name="player_loading_vlc">ビデオを読み込み中 (VLC)…</string>
+    <string name="player_error_load">読み込みに失敗しました</string>
+    <string name="player_on_air">放送中</string>
+    <string name="player_next">次: %1$s</string>
+    <string name="player_connection_lost">接続が切れました</string>
+    <string name="player_link_dead">信号なし / リンク切れ</string>
+    <string name="player_stopped">再生が停止しました。</string>
+    <string name="player_menu_audio">音声設定</string>
+    <string name="player_menu_subtitle">字幕設定</string>
+    <string name="player_menu_quality">画質設定</string>
+    <string name="player_boost">ブースト</string>
+    <string name="player_mute">ミュート</string>
+    <string name="player_no_subtitle">字幕なし</string>
+    <string name="player_disable">無効</string>
+    <string name="player_auto">自動</string>
+    <string name="player_default">デフォルト</string>
+    <string name="player_debug_title">デバッグ情報</string>
+    <string name="player_channels_title">チャンネル</string>
+    <string name="loading_message">宇宙を探索中</string>
+</resources>
