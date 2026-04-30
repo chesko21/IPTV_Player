@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -19,7 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
+import android.content.ClipData
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
@@ -28,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
+import kotlinx.coroutines.launch
 import com.chesko.stream_pro.BuildConfig
 import com.chesko.stream_pro.R
 import java.util.Calendar
@@ -179,7 +182,7 @@ fun AboutScreen(onBack: () -> Unit) {
 
 @Composable
 fun DonationSection() {
-    val clipboardManager = LocalClipboardManager.current
+    val clipboardManager = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val danaNumber = "08976248342"
     var showSnackbar by remember { mutableStateOf(false) }
@@ -234,8 +237,10 @@ fun DonationSection() {
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
                     .clickable {
-                        clipboardManager.setText(AnnotatedString(danaNumber))
-                        showSnackbar = true
+                        scope.launch {
+                            clipboardManager.setClipEntry(androidx.compose.ui.platform.ClipEntry(ClipData.newPlainText("DANA", danaNumber)))
+                            showSnackbar = true
+                        }
                     },
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
@@ -244,6 +249,25 @@ fun DonationSection() {
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // DANA Logo
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF118EEA)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "D",
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Black,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.width(12.dp))
+
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             "DANA",
@@ -322,7 +346,7 @@ fun AboutInfoItem(
 
 @Composable
 fun HorizontalDivider(modifier: Modifier = Modifier) {
-    Divider(
+    HorizontalDivider(
         modifier = modifier,
         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
         thickness = 0.5.dp

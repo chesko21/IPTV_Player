@@ -127,7 +127,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return try {
             val installTime = getApplication<Application>().packageManager
                 .getPackageInfo(getApplication<Application>().packageName, 0).firstInstallTime
-            val sdf = java.text.SimpleDateFormat("MMMM yyyy", java.util.Locale.getDefault())
+            val sdf = java.text.SimpleDateFormat("d MMMM yyyy", java.util.Locale.getDefault())
             sdf.format(java.util.Date(installTime))
         } catch (e: Exception) {
             "January 2026"

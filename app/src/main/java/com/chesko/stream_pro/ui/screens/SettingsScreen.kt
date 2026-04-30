@@ -353,9 +353,9 @@ fun BackgroundPickerDialog(
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier
-                .width(260.dp)
+                .width(240.dp)
                 .wrapContentHeight(),
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(20.dp),
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
             contentColor = MaterialTheme.colorScheme.onSurface,
             tonalElevation = 6.dp
@@ -433,9 +433,9 @@ fun LanguagePickerDialog(
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier
-                .width(260.dp)
+                .width(240.dp)
                 .wrapContentHeight(),
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(20.dp),
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
             contentColor = MaterialTheme.colorScheme.onSurface,
             tonalElevation = 6.dp
@@ -516,9 +516,9 @@ fun EnginePickerDialog(
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier
-                .width(260.dp)
+                .width(240.dp)
                 .wrapContentHeight(),
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(20.dp),
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
             contentColor = MaterialTheme.colorScheme.onSurface,
             tonalElevation = 6.dp
@@ -596,9 +596,9 @@ fun QualityPickerDialog(
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier
-                .width(260.dp)
+                .width(240.dp)
                 .wrapContentHeight(),
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(20.dp),
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
             contentColor = MaterialTheme.colorScheme.onSurface,
             tonalElevation = 6.dp
@@ -668,9 +668,9 @@ fun BufferPickerDialog(currentBuffer: Int, onDismiss: () -> Unit, onBufferSelect
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier
-                .width(260.dp)
+                .width(240.dp)
                 .wrapContentHeight(),
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(20.dp),
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
             contentColor = MaterialTheme.colorScheme.onSurface,
             tonalElevation = 6.dp
@@ -755,16 +755,16 @@ fun ColorPickerDialog(onDismiss: () -> Unit, onColorSelected: (Color) -> Unit) {
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier
-                .width(320.dp)
+                .width(280.dp)
                 .wrapContentHeight(),
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
             contentColor = MaterialTheme.colorScheme.onSurface,
             tonalElevation = 6.dp
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 // Header
                 Row(
@@ -772,41 +772,25 @@ fun ColorPickerDialog(onDismiss: () -> Unit, onColorSelected: (Color) -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        Text(
-                            stringResource(R.string.item_accent_color),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black
-                        )
-                        Text(
-                            stringResource(R.string.dialog_color_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Text(
+                        stringResource(R.string.item_accent_color),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Black
+                    )
 
                     Surface(
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(20.dp),
                         shape = CircleShape,
                         color = selectedColor,
                         border = androidx.compose.foundation.BorderStroke(
-                            2.dp,
+                            1.5.dp,
                             MaterialTheme.colorScheme.outlineVariant
                         )
                     ) {}
                 }
 
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-
                 // Custom Pickers
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(
-                        stringResource(R.string.dialog_color_custom),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     SaturationValuePicker(
                         hue = hsv[0],
                         saturation = hsv[1],
@@ -826,22 +810,22 @@ fun ColorPickerDialog(onDismiss: () -> Unit, onColorSelected: (Color) -> Unit) {
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(onClick = onDismiss) {
-                        Text(stringResource(R.string.btn_cancel), fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    TextButton(onClick = onDismiss, modifier = Modifier.height(32.dp)) {
+                        Text(stringResource(R.string.btn_cancel), fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     Button(
                         onClick = { onColorSelected(selectedColor) },
-                        shape = RoundedCornerShape(10.dp),
+                        shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = selectedColor),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        modifier = Modifier.height(36.dp)
+                        contentPadding = PaddingValues(horizontal = 12.dp),
+                        modifier = Modifier.height(32.dp)
                     ) {
                         val isLightColor = hsv[2] > 0.7f && hsv[1] < 0.4f
                         Text(
                             stringResource(R.string.btn_apply),
                             fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
+                            fontSize = 12.sp,
                             color = if (isLightColor) Color.Black else Color.White
                         )
                     }
@@ -861,8 +845,8 @@ fun SaturationValuePicker(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(160.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .height(140.dp)
+            .clip(RoundedCornerShape(10.dp))
             .pointerInput(hue) {
                 detectTapGestures { offset ->
                     val s = (offset.x / size.width).coerceIn(0f, 1f)

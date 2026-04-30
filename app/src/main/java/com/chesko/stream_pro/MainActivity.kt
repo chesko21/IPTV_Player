@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -167,6 +168,12 @@ class MainActivity : ComponentActivity() {
                     val currentTime = System.currentTimeMillis()
                     if (currentTime - lastNavigationTime > navigationDebounce) {
                         lastNavigationTime = currentTime
+                        
+                        val currentRoute = navController.currentDestination?.route
+                        if (currentRoute in listOf("settings", "profile", "epg", "about", "help")) {
+                            navController.previousBackStackEntry?.savedStateHandle?.set("open_drawer", true)
+                        }
+
                         if (!navController.popBackStack()) {
                             (navController.context as? Activity)?.finish()
                         }
@@ -226,6 +233,9 @@ class MainActivity : ComponentActivity() {
                                     val adapter =
                                         remember { moshi.adapter(IptvChannel::class.java) }
 
+                                    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+                                    val openDrawer by savedStateHandle?.getLiveData<Boolean>("open_drawer")?.observeAsState(false) ?: remember { mutableStateOf(false) }
+
                                     HomeScreen(
                                         viewModel = viewModel,
                                         onLogout = {
@@ -252,8 +262,15 @@ class MainActivity : ComponentActivity() {
                                                     popUpTo("home")
                                                 }
                                             }
-                                        }
+                                        },
+                                        shouldOpenDrawer = openDrawer
                                     )
+
+                                    LaunchedEffect(openDrawer) {
+                                        if (openDrawer) {
+                                            savedStateHandle?.remove<Boolean>("open_drawer")
+                                        }
+                                    }
                                 }
 
                                 composable("profile") {

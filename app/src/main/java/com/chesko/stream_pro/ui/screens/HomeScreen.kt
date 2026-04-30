@@ -85,7 +85,8 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     onOpenAbout: () -> Unit,
     onOpenHelp: () -> Unit,
-    onSelectChannel: (IptvChannel) -> Unit
+    onSelectChannel: (IptvChannel) -> Unit,
+    shouldOpenDrawer: Boolean = false
 ) {
     val filteredChannels by viewModel.filteredChannels.collectAsState()
     val allChannels by viewModel.allChannels.collectAsState()
@@ -99,6 +100,10 @@ fun HomeScreen(
     val recentlyPlayed by viewModel.recentlyPlayed.collectAsState()
     val favoriteChannels by viewModel.favoriteChannels.collectAsState()
     val randomCarousel by viewModel.randomCarouselChannels.collectAsState()
+
+    val backgroundType by viewModel.backgroundType.collectAsState()
+    val backgroundColorInt by viewModel.backgroundColor.collectAsState()
+    val backgroundImageUri by viewModel.backgroundImageUri.collectAsState()
 
     val context = LocalContext.current
     var showExitDialog by remember { mutableStateOf(false) }
@@ -181,8 +186,14 @@ fun HomeScreen(
         }
     )
 
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerState = rememberDrawerState(initialValue = if (shouldOpenDrawer) DrawerValue.Open else DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(shouldOpenDrawer) {
+        if (shouldOpenDrawer && drawerState.isClosed) {
+            drawerState.open()
+        }
+    }
 
     var isShuttingDown by remember { mutableStateOf(false) }
     val shutdownProgress = remember { Animatable(0f) }
@@ -216,15 +227,14 @@ fun HomeScreen(
         drawerContent = {
             ModalDrawerSheet(
                 modifier = Modifier
-                    .fillMaxWidth(0.65f)
+                    .fillMaxWidth(0.50f)
                     .statusBarsPadding(),
                 drawerShape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp),
-                drawerContainerColor = Color.Transparent
+                drawerContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
+                drawerTonalElevation = 0.dp
             ) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     Column {
                         Box(
@@ -232,7 +242,7 @@ fun HomeScreen(
                                 .fillMaxWidth()
                                 .background(
                                     Brush.verticalGradient(
-                                        listOf(MaterialTheme.colorScheme.primary.copy(0.15f), Color.Transparent)
+                                        listOf(MaterialTheme.colorScheme.primary.copy(0.12f), Color.Transparent)
                                     )
                                 )
                                 .clickable {
@@ -241,14 +251,18 @@ fun HomeScreen(
                                         onOpenProfile()
                                     }
                                 }
-                                .padding(24.dp)
+                                .padding(horizontal = 16.dp, vertical = 24.dp)
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
                                 Surface(
                                     modifier = Modifier.size(60.dp),
                                     shape = CircleShape,
                                     color = MaterialTheme.colorScheme.surfaceVariant,
-                                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(0.2f))
+                                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                                    shadowElevation = 6.dp
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
                                         if (profileImageUri != null) {
@@ -264,55 +278,83 @@ fun HomeScreen(
                                             Image(
                                                 painter = painterResource(id = R.drawable.app_icon_android),
                                                 contentDescription = null,
-                                                modifier = Modifier.size(48.dp)
+                                                modifier = Modifier.size(44.dp)
                                             )
                                         }
                                     }
                                 }
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Column {
+                                Spacer(modifier = Modifier.height(14.dp))
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
                                         userName,
                                         style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Black,
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        textAlign = TextAlign.Center
                                     )
-                                    Surface(
-                                        color = MaterialTheme.colorScheme.primary.copy(0.2f),
-                                        shape = RoundedCornerShape(4.dp)
-                                    ) {
-                                        Text(
-                                            stringResource(R.string.premium_badge),
-                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
+                                    Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         userEmail,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontSize = 10.sp,
+                                        textAlign = TextAlign.Center
                                     )
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    Surface(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        shape = RoundedCornerShape(6.dp)
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Verified,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onPrimary,
+                                                modifier = Modifier.size(10.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text(
+                                                stringResource(R.string.premium_badge).uppercase(),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onPrimary,
+                                                fontWeight = FontWeight.Black,
+                                                fontSize = 9.sp,
+                                                letterSpacing = 0.5.sp
+                                            )
+                                        }
+                                    }
                                 }
+                                Spacer(modifier = Modifier.height(20.dp))
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 12.dp),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                                    thickness = 1.dp
+                                )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
 
                         Column(
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(horizontal = 12.dp)
+                                .padding(horizontal = 8.dp)
                                 .verticalScroll(rememberScrollState())
                         ) {
                             Text(
                                 stringResource(R.string.drawer_group_main),
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 0.5.sp
                             )
 
                             DrawerMenuItem(
@@ -326,17 +368,17 @@ fun HomeScreen(
                                 }
                             )
 
-                            Spacer(modifier = Modifier.height(16.dp))
-                            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(0.05f), modifier = Modifier.padding(horizontal = 16.dp))
-                            Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(0.05f), modifier = Modifier.padding(horizontal = 12.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
 
                             Text(
                                 stringResource(R.string.drawer_group_settings),
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 0.5.sp
                             )
 
                             DrawerMenuItem(
@@ -371,17 +413,17 @@ fun HomeScreen(
                                 }
                             )
 
-                            Spacer(modifier = Modifier.height(16.dp))
-                            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(0.05f), modifier = Modifier.padding(horizontal = 16.dp))
-                            Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(0.05f), modifier = Modifier.padding(horizontal = 12.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
 
                             Text(
                                 stringResource(R.string.drawer_group_support),
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 0.5.sp
                             )
 
                             DrawerMenuItem(
@@ -406,13 +448,13 @@ fun HomeScreen(
                                 }
                             )
 
-                            Spacer(modifier = Modifier.height(32.dp))
+                            Spacer(modifier = Modifier.height(24.dp))
                         }
 
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .padding(horizontal = 12.dp, vertical = 12.dp)
                                 .clickable {
                                     scope.launch {
                                         drawerState.close()
@@ -424,17 +466,18 @@ fun HomeScreen(
                                         onLogout()
                                     }
                                 },
-                            color = Color.Red.copy(0.1f),
+                            color = Color.Red.copy(0.06f),
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, Color.Red.copy(0.2f))
+                            border = BorderStroke(1.dp, Color.Red.copy(0.1f))
                         ) {
                             Row(
-                                modifier = Modifier.padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
                             ) {
-                                Icon(Icons.AutoMirrored.Filled.Logout, null, tint = Color.Red)
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text(stringResource(R.string.menu_logout), color = Color.Red, fontWeight = FontWeight.Bold)
+                                Icon(Icons.AutoMirrored.Filled.Logout, null, tint = Color.Red, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(stringResource(R.string.menu_logout), color = Color.Red, fontWeight = FontWeight.Black, fontSize = 13.sp, letterSpacing = 0.5.sp)
                             }
                         }
 
@@ -444,7 +487,26 @@ fun HomeScreen(
             }
         }
     ) {
-        Box(modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Background Layer
+            when (backgroundType) {
+                "color" -> Box(modifier = Modifier.fillMaxSize().background(Color(backgroundColorInt)))
+                "image" -> {
+                    if (backgroundImageUri != null) {
+                        AsyncImage(
+                            model = backgroundImageUri,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                            alpha = 0.6f
+                        )
+                    } else {
+                        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+                    }
+                }
+                else -> Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+            }
+
             if (isLoading || allChannels.isEmpty()) {
                 ShimmerHomeScreen()
             } else {
@@ -888,7 +950,7 @@ fun EnhancedHeroCarousel(
     }
 
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-    val carouselHeight = (configuration.screenHeightDp * 0.28f).coerceAtMost(260f).dp
+    val carouselHeight = (configuration.screenHeightDp * 0.25f).coerceAtMost(210f).dp
 
     Box(
         modifier = Modifier
@@ -998,20 +1060,20 @@ fun EnhancedHeroCarousel(
                     ) {
                         Surface(
                             modifier = Modifier
-                                .size(120.dp)
+                                .size(100.dp)
                                 .shadow(
-                                    elevation = 20.dp,
-                                    shape = RoundedCornerShape(24.dp),
+                                    elevation = 16.dp,
+                                    shape = RoundedCornerShape(20.dp),
                                     clip = true
                                 ),
-                            shape = RoundedCornerShape(24.dp),
+                            shape = RoundedCornerShape(20.dp),
                             color = Color.Black.copy(alpha = 0.3f),
                             border = BorderStroke(
                                 1.dp,
                                 Brush.linearGradient(
                                     colors = listOf(
-                                        Color.White.copy(alpha = 0.3f),
-                                        Color.White.copy(alpha = 0.1f)
+                                        Color.White.copy(alpha = 0.2f),
+                                        Color.White.copy(alpha = 0.05f)
                                     )
                                 )
                             )
@@ -1021,14 +1083,14 @@ fun EnhancedHeroCarousel(
                                 contentDescription = null,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .padding(8.dp),
+                                    .padding(6.dp),
                                 contentScale = ContentScale.Fit,
                                 error = painterResource(R.drawable.app_icon_android),
                                 placeholder = painterResource(R.drawable.app_icon_android)
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(28.dp))
+                        Spacer(modifier = Modifier.width(20.dp))
 
                         Column(
                             modifier = Modifier.weight(1f),
@@ -1036,47 +1098,47 @@ fun EnhancedHeroCarousel(
                         ) {
                             Surface(
                                 color = MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(6.dp)
+                                shape = RoundedCornerShape(4.dp)
                             ) {
                                 Text(
                                     text = (channel.group?.uppercase() ?: stringResource(R.string.carousel_rec)),
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onPrimary,
                                     fontWeight = FontWeight.ExtraBold,
-                                    letterSpacing = 1.sp,
-                                    fontSize = 9.sp
+                                    letterSpacing = 0.5.sp,
+                                    fontSize = 8.sp
                                 )
                             }
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
                                 text = channel.name,
-                                style = MaterialTheme.typography.headlineMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Black,
                                 color = Color.White,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                fontSize = 28.sp,
-                                lineHeight = 32.sp
+                                fontSize = 22.sp,
+                                lineHeight = 26.sp
                             )
 
-                            Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
 
                             Button(
                                 onClick = { onPlayClick(channel) },
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(10.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
                                     contentColor = MaterialTheme.colorScheme.onPrimary
                                 ),
-                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
-                                modifier = Modifier.height(44.dp)
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                modifier = Modifier.height(38.dp)
                             ) {
-                                Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(18.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(stringResource(R.string.carousel_watch_now), fontWeight = FontWeight.Black, fontSize = 10.sp)
+                                Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(stringResource(R.string.carousel_watch_now), fontWeight = FontWeight.Black, fontSize = 9.sp)
                             }
                         }
                     }
@@ -1088,17 +1150,17 @@ fun EnhancedHeroCarousel(
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp)
+                .padding(bottom = 12.dp)
         ) {
             Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .background(
-                        Color.Black.copy(alpha = 0.4f),
-                        RoundedCornerShape(20.dp)
+                        Color.Black.copy(alpha = 0.3f),
+                        RoundedCornerShape(16.dp)
                     )
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
             ) {
                 val displayCount = channels.size.coerceAtMost(8)
                 repeat(displayCount) { iteration ->
@@ -1106,16 +1168,16 @@ fun EnhancedHeroCarousel(
                     val indicatorColor = if (isSelected)
                         MaterialTheme.colorScheme.primary
                     else
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                    val indicatorWidth = if (isSelected) 28.dp else 8.dp
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                    val indicatorWidth = if (isSelected) 20.dp else 6.dp
 
                     Box(
                         modifier = Modifier
-                            .padding(horizontal = 4.dp)
+                            .padding(horizontal = 3.dp)
                             .clip(CircleShape)
                             .background(indicatorColor)
                             .width(indicatorWidth)
-                            .height(8.dp)
+                            .height(6.dp)
                     )
                 }
             }
@@ -1153,40 +1215,40 @@ fun HeaderSection(
                     if (!isSearchExpanded) MaterialTheme.colorScheme.surface.copy(alpha = alpha.coerceIn(0f, 0.7f))
                     else Color.Transparent
                 )
-                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+                .padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (!isSearchExpanded) {
                 IconButton(
                     onClick = onMenuClick,
                     modifier = Modifier
-                        .size(38.dp)
+                        .size(36.dp)
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
                         .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), CircleShape)
                 ) {
-                    Icon(Icons.Default.Menu, stringResource(R.string.content_desc_menu), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.Menu, stringResource(R.string.content_desc_menu), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(10.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         stringResource(R.string.brand_name),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.primary,
-                        letterSpacing = 1.5.sp
+                        letterSpacing = 1.sp
                     )
                     Text(
                         stringResource(R.string.brand_slogan),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 9.sp
+                        fontSize = 8.sp
                     )
                 }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     HeaderActionButton(Icons.Default.Search, stringResource(R.string.content_desc_search)) { isSearchExpanded = true }
                     HeaderActionButton(Icons.Default.Refresh, stringResource(R.string.content_desc_refresh)) { onRefresh() }
                 }
@@ -1197,12 +1259,12 @@ fun HeaderSection(
                         localSearchQuery = ""
                         onSearchQueryChange("")
                     },
-                    modifier = Modifier.size(44.dp)
+                    modifier = Modifier.size(36.dp)
                 ) {
-                    Icon(Icons.Default.Close, stringResource(R.string.content_desc_close_search), tint = MaterialTheme.colorScheme.onSurface)
+                    Icon(Icons.Default.Close, stringResource(R.string.content_desc_close_search), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(6.dp))
 
                 TextField(
                     value = localSearchQuery,
@@ -1212,35 +1274,38 @@ fun HeaderSection(
                     },
                     modifier = Modifier
                         .weight(1f)
-                        .height(54.dp)
+                        .height(48.dp)
                         .clip(RoundedCornerShape(24.dp)),
                     placeholder = {
                         Text(
                             stringResource(R.string.search_placeholder),
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5f)
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         )
                     },
                     trailingIcon = {
                         if (localSearchQuery.isNotEmpty()) {
-                            IconButton(onClick = {
-                                localSearchQuery = ""
-                                onSearchQueryChange("")
-                            }) {
-                                Icon(Icons.Default.Close, null, modifier = Modifier.size(20.dp))
+                            IconButton(
+                                onClick = {
+                                    localSearchQuery = ""
+                                    onSearchQueryChange("")
+                                },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp))
                             }
                         }
                     },
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         focusedTextColor = MaterialTheme.colorScheme.onSurface,
                         unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                     ),
                     singleLine = true,
-                    textStyle = MaterialTheme.typography.bodyLarge,
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(
                         onSearch = {
@@ -1263,14 +1328,14 @@ fun HeaderActionButton(
     val finalContainerColor = if (containerColor == Color.Unspecified) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f) else containerColor
     Box(
         modifier = Modifier
-            .size(36.dp)
+            .size(32.dp)
             .clip(CircleShape)
             .background(finalContainerColor)
             .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), CircleShape)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Icon(icon, contentDescription, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
+        Icon(icon, contentDescription, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(16.dp))
     }
 }
 
@@ -1349,7 +1414,7 @@ fun ChannelModernItem(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.94f else 1f,
+        targetValue = if (isPressed) 0.96f else 1f,
         label = "scale"
     )
 
@@ -1376,17 +1441,17 @@ fun ChannelModernItem(
                 .fillMaxWidth()
                 .aspectRatio(16f/9f)
                 .shadow(
-                    elevation = if (isPressed) 4.dp else 12.dp,
-                    shape = RoundedCornerShape(16.dp),
-                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                    elevation = if (isPressed) 2.dp else 6.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                 ),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             border = BorderStroke(
-                1.dp,
+                0.5.dp,
                 Brush.linearGradient(
                     listOf(
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                         Color.Transparent
                     )
                 )
@@ -1399,7 +1464,7 @@ fun ChannelModernItem(
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(8.dp),
+                            .padding(6.dp),
                         contentScale = ContentScale.Fit,
                         onLoading = { isImageLoading = true },
                         onSuccess = { isImageLoading = false },
@@ -1416,7 +1481,7 @@ fun ChannelModernItem(
                             Icons.Default.Tv,
                             null,
                             tint = MaterialTheme.colorScheme.onSurface.copy(0.1f),
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(32.dp)
                         )
                     }
                 }
@@ -1425,18 +1490,18 @@ fun ChannelModernItem(
                 if (currentProgram != null) {
                     Surface(
                         color = Color.Red,
-                        shape = RoundedCornerShape(4.dp),
+                        shape = RoundedCornerShape(3.dp),
                         modifier = Modifier
-                            .padding(8.dp)
+                            .padding(6.dp)
                             .align(Alignment.TopStart)
                     ) {
                         Text(
                             stringResource(R.string.status_live),
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White,
                             fontWeight = FontWeight.Black,
-                            fontSize = 9.sp
+                            fontSize = 8.sp
                         )
                     }
                 }
@@ -1445,20 +1510,20 @@ fun ChannelModernItem(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(8.dp),
+                            .padding(6.dp),
                         contentAlignment = Alignment.BottomEnd
                     ) {
                         Surface(
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
                             shape = CircleShape,
-                            modifier = Modifier.size(22.dp)
+                            modifier = Modifier.size(18.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Default.Lock,
                                     contentDescription = stringResource(R.string.content_desc_drm),
                                     tint = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.size(12.dp)
+                                    modifier = Modifier.size(10.dp)
                                 )
                             }
                         }
@@ -1467,29 +1532,29 @@ fun ChannelModernItem(
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         Text(
             text = channel.name,
             color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 14.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.ExtraBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(horizontal = 4.dp)
+            modifier = Modifier.padding(horizontal = 2.dp)
         )
 
         val programText = currentProgram?.title ?: stringResource(R.string.no_program_info)
         Text(
             text = programText,
             color = if (currentProgram != null)
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f),
-            fontSize = 12.sp,
+            fontSize = 10.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             fontWeight = if (currentProgram != null) FontWeight.Bold else FontWeight.Normal,
-            modifier = Modifier.padding(horizontal = 4.dp)
+            modifier = Modifier.padding(horizontal = 2.dp)
         )
     }
 }
@@ -1542,34 +1607,35 @@ fun DrawerMenuItem(icon: ImageVector, label: String, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         color = Color.Transparent,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp, horizontal = 8.dp)
+            .padding(vertical = 1.dp, horizontal = 4.dp)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(36.dp)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
+                    .size(30.dp)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     icon,
                     null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(16.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(12.dp))
             Text(
                 label,
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp
             )
         }
     }

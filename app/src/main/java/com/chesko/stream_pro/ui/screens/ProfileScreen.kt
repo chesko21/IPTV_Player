@@ -33,7 +33,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
+import android.content.ClipData
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -60,7 +61,7 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
     var tempEmail by remember { mutableStateOf("") }
     var isBackInvoked by remember { mutableStateOf(false) }
 
-    val clipboardManager = LocalClipboardManager.current
+    val clipboardManager = LocalClipboard.current
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -183,44 +184,52 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
             // Profile Image
             Box(
                 modifier = Modifier
-                    .size(90.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                    .size(110.dp)
                     .clickable { launcher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
-                key(profileImageUri, refreshTrigger) {
-                    if (profileImageUri != null) {
-                        AsyncImage(
-                            model = profileImageUri,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Icon(
-                            Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.size(40.dp),
-                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                        )
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .border(3.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    key(profileImageUri, refreshTrigger) {
+                        if (profileImageUri != null) {
+                            AsyncImage(
+                                model = profileImageUri,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = null,
+                                modifier = Modifier.size(44.dp),
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                            )
+                        }
                     }
                 }
 
                 Box(
                     modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .size(24.dp)
+                        .align(Alignment.BottomCenter)
+                        .size(28.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary)
+                        .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
                         .padding(4.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         Icons.Default.CameraAlt,
-                        null,
-                        modifier = Modifier.size(12.dp),
-                        tint = Color.White
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(14.dp)
                     )
                 }
             }
@@ -305,12 +314,12 @@ fun ProfileScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                     }
                 )
                 MinimalDetailItem(
-                    icon = Icons.Default.Devices,
+                    icon = Icons.Default.ContentCopy,
                     label = stringResource(R.string.label_device_id),
                     value = deviceId.take(12) + "...",
                     onClick = {
-                        clipboardManager.setText(AnnotatedString(deviceId))
                         scope.launch {
+                            clipboardManager.setClipEntry(androidx.compose.ui.platform.ClipEntry(ClipData.newPlainText("Device ID", deviceId)))
                             snackbarHostState.showSnackbar(context.getString(R.string.msg_device_id_copied))
                         }
                     }

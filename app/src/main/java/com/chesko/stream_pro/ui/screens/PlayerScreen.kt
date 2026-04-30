@@ -62,13 +62,15 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.player.VideoPlayer
-import androidx.compose.ui.platform.LocalClipboardManager
+import android.content.ClipData
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.ClipEntry
+import kotlinx.coroutines.launch
 import androidx.compose.ui.text.AnnotatedString
 import com.chesko.stream_pro.core.ui.MainViewModel
 import com.chesko.stream_pro.core.utils.PlayerUtils
 import com.chesko.stream_pro.core.utils.NetworkObserver
 import com.chesko.stream_pro.core.player.VlcVideoPlayer
-import org.videolan.libvlc.MediaPlayer
 import com.chesko.stream_pro.ui.components.shimmerEffect
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -1367,11 +1369,16 @@ fun DebugInfoDialog(
 
 @Composable
 fun DebugInfoItem(label: String, value: String) {
-    val clipboardManager = LocalClipboardManager.current
+    val clipboardManager = LocalClipboard.current
+    val scope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { clipboardManager.setText(AnnotatedString(value)) }
+            .clickable {
+                scope.launch {
+                    clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(label, value)))
+                }
+            }
             .padding(vertical = 8.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
