@@ -196,5 +196,6 @@
     <string name="player_default">Default</string>
     <string name="player_debug_title">Debug Info</string>
     <string name="player_channels_title">CHANNELS</string>
+    <string name="player_audio_delay">Audio Delay</string>
     <string name="loading_message">EXPLORING UNIVERSE</string>
 </resources>

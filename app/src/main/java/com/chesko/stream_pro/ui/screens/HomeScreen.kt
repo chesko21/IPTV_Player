@@ -48,6 +48,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -75,6 +76,9 @@ import com.chesko.stream_pro.ui.components.shimmerEffect
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.PI
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -110,6 +114,9 @@ fun HomeScreen(
     val context = LocalContext.current
     var showExitDialog by remember { mutableStateOf(false) }
     var isGroupsExpanded by remember { mutableStateOf(false) }
+    
+    var isShuttingDown by remember { mutableStateOf(false) }
+    val shutdownProgress = remember { Animatable(0f) }
 
     val drawerState = rememberDrawerState(initialValue = if (shouldOpenDrawer) DrawerValue.Open else DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -118,7 +125,6 @@ fun HomeScreen(
     BackHandler {
         when {
             drawerState.isOpen -> scope.launch { drawerState.close() }
-            searchQuery.isNotEmpty() -> viewModel.setSearchQuery("")
             selectedGroup != null -> viewModel.setSelectedGroup(null)
             isGroupsExpanded -> isGroupsExpanded = false
             else -> showExitDialog = true
@@ -171,7 +177,18 @@ fun HomeScreen(
                             Text(stringResource(R.string.btn_cancel).uppercase(), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                         }
                         Button(
-                            onClick = { (context as? Activity)?.finish() },
+                            onClick = {
+                                showExitDialog = false
+                                scope.launch {
+                                    isShuttingDown = true
+                                    shutdownProgress.animateTo(
+                                        targetValue = 1f,
+                                        animationSpec = tween(4500, easing = LinearOutSlowInEasing)
+                                    )
+                                    delay(200)
+                                    (context as? Activity)?.finish()
+                                }
+                            },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(10.dp),
                             contentPadding = PaddingValues(0.dp),
@@ -197,9 +214,6 @@ fun HomeScreen(
             drawerState.open()
         }
     }
-
-    var isShuttingDown by remember { mutableStateOf(false) }
-    val shutdownProgress = remember { Animatable(0f) }
 
     val lazyListState = rememberLazyListState()
     val groupLazyListState = rememberLazyListState()
@@ -469,8 +483,9 @@ fun HomeScreen(
                                         isShuttingDown = true
                                         shutdownProgress.animateTo(
                                             targetValue = 1f,
-                                            animationSpec = tween(1500, easing = FastOutSlowInEasing)
+                                            animationSpec = tween(4500, easing = LinearOutSlowInEasing)
                                         )
+                                        delay(200)
                                         onLogout()
                                     }
                                 },
@@ -881,29 +896,74 @@ fun HomeScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = (progress * 1.5f).coerceIn(0f, 1f)))
+                        .background(Color.Black.copy(alpha = (progress * 1.2f).coerceIn(0f, 1f)))
                 ) {
-                    // Cosmic Warp Effect (Stars moving towards viewer)
+                    // Nebula Background Glow
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .drawBehind {
+                                val nebulaBrush = Brush.radialGradient(
+                                    colors = listOf(
+                                        Color(0xFF240046).copy(alpha = progress * 0.4f),
+                                        Color(0xFF10002B).copy(alpha = progress * 0.2f),
+                                        Color.Transparent
+                                    ),
+                                    center = center,
+                                    radius = size.maxDimension * 0.7f
+                                )
+                                drawRect(brush = nebulaBrush)
+                            }
+                    )
+
+                    // Cosmic Warp Effect (Stars moving towards viewer with streaks)
                     androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
                         val center = Offset(size.width / 2, size.height / 2)
-                        val particleCount = 120
-                        val random = java.util.Random(42) // Consistent seed
+                        val particleCount = 200 // Increased count
+                        val random = java.util.Random(42)
                         
                         for (i in 0 until particleCount) {
-                            val angle = random.nextFloat() * 2 * Math.PI
+                            val angle = random.nextFloat() * 2 * PI
                             val startDist = random.nextFloat() * size.width
-                            // Accelerate outwards
-                            val currentDist = (startDist + (progress * progress * size.width * 2f)) % (size.width * 1.5f)
                             
-                            val x = center.x + (Math.cos(angle) * currentDist).toFloat()
-                            val y = center.y + (Math.sin(angle) * currentDist).toFloat()
+                            // High speed warp acceleration
+                            val speedFactor = progress * progress * progress * progress 
+                            val currentDist = (startDist + (speedFactor * size.width * 4.0f)) % (size.width * 2.0f)
                             
-                            val starAlpha = (1f - (currentDist / (size.width * 1.2f))).coerceIn(0f, 1f) * progress
-                            val starSize = (1f + (currentDist / size.width) * 3f).dp.toPx()
+                            // Add a subtle swirl to the warp
+                            val swirlAngle = angle + (progress * 0.5f)
                             
+                            val x = center.x + (cos(swirlAngle) * currentDist).toFloat()
+                            val y = center.y + (sin(swirlAngle) * currentDist).toFloat()
+                            
+                            val starAlpha = (1f - (currentDist / (size.width * 1.8f))).coerceIn(0f, 1f) * progress
+                            val starSize = (1f + (currentDist / size.width) * 5f).dp.toPx()
+                            
+                            // Universe Theme Colors (Cyan, Magenta, White)
+                            val starColor = when {
+                                i % 8 == 0 -> Color(0xFF00E5FF) // Cyan
+                                i % 12 == 0 -> Color(0xFFD500F9) // Magenta
+                                else -> Color.White
+                            }
+
+                            // Draw Star Streak
+                            if (progress > 0.1f) {
+                                val streakLength = (currentDist * 0.15f * progress).coerceAtMost(100f)
+                                val prevX = center.x + (cos(swirlAngle) * (currentDist - streakLength)).toFloat()
+                                val prevY = center.y + (sin(swirlAngle) * (currentDist - streakLength)).toFloat()
+                                
+                                drawLine(
+                                    color = starColor,
+                                    start = Offset(prevX, prevY),
+                                    end = Offset(x, y),
+                                    strokeWidth = starSize * 0.5f,
+                                    alpha = starAlpha * 0.5f
+                                )
+                            }
+
                             drawCircle(
                                 brush = Brush.radialGradient(
-                                    colors = listOf(Color.White, Color.Transparent),
+                                    colors = listOf(starColor, Color.Transparent),
                                     center = Offset(x, y),
                                     radius = starSize
                                 ),
@@ -914,11 +974,11 @@ fun HomeScreen(
                         }
                     }
 
-                    // Stage 1: Text Presentation (Modern, Minimal, Elegant)
+                    // Stage 1: Text Presentation (with Glow/Neon effect)
                     val textAlpha = when {
-                        progress < 0.15f -> progress / 0.15f
-                        progress < 0.55f -> 1f
-                        progress < 0.85f -> 1f - (progress - 0.55f) / 0.3f
+                        progress < 0.1f -> progress / 0.1f
+                        progress < 0.75f -> 1f
+                        progress < 0.95f -> 1f - (progress - 0.75f) / 0.2f
                         else -> 0f
                     }.coerceIn(0f, 1f)
 
@@ -928,88 +988,116 @@ fun HomeScreen(
                                 .align(Alignment.Center)
                                 .graphicsLayer {
                                     alpha = textAlpha
-                                    scaleX = 0.85f + progress * 0.3f
-                                    scaleY = 0.85f + progress * 0.3f
+                                    scaleX = 0.9f + progress * 0.3f
+                                    scaleY = 0.9f + progress * 0.3f
                                     translationY = -progress * 40f
                                 },
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+                            // Sub-header
+                            Text(
+                                text = "SYSTEM DISCONNECT",
+                                color = Color(0xFF00E5FF).copy(alpha = 0.7f),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 4.sp
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            // Main Departure Message
                             Text(
                                 text = stringResource(R.string.departure_msg).uppercase(),
                                 color = Color.White,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.ExtraBold,
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Black,
                                 letterSpacing = (12 + progress * 24).sp,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.blur(if (progress > 0.8f) ((progress - 0.8f) * 20).dp else 0.dp)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            // Animated Divider
                             Box(
                                 modifier = Modifier
-                                    .width((40 + progress * 100).dp)
-                                    .height(1.dp)
+                                    .width((80 + progress * 120).dp)
+                                    .height(2.dp)
                                     .background(
                                         Brush.horizontalGradient(
-                                            listOf(Color.Transparent, Color.White.copy(0.5f), Color.Transparent)
+                                            listOf(
+                                                Color.Transparent, 
+                                                Color(0xFF00E5FF).copy(0.5f), 
+                                                Color.White, 
+                                                Color(0xFFD500F9).copy(0.5f), 
+                                                Color.Transparent
+                                            )
                                         )
                                     )
                             )
                         }
                     }
 
-                    // Stage 2: CRT Collapse (begins at 0.4)
-                    val crtProgress = ((progress - 0.4f) / 0.6f).coerceIn(0f, 1f)
+                    // Stage 2: Dimensional Rift (CRT + Universe Twist)
+                    val riftStartTime = 0.5f
+                    val riftProgress = ((progress - riftStartTime) / (1f - riftStartTime)).coerceIn(0f, 1f)
                     
-                    if (progress > 0.4f) {
-                        val vScale = if (crtProgress < 0.75f) {
-                            (1f - (crtProgress / 0.75f)).coerceAtLeast(0.001f)
+                    if (progress > riftStartTime) {
+                        val vScale = if (riftProgress < 0.85f) {
+                            (1f - (riftProgress / 0.85f)).coerceAtLeast(0.001f)
                         } else 0.001f
                         
-                        val hScale = if (crtProgress < 0.75f) 1f 
-                                    else (1f - (crtProgress - 0.75f) / 0.2f).coerceAtLeast(0.001f)
+                        val hScale = if (riftProgress < 0.85f) 1f 
+                                    else (1f - (riftProgress - 0.85f) / 0.15f).coerceAtLeast(0.001f)
                         
-                        val beamAlpha = if (crtProgress < 0.95f) 1f 
-                                       else (1f - (crtProgress - 0.95f) / 0.05f).coerceIn(0f, 1f)
+                        val beamAlpha = if (riftProgress < 0.98f) 1f 
+                                       else (1f - (riftProgress - 0.98f) / 0.02f).coerceIn(0f, 1f)
 
-                        // Elegant Cosmic Beam
                         Box(
                             modifier = Modifier
                                 .align(Alignment.Center)
                                 .fillMaxWidth()
-                                .height(2.dp)
+                                .height(4.dp)
                                 .graphicsLayer {
-                                    scaleY = vScale * 600f
+                                    scaleY = vScale * 1000f
                                     scaleX = hScale
                                     alpha = beamAlpha
                                 }
                                 .background(
                                     Brush.horizontalGradient(
-                                        listOf(
+                                        colors = listOf(
                                             Color.Transparent, 
-                                            Color(0xFF00E5FF).copy(0.8f), 
+                                            Color(0xFF00E5FF).copy(0.6f),
+                                            Color(0xFF00E5FF),
                                             Color.White, 
-                                            Color(0xFFD500F9).copy(0.8f), 
+                                            Color(0xFFD500F9),
+                                            Color(0xFFD500F9).copy(0.6f),
                                             Color.Transparent
                                         )
                                     )
                                 )
-                                .blur(if (vScale > 0.05f) 12.dp else 2.dp)
+                                .blur(if (vScale > 0.02f) 24.dp else 6.dp)
                         )
                     }
 
-                    // Final Singularity Flash
-                    if (crtProgress > 0.9f) {
-                        val dotScale = (1f - (crtProgress - 0.9f) / 0.1f).coerceIn(0f, 1f)
+                    // Final Cosmic Singularity Dot
+                    if (riftProgress > 0.90f) {
+                        val dotScale = (1f - (riftProgress - 0.90f) / 0.1f).coerceIn(0f, 1f)
                         Box(
                             modifier = Modifier
                                 .align(Alignment.Center)
-                                .size(4.dp)
+                                .size(8.dp)
                                 .graphicsLayer {
-                                    scaleX = dotScale * 5f
-                                    scaleY = dotScale * 5f
+                                    scaleX = dotScale * 10f
+                                    scaleY = dotScale * 10f
                                     alpha = dotScale
                                 }
-                                .background(Color.White, CircleShape)
-                                .blur(4.dp)
+                                .background(
+                                    Brush.radialGradient(
+                                        listOf(Color.White, Color(0xFF00E5FF), Color.Transparent)
+                                    ),
+                                    CircleShape
+                                )
+                                .blur(8.dp)
                         )
                     }
                 }
@@ -1333,7 +1421,7 @@ fun HeaderSection(
     onMenuClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var isSearchExpanded by remember { mutableStateOf(false) }
+    var isSearchExpanded by remember { mutableStateOf(searchQuery.isNotEmpty()) }
     var localSearchQuery by remember { mutableStateOf(searchQuery) }
 
     LaunchedEffect(searchQuery) {
@@ -1401,19 +1489,6 @@ fun HeaderSection(
                     HeaderActionButton(Icons.Default.Refresh, stringResource(R.string.content_desc_refresh)) { onRefresh() }
                 }
             } else {
-                IconButton(
-                    onClick = {
-                        isSearchExpanded = false
-                        localSearchQuery = ""
-                        onSearchQueryChange("")
-                    },
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Icon(Icons.Default.Close, stringResource(R.string.content_desc_close_search), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
-                }
-
-                Spacer(modifier = Modifier.width(6.dp))
-
                 TextField(
                     value = localSearchQuery,
                     onValueChange = {
@@ -1432,16 +1507,25 @@ fun HeaderSection(
                         )
                     },
                     trailingIcon = {
-                        if (localSearchQuery.isNotEmpty()) {
-                            IconButton(
-                                onClick = {
+                        IconButton(
+                            onClick = {
+                                if (localSearchQuery.isNotEmpty()) {
                                     localSearchQuery = ""
                                     onSearchQueryChange("")
-                                },
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp))
-                            }
+                                } else {
+                                    isSearchExpanded = false
+                                }
+                            },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = if (localSearchQuery.isNotEmpty())
+                                    stringResource(R.string.content_desc_close_search)
+                                else stringResource(R.string.content_desc_close_search),
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(18.dp)
+                            )
                         }
                     },
                     colors = TextFieldDefaults.colors(

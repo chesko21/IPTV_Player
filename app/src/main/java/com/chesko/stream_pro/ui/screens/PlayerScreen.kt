@@ -13,15 +13,19 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
@@ -80,6 +84,7 @@ import android.content.pm.ApplicationInfo
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.abs
 
 private fun isDebugMode(context: Context): Boolean {
     return (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
@@ -92,17 +97,27 @@ fun ChannelInfoBar(
     currentProgram: com.chesko.stream_pro.core.data.model.EpgProgram?,
     nextProgram: com.chesko.stream_pro.core.data.model.EpgProgram?,
     showFullControls: Boolean,
-    exoPlayer: ExoPlayer?
+    exoPlayer: ExoPlayer?,
+    vlcPlayer: org.videolan.libvlc.MediaPlayer?,
+    onSeek: (Long) -> Unit
 ) {
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
     var playbackPosition by remember { mutableLongStateOf(0L) }
     var playbackDuration by remember { mutableLongStateOf(0L) }
+    var isDragging by remember { mutableStateOf(false) }
+    var dragPosition by remember { mutableFloatStateOf(0f) }
 
-    LaunchedEffect(exoPlayer) {
-        val player = exoPlayer ?: return@LaunchedEffect
+    LaunchedEffect(exoPlayer, vlcPlayer) {
         while (true) {
-            playbackPosition = player.currentPosition
-            playbackDuration = player.duration
+            if (!isDragging) {
+                if (exoPlayer != null) {
+                    playbackPosition = exoPlayer.currentPosition
+                    playbackDuration = exoPlayer.duration
+                } else if (vlcPlayer != null) {
+                    playbackPosition = vlcPlayer.time
+                    playbackDuration = vlcPlayer.length
+                }
+            }
             delay(1000)
         }
     }
@@ -222,22 +237,56 @@ fun ChannelInfoBar(
             // Progress Bar (VOD or EPG)
             if (playbackDuration > 0) {
                 Column {
-                    LinearProgressIndicator(
-                        progress = { (playbackPosition.toFloat() / playbackDuration.toFloat()).coerceIn(0f, 1f) },
+                    val currentProgress = if (isDragging) dragPosition else (playbackPosition.toFloat() / playbackDuration.toFloat()).coerceIn(0f, 1f)
+                    
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(3.dp)
-                            .clip(CircleShape),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = Color.White.copy(alpha = 0.15f)
-                    )
+                            .height(12.dp)
+                            .pointerInput(playbackDuration) {
+                                detectDragGestures(
+                                    onDragStart = { offset ->
+                                        isDragging = true
+                                        dragPosition = (offset.x / size.width).coerceIn(0f, 1f)
+                                    },
+                                    onDragEnd = {
+                                        onSeek((dragPosition * playbackDuration).toLong())
+                                        isDragging = false
+                                    },
+                                    onDragCancel = {
+                                        isDragging = false
+                                    },
+                                    onDrag = { change, dragAmount ->
+                                        change.consume()
+                                        dragPosition = (change.position.x / size.width).coerceIn(0f, 1f)
+                                    }
+                                )
+                            }
+                            .pointerInput(playbackDuration) {
+                                detectTapGestures { offset ->
+                                    val newPos = (offset.x / size.width).coerceIn(0f, 1f)
+                                    onSeek((newPos * playbackDuration).toLong())
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        LinearProgressIndicator(
+                            progress = { currentProgress },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(2.dp)
+                                .clip(CircleShape),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = Color.White.copy(alpha = 0.15f)
+                        )
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            PlayerUtils.formatTime(playbackPosition),
+                            PlayerUtils.formatTime(if (isDragging) (dragPosition * playbackDuration).toLong() else playbackPosition),
                             color = Color.White.copy(0.7f),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
@@ -274,9 +323,9 @@ fun ChannelInfoBar(
 
 
 @Composable
-fun PlayerTheme(content: @Composable () -> Unit) {
+fun PlayerTheme(accentColor: Color, content: @Composable () -> Unit) {
     val playerColorScheme = darkColorScheme(
-        primary = Color(0xFF2979FF),
+        primary = accentColor,
         onPrimary = Color.White,
         surface = Color(0xFF1A1A1A),
         onSurface = Color(0xFFE1E1E1),
@@ -305,7 +354,10 @@ fun PlayerScreen(
     windowSize: WindowSizeClass,
     onBack: () -> Unit
 ) {
-    PlayerTheme {
+    val accentColorInt by viewModel.accentColor.collectAsState()
+    val accentColor = Color(accentColorInt)
+    
+    PlayerTheme(accentColor = accentColor) {
         PlayerScreenContent(viewModel, channel, windowSize, onBack)
     }
 }
@@ -325,6 +377,7 @@ fun PlayerScreenContent(
     val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
 
     var showControls by remember { mutableStateOf(true) }
+    var isClosing by remember { mutableStateOf(false) }
 
     val setSystemBarsVisibility = remember {
         { visible: Boolean ->
@@ -352,14 +405,8 @@ fun PlayerScreenContent(
 
     val isDebug = remember { isDebugMode(context) }
 
-    DisposableEffect(Unit) {
-        activity?.window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        onDispose {
-            activity?.window?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        }
-    }
-
     val allChannels by viewModel.filteredChannels.collectAsState()
+    val groups by viewModel.groups.collectAsState()
     var currentChannel by remember { mutableStateOf(channel) }
 
     val favoriteChannels by viewModel.favoriteChannels.collectAsState()
@@ -407,12 +454,42 @@ fun PlayerScreenContent(
     var exoPlayer by remember { mutableStateOf<ExoPlayer?>(null) }
     var vlcPlayer by remember { mutableStateOf<org.videolan.libvlc.MediaPlayer?>(null) }
 
-    var brightness by remember { mutableFloatStateOf(activity?.window?.attributes?.screenBrightness ?: 0.5f) }
+    DisposableEffect(Unit) {
+        activity?.window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        onDispose {
+            activity?.window?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            exoPlayer?.let {
+                it.stop()
+                it.release()
+            }
+            vlcPlayer?.let {
+                try {
+                    it.stop()
+                    it.detachViews()
+                } catch (_: Exception) {}
+            }
+        }
+    }
+
+    var brightness by remember {
+        val initialBrightness = activity?.window?.attributes?.screenBrightness ?: -1f
+        val startVal = if (initialBrightness < 0) {
+            try {
+                android.provider.Settings.System.getInt(context.contentResolver, android.provider.Settings.System.SCREEN_BRIGHTNESS) / 255f
+            } catch (e: Exception) { 0.5f }
+        } else initialBrightness
+        mutableFloatStateOf(startVal)
+    }
+    
     var volume by remember {
         mutableFloatStateOf(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() /
                 audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC))
     }
     var gestureType by remember { mutableStateOf<String?>(null) }
+    
+    var seekPosition by remember { mutableLongStateOf(0L) }
+    var seekTarget by remember { mutableLongStateOf(0L) }
+    var seekDuration by remember { mutableLongStateOf(0L) }
 
     var isBuffering by remember { mutableStateOf(false) }
     var isPlaybackStuck by remember { mutableStateOf(false) }
@@ -636,6 +713,9 @@ fun PlayerScreenContent(
                 isFullscreen = false
                 activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             } else {
+                isClosing = true
+                exoPlayer?.stop()
+                vlcPlayer?.stop()
                 onBack()
             }
         }
@@ -677,11 +757,12 @@ fun PlayerScreenContent(
     }
 
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0A0A0A))) {
-        AnimatedContent(
-            targetState = currentChannel to activeEngine,
-            transitionSpec = { fadeIn(tween(500)) togetherWith fadeOut(tween(500)) },
-            label = "VideoTransition"
-        ) { (targetChannel, engine) ->
+        if (!isClosing) {
+            AnimatedContent(
+                targetState = currentChannel to activeEngine,
+                transitionSpec = { fadeIn(tween(500)) togetherWith fadeOut(tween(500)) },
+                label = "VideoTransition"
+            ) { (targetChannel, engine) ->
             val playerLoadingVlc = stringResource(R.string.player_loading_vlc)
             val playerErrorVlc = stringResource(R.string.player_error_vlc)
             val playerExoFallback = stringResource(R.string.player_exo_fallback)
@@ -746,71 +827,48 @@ fun PlayerScreenContent(
                 )
             }
         }
+    }
 
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(isLocked, showChannelList) {
-                    detectTapGestures(
-                        onTap = {
-                            if (!showChannelList) showControls = !showControls
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(isLocked, showChannelList) {
+                if (isLocked || showChannelList) return@pointerInput
+
+                detectVerticalDragGestures(
+                    onDragEnd = { gestureType = null },
+                    onDragCancel = { gestureType = null },
+                    onVerticalDrag = { change, dragAmount ->
+                        change.consume()
+                        val delta = -dragAmount / size.height
+                        if (change.position.x < size.width / 2) {
+                            gestureType = "Brightness"
+                            brightness = (brightness + delta).coerceIn(0.01f, 1f)
+                            activity?.let {
+                                val lp = it.window.attributes
+                                lp.screenBrightness = brightness
+                                it.window.attributes = lp
+                            }
+                        } else {
+                            gestureType = "Volume"
+                            volume = (volume + delta).coerceIn(0f, 1f)
+                            val maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, (volume * maxVol).toInt(), 0)
                         }
-                    )
-                }
-        ) {
-            if (!isLocked) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.4f)
-                        .align(Alignment.Center)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(1f)
-                            .pointerInput(Unit) {
-                                detectVerticalDragGestures(
-                                    onDragStart = { gestureType = "Brightness" },
-                                    onDragEnd = { gestureType = null },
-                                    onDragCancel = { gestureType = null },
-                                    onVerticalDrag = { change, dragAmount ->
-                                        change.consume()
-                                        val delta = -dragAmount / size.height
-                                        brightness = (brightness + delta).coerceIn(0.01f, 1f)
-                                        activity?.let {
-                                            val lp = it.window.attributes
-                                            lp.screenBrightness = brightness
-                                            it.window.attributes = lp
-                                        }
-                                    }
-                                )
-                            }
-                    )
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(1f)
-                            .pointerInput(Unit) {
-                                detectVerticalDragGestures(
-                                    onDragStart = { gestureType = "Volume" },
-                                    onDragEnd = { gestureType = null },
-                                    onDragCancel = { gestureType = null },
-                                    onVerticalDrag = { change, dragAmount ->
-                                        change.consume()
-                                        val delta = -dragAmount / size.height
-                                        volume = (volume + delta).coerceIn(0f, 1f)
-                                        val maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-                                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, (volume * maxVol).toInt(), 0)
-                                    }
-                                )
-                            }
-                    )
-                }
+                    }
+                )
             }
-        }
+            .pointerInput(isLocked, showChannelList) {
+                detectTapGestures(
+                    onTap = {
+                        if (!showChannelList) showControls = !showControls
+                    }
+                )
+            }
+    ) {
+        // Overlay logic...
+    }
 
 
         if (isPlaybackStuck && !isBuffering) {
@@ -886,7 +944,15 @@ fun PlayerScreenContent(
                 currentProgram = currentProgram,
                 nextProgram = nextProgram,
                 showFullControls = showControls,
-                exoPlayer = exoPlayer
+                exoPlayer = exoPlayer,
+                vlcPlayer = vlcPlayer,
+                onSeek = { position ->
+                    if (activeEngine == "VLC") {
+                        vlcPlayer?.time = position
+                    } else {
+                        exoPlayer?.seekTo(position)
+                    }
+                }
             )
         }
 
@@ -939,7 +1005,7 @@ fun PlayerScreenContent(
             )
         }
 
-        GestureHUD(gestureType, brightness, volume)
+        GestureHUD(gestureType, brightness, volume, seekPosition, seekTarget, seekDuration)
 
         // Floating Menus (Audio, CC, Quality) positioned above buttons
         val menuModifier = Modifier
@@ -1025,7 +1091,8 @@ fun PlayerScreenContent(
             modifier = Modifier.align(Alignment.CenterEnd)
         ) {
             QuickChannelList(
-                channels = currentGroupChannels,
+                allChannels = allChannels,
+                groups = groups,
                 currentChannel = currentChannel,
                 onChannelSelect = {
                     currentChannel = it
@@ -1039,7 +1106,7 @@ fun PlayerScreenContent(
 }
 
 @Composable
-fun GestureHUD(type: String?, brightness: Float, volume: Float) {
+fun GestureHUD(type: String?, brightness: Float, volume: Float, seekPosition: Long, seekTarget: Long, seekDuration: Long) {
     var visible by remember { mutableStateOf(false) }
     var currentType by remember { mutableStateOf<String?>(null) }
 
@@ -1060,33 +1127,88 @@ fun GestureHUD(type: String?, brightness: Float, volume: Float) {
         modifier = Modifier.fillMaxSize()
     ) {
         val displayType = currentType ?: return@AnimatedVisibility
-        Box(contentAlignment = if (displayType == "Brightness") Alignment.CenterStart else Alignment.CenterEnd) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(horizontal = 48.dp)
-            ) {
-                Icon(
-                    imageVector = if (displayType == "Brightness") Icons.Default.Brightness6 else Icons.AutoMirrored.Filled.VolumeUp,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Box(
-                    modifier = Modifier
-                        .width(4.dp)
-                        .height(150.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(0.2f))
+        
+        if (displayType == "Seek") {
+            Box(contentAlignment = Alignment.Center) {
+                Surface(
+                    color = Color.Black.copy(alpha = 0.6f),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Color.White.copy(0.1f))
                 ) {
-                    val progress = if (displayType == "Brightness") brightness else volume
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(24.dp)
+                    ) {
+                        val isForward = seekTarget >= seekPosition
+                        Icon(
+                            imageVector = if (isForward) Icons.Default.FastForward else Icons.Default.FastRewind,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                PlayerUtils.formatTime(seekTarget),
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Black
+                            )
+                            Text(
+                                " / ${PlayerUtils.formatTime(seekDuration)}",
+                                color = Color.White.copy(alpha = 0.6f),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                        
+                        val diff = seekTarget - seekPosition
+                        Text(
+                            text = "${if (diff >= 0) "+" else ""}${PlayerUtils.formatTime(Math.abs(diff))}",
+                            color = if (isForward) Color.Green else Color.Red,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        LinearProgressIndicator(
+                            progress = { (seekTarget.toFloat() / seekDuration.toFloat()).coerceIn(0f, 1f) },
+                            modifier = Modifier.width(200.dp).height(4.dp).clip(CircleShape),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = Color.White.copy(0.1f)
+                        )
+                    }
+                }
+            }
+        } else {
+            Box(contentAlignment = if (displayType == "Brightness") Alignment.CenterStart else Alignment.CenterEnd) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = 48.dp)
+                ) {
+                    Icon(
+                        imageVector = if (displayType == "Brightness") Icons.Default.Brightness6 else Icons.AutoMirrored.Filled.VolumeUp,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(progress)
-                            .align(Alignment.BottomCenter)
-                            .background(MaterialTheme.colorScheme.primary)
-                    )
+                            .width(4.dp)
+                            .height(150.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(0.2f))
+                    ) {
+                        val progress = if (displayType == "Brightness") brightness else volume
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(progress)
+                                .align(Alignment.BottomCenter)
+                                .background(MaterialTheme.colorScheme.primary)
+                        )
+                    }
                 }
             }
         }
@@ -1141,7 +1263,7 @@ fun TrackSelectionMenu(
     }
 
     Surface(
-        modifier = Modifier.width(180.dp).padding(8.dp),
+        modifier = Modifier.width(200.dp).padding(8.dp),
         shape = RoundedCornerShape(16.dp),
         color = Color(0xFF1E1E1E).copy(alpha = 0.85f),
         tonalElevation = 4.dp,
@@ -1156,6 +1278,56 @@ fun TrackSelectionMenu(
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(8.dp))
+
+            if (trackType == C.TRACK_TYPE_AUDIO && vlcPlayer != null) {
+                var currentDelay by remember { mutableLongStateOf(vlcPlayer.audioDelay / 1000) } // ms
+                
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.White.copy(0.05f))
+                        .padding(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        stringResource(R.string.player_audio_delay),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(0.6f)
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        IconButton(
+                            onClick = { 
+                                currentDelay -= 50
+                                vlcPlayer.audioDelay = currentDelay * 1000
+                            },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(Icons.Default.Remove, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                        }
+                        Text(
+                            text = "${currentDelay}ms",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        IconButton(
+                            onClick = { 
+                                currentDelay += 50
+                                vlcPlayer.audioDelay = currentDelay * 1000
+                            },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(Icons.Default.Add, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                }
+            }
 
             if (showAudioBoost && onAudioBoostToggle != null) {
                 Row(
@@ -1642,93 +1814,132 @@ fun PlayerControlAction(icon: ImageVector, tint: Color = Color.White, onClick: (
 
 @Composable
 fun QuickChannelList(
-    channels: List<IptvChannel>,
+    allChannels: List<IptvChannel>,
+    groups: List<String>,
     currentChannel: IptvChannel,
     onChannelSelect: (IptvChannel) -> Unit,
     onClose: () -> Unit
 ) {
+    val listState = rememberLazyListState()
+
+    // Auto-scroll to current channel
+    LaunchedEffect(allChannels) {
+        val index = allChannels.indexOfFirst { it.url == currentChannel.url }
+        if (index >= 0) {
+            listState.animateScrollToItem(index)
+        }
+    }
+
     Surface(
         modifier = Modifier
             .fillMaxHeight()
-            .width(240.dp),
-        color = Color(0xFF1A1A1A).copy(alpha = 0.85f),
-        tonalElevation = 8.dp
+            .width(220.dp),
+        color = Color(0xFF0D0D0F).copy(alpha = 0.92f),
+        tonalElevation = 12.dp,
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Vertical + WindowInsetsSides.End))
         ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+            // Header
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                contentAlignment = Alignment.CenterStart
             ) {
-                Surface(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(2.dp), modifier = Modifier.padding(end = 8.dp)) {
-                    Box(modifier = Modifier.width(4.dp).height(20.dp))
-                }
                 Text(
-                    text = currentChannel.group?.uppercase() ?: stringResource(R.string.player_channels_title),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleMedium,
+                    text = stringResource(R.string.player_channels_title).uppercase(Locale.getDefault()),
+                    style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Black,
-                    color = Color.White,
-                    letterSpacing = 0.5.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    color = Color.White.copy(alpha = 0.9f),
+                    letterSpacing = 2.sp
                 )
-                IconButton(onClick = onClose) {
-                    Icon(
-                        Icons.Default.Close,
-                        null,
-                        tint = Color.White.copy(alpha = 0.6f)
-                    )
+                IconButton(
+                    onClick = onClose,
+                    modifier = Modifier.align(Alignment.CenterEnd).size(32.dp)
+                ) {
+                    Icon(Icons.Default.Close, null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(18.dp))
                 }
             }
-            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+
+            HorizontalDivider(color = Color.White.copy(alpha = 0.05f))
+
+            // Channel List
             LazyColumn(
-                contentPadding = PaddingValues(vertical = 8.dp),
+                state = listState,
+                contentPadding = PaddingValues(vertical = 4.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(channels) { channel ->
-                    val selected = channel.url == currentChannel.url
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onChannelSelect(channel) }
-                            // Softer selection background
-                            .background(if (selected) MaterialTheme.colorScheme.primary.copy(0.15f) else Color.Transparent)
-                            .padding(horizontal = 16.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                items(allChannels) { channel ->
+                    val isCurrent = channel.url == currentChannel.url
+                    Surface(
+                        onClick = { onChannelSelect(channel) },
+                        color = if (isCurrent) MaterialTheme.colorScheme.primary.copy(0.08f) else Color.Transparent,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        AsyncImage(
-                            model = channel.logo,
-                            contentDescription = null,
+                        Row(
                             modifier = Modifier
-                                .size(56.dp, 38.dp)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(Color.White.copy(0.05f)),
-                            contentScale = ContentScale.Fit,
-                            error = painterResource(R.drawable.app_icon_android),
-                            placeholder = painterResource(R.drawable.app_icon_android)
-                        )
-                        Spacer(modifier = Modifier.width(14.dp))
-                        Text(
-                            text = channel.name,
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Medium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
-                        if (!channel.drmConfig.isNullOrBlank()) {
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = "DRM",
-                                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                                modifier = Modifier.size(12.dp)
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Status Indicator
+                            if (isCurrent) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(3.dp, 16.dp)
+                                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                            }
+
+                            AsyncImage(
+                                model = channel.logo,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(48.dp, 32.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(Color.White.copy(0.03f)),
+                                contentScale = ContentScale.Fit,
+                                error = painterResource(R.drawable.app_icon_android),
+                                placeholder = painterResource(R.drawable.app_icon_android)
                             )
+                            
+                            Spacer(modifier = Modifier.width(16.dp))
+                            
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = channel.name,
+                                    color = if (isCurrent) MaterialTheme.colorScheme.primary else Color.White.copy(0.8f),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = if (isCurrent) FontWeight.ExtraBold else FontWeight.Medium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                val groupName = channel.group
+                                if (!groupName.isNullOrEmpty()) {
+                                    Text(
+                                        text = groupName.uppercase(Locale.getDefault()),
+                                        color = if (isCurrent) MaterialTheme.colorScheme.primary.copy(alpha = 0.7f) else Color.White.copy(alpha = 0.4f),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+
+                            if (isCurrent) {
+                                Icon(
+                                    Icons.Default.PlayArrow,
+                                    null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
                         }
                     }
                 }

@@ -33,38 +33,65 @@ import kotlin.math.sin
 import kotlin.random.Random
 
 @Composable
-fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextScreen: (String) -> Unit) {
+fun SplashScreen(
+    viewModel: com.chesko.stream_pro.core.ui.MainViewModel,
+    onNextScreen: (String) -> Unit
+) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val infiniteTransition = rememberInfiniteTransition(label = "cosmic")
 
-    // Simplified cosmic background
+    // Background animation
     val nebulaRotate by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(tween(20000, easing = LinearEasing)),
+        0f, 360f,
+        infiniteRepeatable(tween(20000, easing = LinearEasing)),
         label = "nebula"
     )
 
     val cosmicPulse by infiniteTransition.animateFloat(
-        initialValue = 0.8f,
-        targetValue = 1.2f,
-        animationSpec = infiniteRepeatable(tween(4000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        0.8f, 1.2f,
+        infiniteRepeatable(
+            tween(4000, easing = FastOutSlowInEasing),
+            RepeatMode.Reverse
+        ),
         label = "pulse"
     )
 
-    // Minimal entrance animations
+    // NEW: starfield parallax
+    val starOffset by infiniteTransition.animateFloat(
+        0f, 1f,
+        infiniteRepeatable(tween(12000, easing = LinearEasing)),
+        label = "starMove"
+    )
+
+    // Animations
     val logoScale = remember { Animatable(0.5f) }
     val logoAlpha = remember { Animatable(0f) }
+    val logoRotation = remember { Animatable(-10f) }
     val contentAlpha = remember { Animatable(0f) }
     val loadingProgress = remember { Animatable(0.0f) }
 
     LaunchedEffect(Unit) {
-        launch { logoScale.animateTo(1f, spring(dampingRatio = 0.6f)) }
-        launch { logoAlpha.animateTo(1f, tween(1000)) }
-        launch { delay(500); contentAlpha.animateTo(1f, tween(1000)) }
-        launch { delay(800); loadingProgress.animateTo(1f, tween(2500)) }
+        launch {
+            delay(300)
+            logoScale.animateTo(1f, spring(dampingRatio = 0.6f))
+        }
+        launch {
+            delay(300)
+            logoRotation.animateTo(0f, spring(stiffness = 200f))
+        }
+        launch { delay(300); logoAlpha.animateTo(1f, tween(800)) }
 
-        delay(3500)
+        launch {
+            delay(900)
+            contentAlpha.animateTo(1f, tween(800))
+        }
+
+        launch {
+            delay(1200)
+            loadingProgress.animateTo(1f, tween(2000))
+        }
+
+        delay(3000)
         val currentPlaylist = viewModel.lastUrl.value
         onNextScreen(if (currentPlaylist.isNotEmpty()) "home" else "login")
     }
@@ -75,11 +102,10 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
             .background(Color(0xFF020205)),
         contentAlignment = Alignment.Center
     ) {
-        // Simplified Nebula Background
+
+        // Nebula
         Canvas(modifier = Modifier.fillMaxSize().blur(60.dp)) {
             val angleRad = Math.toRadians(nebulaRotate.toDouble())
-            val centerX = size.width / 2
-            val centerY = size.height / 2
 
             drawCircle(
                 brush = Brush.radialGradient(
@@ -87,49 +113,50 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
                 ),
                 radius = size.maxDimension * 0.5f * cosmicPulse,
                 center = Offset(
-                    centerX + (cos(angleRad) * 150).toFloat(),
-                    centerY + (sin(angleRad) * 100).toFloat()
+                    size.width / 2 + (cos(angleRad) * 150).toFloat(),
+                    size.height / 2 + (sin(angleRad) * 100).toFloat()
                 )
             )
         }
 
-        // Minimal Starfield
-        MinimalStarField()
+        // UPDATED Starfield
+        MinimalStarField(starOffset)
 
-        // Main Content
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            // Logo
+
+            // LOGO
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.graphicsLayer {
                     scaleX = logoScale.value
                     scaleY = logoScale.value
                     alpha = logoAlpha.value
+                    rotationZ = logoRotation.value
                 }
             ) {
-                // Simple Aura
+
+                // Glow aura
                 Box(
                     modifier = Modifier
-                        .size(100.dp * cosmicPulse)
+                        .size(110.dp * cosmicPulse)
                         .background(
                             Brush.radialGradient(
-                                colors = listOf(primaryColor.copy(alpha = 0.1f), Color.Transparent)
+                                listOf(primaryColor.copy(alpha = 0.15f), Color.Transparent)
                             ),
                             CircleShape
                         )
                 )
 
-                // Logo Container
                 Box(
                     modifier = Modifier
                         .size(80.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF0D0D14))
-                        .border(1.dp, primaryColor.copy(alpha = 0.3f), CircleShape)
+                        .border(1.dp, primaryColor.copy(alpha = 0.4f), CircleShape)
                         .padding(18.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -143,7 +170,7 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Minimal Branding
+            // TEXT
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.graphicsLayer { alpha = contentAlpha.value }
@@ -169,7 +196,6 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
                 Text(
                     text = stringResource(R.string.splash_universe_subtitle),
                     fontSize = 8.sp,
-                    fontWeight = FontWeight.Medium,
                     letterSpacing = 4.sp,
                     color = Color.White.copy(alpha = 0.3f)
                 )
@@ -177,7 +203,7 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Minimal Loading Indicator with Text
+            // LOADING
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
@@ -185,45 +211,50 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
                     .width(160.dp)
             ) {
 
-                // Simple Percentage
                 Text(
                     text = "${(loadingProgress.value * 100).toInt()}%",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.8f)
+                    color = Color.White.copy(alpha = 0.9f)
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Minimal Progress Bar
+                // IMPROVED PROGRESS BAR
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(1.5.dp)
+                        .height(3.dp)
                         .background(Color.White.copy(alpha = 0.1f), CircleShape)
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(loadingProgress.value)
                             .fillMaxHeight()
-                            .background(primaryColor, CircleShape)
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(
+                                        primaryColor,
+                                        primaryColor.copy(alpha = 0.5f)
+                                    )
+                                ),
+                                CircleShape
+                            )
                     )
                 }
-                // Loading Text (Minimal)
-                Text(
-                    text = stringResource(R.string.splash_initializing),
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = 2.sp,
-                    color = primaryColor.copy(alpha = 0.6f)
-                )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                Text(
+                    text = stringResource(R.string.splash_initializing),
+                    fontSize = 9.sp,
+                    letterSpacing = 2.sp,
+                    color = primaryColor.copy(alpha = 0.7f)
+                )
             }
         }
 
-        // Minimal Footer
+        // FOOTER
         Text(
             text = stringResource(R.string.splash_designed_by),
             modifier = Modifier
@@ -238,8 +269,10 @@ fun SplashScreen(viewModel: com.chesko.stream_pro.core.ui.MainViewModel, onNextS
 }
 
 @Composable
-fun MinimalStarField() {
+fun MinimalStarField(offset: Float) {
     val density = LocalDensity.current
+    val infiniteTransition = rememberInfiniteTransition(label = "twinkle")
+
     val stars = remember {
         List(80) {
             StarMinimal(
@@ -251,12 +284,30 @@ fun MinimalStarField() {
         }
     }
 
+    // ✅ Buat list animasi di luar Canvas
+    val twinkles = stars.map { star ->
+        infiniteTransition.animateFloat(
+            initialValue = star.alpha,
+            targetValue = star.alpha + 0.3f,
+            animationSpec = infiniteRepeatable(
+                tween(2000, easing = LinearEasing),
+                RepeatMode.Reverse
+            ),
+            label = "twinkle"
+        )
+    }
+
     Canvas(modifier = Modifier.fillMaxSize()) {
-        stars.forEach { star ->
+        stars.forEachIndexed { index, star ->
+            val twinkle = twinkles[index].value
+
             drawCircle(
-                color = Color.White.copy(alpha = star.alpha),
+                color = Color.White.copy(alpha = twinkle),
                 radius = with(density) { star.size.dp.toPx() },
-                center = Offset(star.x * size.width, star.y * size.height)
+                center = Offset(
+                    star.x * size.width,
+                    ((star.y + offset * 0.05f) % 1f) * size.height
+                )
             )
         }
     }
