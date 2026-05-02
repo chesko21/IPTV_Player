@@ -40,6 +40,7 @@
     <string name="item_language_subtitle">Сейчас: %1$s</string>
     <string name="item_accent_subtitle">Выбрать основной цвет приложения</string>
     <string name="item_cache_subtitle">Очистить временные данные</string>
+    <string name="success_cache_cleared">Кэш приложения успешно очищен!</string>
     <string name="unit_seconds">%1$d Сек.</string>
 
     <string name="dialog_color_desc">Персонализация темы приложения</string>
@@ -92,6 +93,7 @@
     <!-- Login Screen -->
     <string name="tab_remote_url">УДАЛЕННЫЙ URL</string>
     <string name="tab_local_file">ЛОКАЛЬНЫЙ ФАЙЛ</string>
+    <string name="tab_restore">ВОССТАНОВИТЬ XML</string>
     <string name="login_secure_msg">БЕЗОПАСНОЕ ШИФРОВАННОЕ СОЕДИНЕНИЕ</string>
     <string name="dialog_explore_demo">ДЕМО РЕЖИМ</string>
     <string name="demo_playlist_label">Демо плейлист %1$d</string>
@@ -103,6 +105,10 @@
     <string name="local_repo_label">ЛОКАЛЬНОЕ ХРАНИЛИЩЕ</string>
     <string name="local_repo_msg">Импорт .m3u или .m3u8 файлов из памяти устройства</string>
     <string name="btn_browse_files">ОБЗОР ФАЙЛОВ</string>
+    <string name="restore_label">ВОССТАНОВИТЬ ИЗ БЭКАПА</string>
+    <string name="restore_msg">Восстановите каналы, избранное и настройки из XML-файла резервной копии</string>
+    <string name="btn_restore_xml">ВОССТАНОВИТЬ СЕЙЧАС</string>
+    <string name="invalid_url_protocol">Неверный протокол URL</string>
 
     <!-- Help Screen -->
     <string name="help_center_title">Центр помощи</string>

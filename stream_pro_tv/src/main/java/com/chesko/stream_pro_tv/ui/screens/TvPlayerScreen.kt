@@ -70,17 +70,6 @@ fun TvPlayerScreen(
     var zappingJob by remember { mutableStateOf<Job?>(null) }
     val scope = rememberCoroutineScope()
     
-    val playerEngineSetting by viewModel.playerEngine.collectAsState()
-    var activeEngine by remember(playerEngineSetting, currentChannel.url) {
-        val url = currentChannel.url.lowercase()
-        val initialEngine = when {
-            url.startsWith("rtsp://") || url.startsWith("udp://") || url.startsWith("rtp://") -> "VLC"
-            url.contains(".mpd") || !currentChannel.drmType.isNullOrBlank() -> "EXO"
-            else -> playerEngineSetting
-        }
-        mutableStateOf(initialEngine)
-    }
-
     var exoPlayer by remember { mutableStateOf<ExoPlayer?>(null) }
     var isPlaying by remember { mutableStateOf(true) }
     var playbackState by remember { mutableIntStateOf(Player.STATE_BUFFERING) }
@@ -198,10 +187,6 @@ fun TvPlayerScreen(
                 
                 if (player.playbackState == Player.STATE_BUFFERING) {
                     bufferCount++
-                    if (bufferCount >= 15 && activeEngine == "EXO") {
-                        activeEngine = "VLC"
-                        bufferCount = 0
-                    }
                 } else {
                     bufferCount = 0
                 }
@@ -234,7 +219,6 @@ fun TvPlayerScreen(
         playbackPosition = playbackPosition,
         playbackDuration = playbackDuration,
         exoPlayer = exoPlayer,
-        activeEngine = activeEngine,
         onBack = onBack,
         onToggleOverlay = { showOverlay = !showOverlay },
         onInteraction = resetTimerRef,
@@ -242,11 +226,7 @@ fun TvPlayerScreen(
         onToggleFavorite = { viewModel.toggleFavorite(currentChannel) },
         onReloadVideo = reloadVideo,
         onTogglePlayPause = {
-            if (activeEngine == "EXO") {
-                exoPlayer?.let { if (it.playWhenReady) it.pause() else it.play() }
-            } else {
-                // VLC handling would go here if TvVideoPlayer supported it
-            }
+            exoPlayer?.let { if (it.playWhenReady) it.pause() else it.play() }
         },
         onSettingsClick = {
             currentSidebarView = "MAIN"
@@ -262,14 +242,7 @@ fun TvPlayerScreen(
         onDismissSettings = { showSettingsDialog = false },
         onPlayerInit = { exoPlayer = it },
         onPlayerError = { _ ->
-            if (activeEngine == "EXO") {
-                activeEngine = "VLC"
-            } else {
-                playbackState = Player.STATE_IDLE
-            }
-        },
-        onSwitchEngine = {
-            activeEngine = if (activeEngine == "VLC") "EXO" else "VLC"
+            playbackState = Player.STATE_IDLE
         },
         onSeek = { offsetMs ->
             exoPlayer?.let {
@@ -307,7 +280,6 @@ fun TvPlayerScreenContent(
     playbackPosition: Long,
     playbackDuration: Long,
     exoPlayer: ExoPlayer?,
-    activeEngine: String = "EXO",
     onBack: () -> Unit,
     onToggleOverlay: () -> Unit,
     onInteraction: () -> Unit,
@@ -321,7 +293,6 @@ fun TvPlayerScreenContent(
     onDismissSettings: () -> Unit,
     onPlayerInit: (ExoPlayer) -> Unit,
     onPlayerError: (String) -> Unit,
-    onSwitchEngine: () -> Unit = {},
     onSeek: (Long) -> Unit,
     hwAcceleration: Boolean = true,
     autoQuality: Boolean = true,
@@ -466,15 +437,13 @@ fun TvPlayerScreenContent(
         TvVideoPlayer(
             channel = currentChannel,
             modifier = Modifier.fillMaxSize(),
-            engine = activeEngine,
             hwAcceleration = hwAcceleration,
             autoQuality = autoQuality,
             audioBoost = audioBoost,
             maxVideoHeight = maxVideoHeight,
             bufferSize = bufferSize,
             onPlayerInit = onPlayerInit,
-            onError = onPlayerError,
-            onEngineSwitch = { onSwitchEngine() }
+            onError = onPlayerError
         )
 
         AnimatedVisibility(
@@ -763,20 +732,22 @@ fun TvPlayerScreenContent(
                         ),
                     verticalArrangement = Arrangement.spacedBy(if (isSmallScreen) 8.dp else 16.dp)
                 ) {
-                    if (playbackDuration > 0) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(if (isSmallScreen) 16.dp else 24.dp))
-                                .background(Color.Black.copy(alpha = 0.6f))
-                                .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(if (isSmallScreen) 16.dp else 24.dp))
-                                .padding(
-                                    horizontal = if (isSmallScreen) 16.dp else 28.dp,
-                                    vertical = if (isSmallScreen) 10.dp else 20.dp
-                                ),
-                            verticalArrangement = Arrangement.spacedBy(if (isSmallScreen) 6.dp else 12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
+                    // Modern Integrated EPG & Seekbar Card
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(if (isSmallScreen) 16.dp else 24.dp))
+                            .background(Color.Black.copy(alpha = 0.6f))
+                            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(if (isSmallScreen) 16.dp else 24.dp))
+                            .padding(
+                                horizontal = if (isSmallScreen) 16.dp else 28.dp,
+                                vertical = if (isSmallScreen) 10.dp else 20.dp
+                            ),
+                        verticalArrangement = Arrangement.spacedBy(if (isSmallScreen) 6.dp else 12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (playbackDuration > 0) {
+                            // VOD MODE
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -807,59 +778,14 @@ fun TvPlayerScreenContent(
                                     fontWeight = FontWeight.Bold
                                 )
                             }
-
-                            Box(
-                                modifier = Modifier.fillMaxWidth().height(if (isSmallScreen) 8.dp else 12.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                val progress = (playbackPosition.toFloat() / playbackDuration.toFloat()).coerceIn(0f, 1f)
-
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(if (isSmallScreen) 3.dp else 4.dp)
-                                        .clip(CircleShape)
-                                        .background(Color.White.copy(alpha = 0.1f))
-                                )
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth(progress)
-                                        .height(if (isSmallScreen) 3.dp else 4.dp)
-                                        .align(Alignment.CenterStart)
-                                        .clip(CircleShape)
-                                        .background(
-                                            Brush.horizontalGradient(
-                                                listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), MaterialTheme.colorScheme.primary)
-                                            )
-                                        )
-                                )
-                            }
-                        }
-                    } else if (currentProgram != null) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(if (isSmallScreen) 16.dp else 24.dp))
-                                .background(Color.Black.copy(alpha = 0.6f))
-                                .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(if (isSmallScreen) 16.dp else 24.dp))
-                                .padding(
-                                    horizontal = if (isSmallScreen) 16.dp else 28.dp,
-                                    vertical = if (isSmallScreen) 10.dp else 20.dp
-                                ),
-                            verticalArrangement = Arrangement.spacedBy(if (isSmallScreen) 6.dp else 12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            val progress = remember(currentProgram) {
-                                val total = currentProgram.endTime - currentProgram.startTime
-                                val current = System.currentTimeMillis() - currentProgram.startTime
-                                if (total > 0) (current.toFloat() / total).coerceIn(0f, 1f) else 0f
-                            }
-
+                        } else if (currentProgram != null) {
+                            // LIVE MODE WITH EPG
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
+                                // Current Program (Sedang Tayang)
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = stringResource(R.string.player_current_program),
@@ -877,56 +803,51 @@ fun TvPlayerScreenContent(
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
+                                    Text(
+                                        text = "${timeFormat.format(Date(currentProgram.startTime))} - ${timeFormat.format(Date(currentProgram.endTime))}",
+                                        style = if (isSmallScreen) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall,
+                                        color = Color.White.copy(alpha = 0.6f),
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
-                                Spacer(Modifier.width(16.dp))
-                                Text(
-                                    text = "${timeFormat.format(Date(currentProgram.startTime))} - ${timeFormat.format(Date(currentProgram.endTime))}",
-                                    style = if (isSmallScreen) MaterialTheme.typography.labelMedium else MaterialTheme.typography.titleSmall,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
 
-                            Box(
-                                modifier = Modifier.fillMaxWidth().height(if (isSmallScreen) 8.dp else 12.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(if (isSmallScreen) 3.dp else 4.dp)
-                                        .clip(CircleShape)
-                                        .background(Color.White.copy(alpha = 0.1f))
-                                )
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth(progress)
-                                        .height(if (isSmallScreen) 3.dp else 4.dp)
-                                        .align(Alignment.CenterStart)
-                                        .clip(CircleShape)
-                                        .background(
-                                            Brush.horizontalGradient(
-                                                listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), MaterialTheme.colorScheme.primary)
-                                            )
+                                // Next Program (Selanjutnya)
+                                if (nextProgram != null) {
+                                    Spacer(Modifier.width(16.dp))
+                                    Column(
+                                        horizontalAlignment = Alignment.End,
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(Color.White.copy(alpha = 0.05f))
+                                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.player_coming_up),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                                            fontWeight = FontWeight.Black,
+                                            letterSpacing = 1.sp,
+                                            fontSize = if (isSmallScreen) 7.sp else 9.sp
                                         )
-                                )
+                                        Text(
+                                            text = nextProgram.title.uppercase(),
+                                            style = if (isSmallScreen) MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp) else MaterialTheme.typography.labelSmall,
+                                            color = Color.White.copy(alpha = 0.8f),
+                                            fontWeight = FontWeight.Bold,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Text(
+                                            text = timeFormat.format(Date(nextProgram.startTime)),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White.copy(alpha = 0.4f),
+                                            fontSize = if (isSmallScreen) 7.sp else 8.sp
+                                        )
+                                    }
+                                }
                             }
-                        }
-                    } else {
-                        // Empty Program State (Still glassmorphism)
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(if (isSmallScreen) 16.dp else 24.dp))
-                                .background(Color.Black.copy(alpha = 0.6f))
-                                .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(if (isSmallScreen) 16.dp else 24.dp))
-                                .padding(
-                                    horizontal = if (isSmallScreen) 16.dp else 28.dp,
-                                    vertical = if (isSmallScreen) 10.dp else 20.dp
-                                ),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
+                        } else {
+                            // EMPTY STATE
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -940,43 +861,40 @@ fun TvPlayerScreenContent(
                                     letterSpacing = 2.sp
                                 )
                             }
-                            Box(
-                                modifier = Modifier.fillMaxWidth().height(2.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White.copy(alpha = 0.05f))
-                            )
                         }
-                    }
 
-                    if (nextProgram != null) {
-                        Row(
-                            modifier = Modifier
-                                .align(Alignment.End)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
-                                .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        // THE SEEKBAR (Progress Bar) - Integrated at bottom
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(if (isSmallScreen) 8.dp else 12.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(
-                                    text = stringResource(R.string.player_coming_up),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Black,
-                                    letterSpacing = 1.sp,
-                                    fontSize = if (isSmallScreen) 7.sp else 9.sp
-                                )
-                                Text(
-                                    text = nextProgram.title.uppercase(),
-                                    style = if (isSmallScreen) MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp) else MaterialTheme.typography.labelSmall,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
+                            val progress = if (playbackDuration > 0) {
+                                (playbackPosition.toFloat() / playbackDuration.toFloat()).coerceIn(0f, 1f)
+                            } else if (currentProgram != null) {
+                                val total = currentProgram.endTime - currentProgram.startTime
+                                val current = System.currentTimeMillis() - currentProgram.startTime
+                                if (total > 0) (current.toFloat() / total).coerceIn(0f, 1f) else 0f
+                            } else 0f
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(if (isSmallScreen) 3.dp else 4.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.White.copy(alpha = 0.1f))
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(progress)
+                                    .height(if (isSmallScreen) 3.dp else 4.dp)
+                                    .align(Alignment.CenterStart)
+                                    .clip(CircleShape)
+                                    .background(
+                                        Brush.horizontalGradient(
+                                            listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), MaterialTheme.colorScheme.primary)
+                                        )
+                                    )
+                            )
                         }
                     }
                 }
@@ -1161,7 +1079,10 @@ fun TvSettingsSidebar(
                         "AUDIO" -> {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 SidebarItem(
-                                    label = stringResource(R.string.player_sidebar_audio_boost, if (audioBoost) "ON" else "OFF"),
+                                    label = stringResource(
+                                        R.string.player_sidebar_audio_boost,
+                                        if (audioBoost) stringResource(R.string.label_on) else stringResource(R.string.label_off)
+                                    ),
                                     icon = if (audioBoost) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Filled.VolumeDown,
                                     onClick = onToggleAudioBoost,
                                     modifier = Modifier.fillMaxWidth()

@@ -179,26 +179,6 @@ fun VideoPlayer(
             }
     }
 
-    // Monitoring logic removed to prevent auto-switching to VLC
-    /*
-    LaunchedEffect(exoPlayer) {
-        var bufferingStartTime = 0L
-        while (true) {
-            if (exoPlayer.playbackState == Player.STATE_BUFFERING) {
-                if (bufferingStartTime == 0L) {
-                    bufferingStartTime = System.currentTimeMillis()
-                } else if (System.currentTimeMillis() - bufferingStartTime > 10000) { // 10 seconds timeout
-                    currentOnEngineSwitch?.invoke("VLC")
-                    break
-                }
-            } else {
-                bufferingStartTime = 0L
-            }
-            delay(1000)
-        }
-    }
-    */
-
     DisposableEffect(exoPlayer, lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {

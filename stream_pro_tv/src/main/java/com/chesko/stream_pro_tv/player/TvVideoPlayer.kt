@@ -63,14 +63,12 @@ import com.chesko.stream_pro_tv.ui.screens.UniverseBackground
 import androidx.compose.ui.res.stringResource
 import com.chesko.stream_pro_tv.R
 import kotlinx.coroutines.delay
-import org.videolan.libvlc.MediaPlayer
 
 @OptIn(UnstableApi::class)
 @Composable
 fun TvVideoPlayer(
     channel: IptvChannel,
     modifier: Modifier = Modifier,
-    engine: String = "EXO",
     autoPlay: Boolean = true,
     resizeMode: Int = AspectRatioFrameLayout.RESIZE_MODE_FIT,
     hwAcceleration: Boolean = true,
@@ -79,26 +77,8 @@ fun TvVideoPlayer(
     maxVideoHeight: Int = 0,
     bufferSize: Int = 15,
     onPlayerInit: ((ExoPlayer) -> Unit)? = null,
-    onVlcInit: ((MediaPlayer?) -> Unit)? = null,
-    onError: ((String) -> Unit)? = null,
-    onEngineSwitch: ((String) -> Unit)? = null
+    onError: ((String) -> Unit)? = null
 ) {
-    if (engine == "VLC") {
-        com.chesko.stream_pro.core.player.VlcVideoPlayer(
-            channel = channel,
-            modifier = modifier,
-            hwAcceleration = hwAcceleration,
-            resizeMode = if (resizeMode == AspectRatioFrameLayout.RESIZE_MODE_FILL) 3 else 0,
-            onPlayerInit = onVlcInit,
-            onBuffering = { },
-            onPlayingChanged = { },
-            onError = { errorString: String ->
-                onError?.invoke(errorString)
-            }
-        )
-        return
-    }
-
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -228,11 +208,6 @@ fun TvVideoPlayer(
                         if (retryCount < 3) {
                             retryCount++
                         } else {
-                            // Fallback to VLC if Exo fails
-                            if (engine == "EXO" && onEngineSwitch != null) {
-                                onEngineSwitch("VLC")
-                                return
-                            }
                             errorMessage = errorMsg
                             onError?.invoke(errorMsg)
                         }

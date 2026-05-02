@@ -40,6 +40,7 @@
     <string name="item_language_subtitle">当前: %1$s</string>
     <string name="item_accent_subtitle">选择应用标识颜色</string>
     <string name="item_cache_subtitle">清除应用临时数据</string>
+    <string name="success_cache_cleared">应用缓存已成功清除！</string>
     <string name="unit_seconds">%1$d 秒</string>
 
     <string name="dialog_color_desc">个性化应用主题</string>
@@ -92,6 +93,7 @@
     <!-- Login Screen -->
     <string name="tab_remote_url">远程链接</string>
     <string name="tab_local_file">本地文件</string>
+    <string name="tab_restore">还原 XML</string>
     <string name="login_secure_msg">安全加密连接</string>
     <string name="dialog_explore_demo">探索演示</string>
     <string name="demo_playlist_label">演示播放列表 %1$d</string>
@@ -103,6 +105,9 @@
     <string name="local_repo_label">本地存储</string>
     <string name="local_repo_msg">从设备存储导入 .m3u 或 .m3u8 文件</string>
     <string name="btn_browse_files">浏览文件</string>
+    <string name="restore_label">从备份还原</string>
+    <string name="restore_msg">从 XML 备份文件还原您的频道、收藏和设置</string>
+    <string name="btn_restore_xml">立即还原</string>
     <string name="invalid_url_protocol">无效的 URL 协议</string>
 
     <!-- Help Screen -->

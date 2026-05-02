@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.chesko.stream_pro.core"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 26
@@ -66,7 +66,5 @@ dependencies {
     // Coil
     implementation(libs.coil.compose)
 
-    // LibVLC
-    implementation(libs.libvlc.all)
     implementation(libs.androidx.compose.foundation)
 }

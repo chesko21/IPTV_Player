@@ -210,9 +210,13 @@ class MainActivity : ComponentActivity() {
 
                 LaunchedEffect(errorMessage) {
                     errorMessage?.let { message ->
-                        scope.launch {
-                            snackbarHostState.showSnackbar(message)
-                            viewModel.clearError()
+                        val currentRoute = navController.currentDestination?.route
+                        // Don't show global snackbar on login/settings screen as they have their own top popup
+                        if (currentRoute != "login" && currentRoute != "settings") {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(message)
+                                viewModel.clearError()
+                            }
                         }
                     }
                 }

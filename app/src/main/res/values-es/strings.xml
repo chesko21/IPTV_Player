@@ -40,6 +40,7 @@
     <string name="item_language_subtitle">Actual: %1$s</string>
     <string name="item_accent_subtitle">Seleccionar color de identidad</string>
     <string name="item_cache_subtitle">Limpiar datos temporales</string>
+    <string name="success_cache_cleared">¡Caché de la aplicación borrada con éxito!</string>
     <string name="unit_seconds">%1$d Segundos</string>
 
     <string name="dialog_color_desc">Personalizar tema de la aplicación</string>
@@ -92,6 +93,7 @@
     <!-- Login Screen -->
     <string name="tab_remote_url">URL REMOTA</string>
     <string name="tab_local_file">ARCHIVO LOCAL</string>
+    <string name="tab_restore">RESTAURAR XML</string>
     <string name="login_secure_msg">CONEXIÓN SEGURA CIFRADA</string>
     <string name="dialog_explore_demo">EXPLORAR DEMO</string>
     <string name="demo_playlist_label">Lista Demo %1$d</string>
@@ -103,6 +105,9 @@
     <string name="local_repo_label">REPOSITORIO LOCAL</string>
     <string name="local_repo_msg">Importar archivos .m3u o .m3u8 desde tu dispositivo</string>
     <string name="btn_browse_files">BUSCAR ARCHIVOS</string>
+    <string name="restore_label">RESTAURAR DESDE COPIA</string>
+    <string name="restore_msg">Restaura tus canales, favoritos y ajustes desde un archivo XML</string>
+    <string name="btn_restore_xml">RESTAURAR AHORA</string>
     <string name="invalid_url_protocol">Protocolo de URL no válido</string>
 
     <!-- Help Screen -->

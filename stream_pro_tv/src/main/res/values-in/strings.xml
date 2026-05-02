@@ -32,6 +32,10 @@
     <string name="settings_group_display">TAMPILAN &amp; BAHASA</string>
     <string name="settings_language_title">Bahasa Semesta</string>
     <string name="settings_language_subtitle">Saat ini: %1$s</string>
+    <string name="language_en">INGGRIS (ENGLISH)</string>
+    <string name="language_in">BAHASA INDONESIA</string>
+    <string name="language_ms">BAHASA MELAYU (MALAY)</string>
+    <string name="language_ar">ARAB (ARABIC)</string>
 
     <!-- Dialogs -->
     <string name="dialog_buffer_title">PILIH UKURAN BUFFER</string>
@@ -58,6 +62,7 @@
     <string name="login_preset_demos">PRESET URL DEMO</string>
     <string name="login_server_label">SERVER %1$d</string>
     <string name="login_url_placeholder">URL Playlist M3U</string>
+    <string name="login_url_placeholder_example">https://example.com/playlist.m3u</string>
     <string name="login_url_hint">Klik untuk memasukkan alamat</string>
     <string name="login_target_url">URL Target</string>
     <string name="login_btn_login">LOGIN</string>
@@ -160,4 +165,8 @@
     <!-- Components -->
     <string name="content_desc_back">Kembali</string>
     <string name="content_desc_drm">Dilindungi DRM</string>
+
+    <string name="label_on">NYALA (ON)</string>
+    <string name="label_off">MATI (OFF)</string>
+    <string name="label_system_default">Bawaan Sistem</string>
 </resources>

@@ -73,6 +73,8 @@ fun TvLoginScreen(
 
     val isLoading by viewModel.isLoading.collectAsState()
     val lastUrl by viewModel.lastUrl.collectAsState()
+    val dynamicDemoUrls by viewModel.dynamicDemoUrls.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
     var selectedTab by remember { mutableStateOf(0) }
     var url by remember { mutableStateOf(lastUrl) }
@@ -86,11 +88,7 @@ fun TvLoginScreen(
     var selectedFileName by remember { mutableStateOf("") }
     val noFileSelectedMsg = stringResource(R.string.login_no_file)
     
-    LaunchedEffect(noFileSelectedMsg) {
-        if (selectedFileName.isEmpty() || selectedFileName == "Belum ada file dipilih") {
-            selectedFileName = noFileSelectedMsg
-        }
-    }
+    val displayFileName = if (selectedFilePath != null) selectedFileName else noFileSelectedMsg
     var showFilePicker by remember { mutableStateOf(false) }
 
     val buttonFocusRequester = remember { FocusRequester() }
@@ -113,6 +111,35 @@ fun TvLoginScreen(
     ) {
         // Universe Background
         UniverseBackground(MaterialTheme.colorScheme.primary, glowAlpha.value)
+
+        // Error Message Overlay
+        errorMessage?.let { message ->
+            LaunchedEffect(message) {
+                delay(3000)
+                viewModel.clearError()
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 24.dp),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Surface(
+                    colors = SurfaceDefaults.colors(
+                        containerColor = Color.Red.copy(alpha = 0.8f),
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    TvText(
+                        text = message,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
+        }
 
         // Subtle gradient overlay for readability
         Box(
@@ -146,20 +173,14 @@ fun TvLoginScreen(
                 selectedTab = selectedTab,
                 onTabSelected = { selectedTab = it },
                 url = url,
-                onUrlChange = { url = it },
+                onUrlChange = { url = it.trim() },
                 isEditingUrl = isEditingUrl,
                 onEditingChange = { isEditingUrl = it },
                 urlSurfaceFocusRequester = urlSurfaceFocusRequester,
                 isLoading = isLoading,
                 onConnect = { viewModel.loadPlaylist(url, onSuccess = onNavigateToHome) },
-                onDemo = {
-                    val demoUrl = MainViewModel.BASE_URL
-                    url = demoUrl
-                    isEditingUrl = false
-                    viewModel.loadPlaylist(demoUrl, onSuccess = onNavigateToHome)
-                },
                 buttonFocusRequester = buttonFocusRequester,
-                selectedFileName = selectedFileName,
+                selectedFileName = displayFileName,
                 hasSelectedFile = selectedFilePath != null,
                 onPickFile = { showFilePicker = true },
                 onFileConnect = {
@@ -169,7 +190,8 @@ fun TvLoginScreen(
                     }
                 },
                 lastUrl = lastUrl,
-                modifier = Modifier.width(440.dp)
+                modifier = Modifier.width(440.dp),
+                dynamicDemoUrls = dynamicDemoUrls
             )
         }
 
@@ -290,14 +312,14 @@ fun LoginFormSection(
     urlSurfaceFocusRequester: FocusRequester,
     isLoading: Boolean,
     onConnect: () -> Unit,
-    onDemo: () -> Unit,
     buttonFocusRequester: FocusRequester,
     selectedFileName: String,
     hasSelectedFile: Boolean,
     onPickFile: () -> Unit,
     onFileConnect: () -> Unit,
     lastUrl: String = "",
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    dynamicDemoUrls: List<String> = emptyList()
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -352,9 +374,9 @@ fun LoginFormSection(
                         urlSurfaceFocusRequester = urlSurfaceFocusRequester,
                         isLoading = isLoading,
                         onConnect = onConnect,
-                        onDemo = onDemo,
                         buttonFocusRequester = buttonFocusRequester,
-                        lastUrl = lastUrl
+                        lastUrl = lastUrl,
+                        dynamicDemoUrls = dynamicDemoUrls
                     )
                 } else {
                     FileInputSection(
@@ -460,9 +482,9 @@ fun UrlInputSection(
     urlSurfaceFocusRequester: FocusRequester,
     isLoading: Boolean,
     onConnect: () -> Unit,
-    onDemo: () -> Unit,
     buttonFocusRequester: FocusRequester,
-    lastUrl: String = ""
+    lastUrl: String = "",
+    dynamicDemoUrls: List<String> = emptyList()
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         TvText(
@@ -487,12 +509,16 @@ fun UrlInputSection(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                MainViewModel.DEMO_URLS.forEachIndexed { index, demoUrl ->
+                dynamicDemoUrls.forEachIndexed { index, demoUrl ->
                     val label = stringResource(R.string.login_server_label, index + 1)
                     val isSelected = url == demoUrl
                     
                     Surface(
-                        onClick = { onUrlChange(demoUrl) },
+                        onClick = { 
+                            onUrlChange(demoUrl)
+                            onEditingChange(false)
+                            buttonFocusRequester.requestFocus()
+                        },
                         modifier = Modifier
                             .weight(1f)
                             .height(38.dp),
@@ -557,7 +583,7 @@ fun UrlInputSection(
                             Material3Text(stringResource(R.string.login_url_placeholder), color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
                             Material3Text(stringResource(R.string.login_url_hint), color = Color.White.copy(alpha = 0.25f), fontSize = 11.sp)
                         } else {
-                            val demoIndex = MainViewModel.DEMO_URLS.indexOf(url)
+                            val demoIndex = dynamicDemoUrls.indexOf(url)
                             val displayUrl = if (demoIndex != -1) stringResource(R.string.login_server_label, demoIndex + 1) else url
                             
                             Material3Text(stringResource(R.string.login_target_url), color = Color(0xFFBB86FC), fontSize = 10.sp, fontWeight = FontWeight.Bold)
@@ -572,7 +598,7 @@ fun UrlInputSection(
                 value = url,
                 onValueChange = onUrlChange,
                 modifier = Modifier.fillMaxWidth().height(68.dp).focusRequester(textFieldFocusRequester),
-                placeholder = { Material3Text("https://example.com/playlist.m3u", color = Color.Gray, fontSize = 14.sp) },
+                placeholder = { Material3Text(stringResource(R.string.login_url_placeholder_example), color = Color.Gray, fontSize = 14.sp) },
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -593,70 +619,33 @@ fun UrlInputSection(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        // LOGIN BUTTON
+        Surface(
+            onClick = onConnect,
+            enabled = !isLoading && url.isNotBlank(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .focusRequester(buttonFocusRequester),
+            shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
+            colors = ClickableSurfaceDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                focusedContainerColor = Color.White,
+                contentColor = Color.White,
+                focusedContentColor = Color.Black,
+                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+            ),
+            scale = ClickableSurfaceDefaults.scale(focusedScale = 1.08f)
         ) {
-            // LOGIN BUTTON
-            Surface(
-                onClick = onConnect,
-                enabled = !isLoading && url.isNotBlank(),
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp)
-                    .focusRequester(buttonFocusRequester),
-                shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
-                colors = ClickableSurfaceDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    focusedContainerColor = Color.White,
-                    contentColor = Color.White,
-                    focusedContentColor = Color.Black,
-                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                ),
-                scale = ClickableSurfaceDefaults.scale(focusedScale = 1.08f)
-            ) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    val isUrlLoading = isLoading && url.isNotBlank() && url != MainViewModel.BASE_URL
-                    if (isUrlLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = Color.Black,
-                            strokeWidth = 3.dp
-                        )
-                    } else {
-                        TvText(stringResource(R.string.login_btn_login), fontSize = 16.sp, fontWeight = FontWeight.Black)
-                    }
-                }
-            }
-
-            // DEMO BUTTON
-            Surface(
-                onClick = onDemo,
-                enabled = !isLoading,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp),
-                shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
-                colors = ClickableSurfaceDefaults.colors(
-                    containerColor = Color.White.copy(alpha = 0.06f),
-                    focusedContainerColor = Color.White,
-                    contentColor = Color.White.copy(alpha = 0.7f),
-                    focusedContentColor = Color.Black,
-                    disabledContainerColor = Color.White.copy(alpha = 0.03f)
-                ),
-                scale = ClickableSurfaceDefaults.scale(focusedScale = 1.08f)
-            ) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    val isDemoLoading = isLoading && (url == MainViewModel.BASE_URL || lastUrl == MainViewModel.BASE_URL)
-                    if (isDemoLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = LocalContentColor.current,
-                            strokeWidth = 3.dp
-                        )
-                    } else {
-                        TvText(stringResource(R.string.login_btn_demo), fontSize = 16.sp, fontWeight = FontWeight.Black)
-                    }
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                if (isLoading && url.isNotBlank()) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = if (dynamicDemoUrls.contains(url)) Color.White else Color.White,
+                        strokeWidth = 3.dp
+                    )
+                } else {
+                    TvText(stringResource(R.string.login_btn_login), fontSize = 16.sp, fontWeight = FontWeight.Black)
                 }
             }
         }

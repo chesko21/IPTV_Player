@@ -28,7 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "iptv_database"
                 )
                     .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
-                    .fallbackToDestructiveMigration(true)
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

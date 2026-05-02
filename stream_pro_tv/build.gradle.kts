@@ -9,17 +9,23 @@ plugins {
 
 android {
     namespace = "com.chesko.stream_pro_tv"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.chesko.stream_pro_tv"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
-        versionName = "1.1.0"
+        versionName = "1.1.1"
 
         ndk {
-            abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86_64"))
+            val isRelease = project.gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = true) }
+
+            if (isRelease) {
+                abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86_64"))
+            } else {
+                abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86_64", "x86"))
+            }
         }
     }
 
@@ -125,7 +131,6 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.material)
-    implementation(libs.libvlc.all)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)

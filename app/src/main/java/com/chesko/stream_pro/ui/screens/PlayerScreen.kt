@@ -74,7 +74,7 @@ import androidx.compose.ui.text.AnnotatedString
 import com.chesko.stream_pro.core.ui.MainViewModel
 import com.chesko.stream_pro.core.utils.PlayerUtils
 import com.chesko.stream_pro.core.utils.NetworkObserver
-import com.chesko.stream_pro.core.player.VlcVideoPlayer
+import com.chesko.stream_pro.ui.components.VlcVideoPlayer
 import com.chesko.stream_pro.ui.components.shimmerEffect
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -97,6 +97,7 @@ fun ChannelInfoBar(
     currentProgram: com.chesko.stream_pro.core.data.model.EpgProgram?,
     nextProgram: com.chesko.stream_pro.core.data.model.EpgProgram?,
     showFullControls: Boolean,
+    isFullscreen: Boolean = false,
     exoPlayer: ExoPlayer?,
     vlcPlayer: org.videolan.libvlc.MediaPlayer?,
     onSeek: (Long) -> Unit
@@ -125,7 +126,7 @@ fun ChannelInfoBar(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = if (showFullControls) 54.dp else 24.dp)
+            .padding(bottom = if (showFullControls) (if (isFullscreen) 44.dp else 54.dp) else 24.dp)
             .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)),
         color = Color.Transparent
     ) {
@@ -944,6 +945,7 @@ fun PlayerScreenContent(
                 currentProgram = currentProgram,
                 nextProgram = nextProgram,
                 showFullControls = showControls,
+                isFullscreen = isFullscreen,
                 exoPlayer = exoPlayer,
                 vlcPlayer = vlcPlayer,
                 onSeek = { position ->
@@ -1657,8 +1659,9 @@ fun ControlOverlay(
         Row(
             modifier = Modifier
                 .align(Alignment.Center)
+                .widthIn(max = if (isFullscreen) 400.dp else 320.dp)
                 .fillMaxWidth()
-                .padding(horizontal = 32.dp),
+                .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {

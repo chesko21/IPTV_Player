@@ -9,12 +9,12 @@ plugins {
 
 android {
     namespace = "com.chesko.stream_pro"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.chesko.stream_pro"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 3
         versionName = "2.0.2"
 

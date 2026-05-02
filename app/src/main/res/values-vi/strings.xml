@@ -40,6 +40,7 @@
     <string name="item_language_subtitle">Hiện tại: %1$s</string>
     <string name="item_accent_subtitle">Chọn màu sắc nhận diện ứng dụng</string>
     <string name="item_cache_subtitle">Xóa dữ liệu ứng dụng tạm thời</string>
+    <string name="success_cache_cleared">Đã xóa bộ nhớ đệm ứng dụng thành công!</string>
     <string name="unit_seconds">%1$d Giây</string>
 
     <string name="dialog_color_desc">Cá nhân hóa giao diện ứng dụng</string>
@@ -92,6 +93,7 @@
     <!-- Login Screen -->
     <string name="tab_remote_url">URL TỪ XA</string>
     <string name="tab_local_file">TẬP TIN CỤC BỘ</string>
+    <string name="tab_restore">KHÔI PHỤC XML</string>
     <string name="login_secure_msg">KẾT NỐI BẢO MẬT ĐƯỢC MÃ HÓA</string>
     <string name="dialog_explore_demo">KHÁM PHÁ DEMO</string>
     <string name="demo_playlist_label">Danh sách phát Demo %1$d</string>
@@ -103,6 +105,9 @@
     <string name="local_repo_label">KHO LƯU TRỮ CỤC BỘ</string>
     <string name="local_repo_msg">Nhập tập tin .m3u hoặc .m3u8 từ bộ nhớ thiết bị của bạn</string>
     <string name="btn_browse_files">DUYỆT TẬP TIN</string>
+    <string name="restore_label">KHÔI PHỤC TỪ SAO LƯU</string>
+    <string name="restore_msg">Khôi phục kênh, danh sách yêu thích và cài đặt từ tập tin XML</string>
+    <string name="btn_restore_xml">KHÔI PHỤC NGAY</string>
     <string name="invalid_url_protocol">Giao thức URL không hợp lệ</string>
 
     <!-- Help Screen -->

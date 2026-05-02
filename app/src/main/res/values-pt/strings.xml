@@ -40,6 +40,7 @@
     <string name="item_language_subtitle">Atual: %1$s</string>
     <string name="item_accent_subtitle">Escolher cor de identidade</string>
     <string name="item_cache_subtitle">Limpar dados temporários</string>
+    <string name="success_cache_cleared">Cache do aplicativo limpo com sucesso!</string>
     <string name="unit_seconds">%1$d Segundos</string>
 
     <string name="dialog_color_desc">Personalizar tema do aplicativo</string>
@@ -92,6 +93,7 @@
     <!-- Login Screen -->
     <string name="tab_remote_url">URL REMOTA</string>
     <string name="tab_local_file">ARQUIVO LOCAL</string>
+    <string name="tab_restore">RESTAURAR XML</string>
     <string name="login_secure_msg">CONEXÃO SEGURA CRIPTOGRAFADA</string>
     <string name="dialog_explore_demo">EXPLORAR DEMO</string>
     <string name="demo_playlist_label">Lista Demo %1$d</string>
@@ -103,6 +105,10 @@
     <string name="local_repo_label">REPOSITÓRIO LOCAL</string>
     <string name="local_repo_msg">Importar arquivos .m3u ou .m3u8 do seu dispositivo</string>
     <string name="btn_browse_files">PROCURAR ARQUIVOS</string>
+    <string name="restore_label">RESTAURAR DO BACKUP</string>
+    <string name="restore_msg">Restaure seus canais, favoritos e configurações de um arquivo XML</string>
+    <string name="btn_restore_xml">RESTAURAR AGORA</string>
+    <string name="invalid_url_protocol">Protocolo de URL inválido</string>
 
     <!-- Help Screen -->
     <string name="help_center_title">Centro de Ajuda</string>

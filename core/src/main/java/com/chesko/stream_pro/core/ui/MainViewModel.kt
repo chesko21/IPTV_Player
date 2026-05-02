@@ -11,6 +11,7 @@ import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.data.model.EpgProgram
 import com.chesko.stream_pro.core.data.parser.M3uParser
 import com.chesko.stream_pro.core.data.parser.EpgParser
+import com.chesko.stream_pro.core.utils.LocaleHelper
 import com.chesko.stream_pro.core.utils.NetworkObserver
 import android.net.Uri
 import android.provider.Settings
@@ -26,7 +27,11 @@ import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.File
 import java.io.InputStream
+import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: ChannelRepository
@@ -110,16 +115,36 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _memberSince = MutableStateFlow(getSavedMemberSince())
     val memberSince: StateFlow<String> = _memberSince
 
-    private val httpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .cache(okhttp3.Cache(
-            directory = File(application.cacheDir, "http_cache"),
-            maxSize = 50L * 1024L * 1024L // 50 MB
-        ))
-        .followRedirects(true)
-        .followSslRedirects(true)
-        .build()
+    private fun createUnsafeOkHttpClient(): OkHttpClient {
+        try {
+            val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+                override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+                override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+                override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+            })
+
+            val sslContext = SSLContext.getInstance("SSL")
+            sslContext.init(null, trustAllCerts, java.security.SecureRandom())
+            val sslSocketFactory = sslContext.socketFactory
+
+            return OkHttpClient.Builder()
+                .sslSocketFactory(sslSocketFactory, trustAllCerts[0] as X509TrustManager)
+                .hostnameVerifier { _, _ -> true }
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .cache(okhttp3.Cache(
+                    directory = File(getApplication<Application>().cacheDir, "http_cache"),
+                    maxSize = 50L * 1024L * 1024L
+                ))
+                .followRedirects(true)
+                .followSslRedirects(true)
+                .build()
+        } catch (e: Exception) {
+            return OkHttpClient.Builder().build()
+        }
+    }
+
+    private val httpClient = createUnsafeOkHttpClient()
 
     private val networkObserver = NetworkObserver(application)
     val networkStatus = networkObserver.networkStatus.stateIn(
@@ -384,6 +409,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadPlaylist(url: String, onSuccess: () -> Unit = {}) {
+        if (url == "combined_demo") {
+            loadDemoPlaylist(onSuccess)
+            return
+        }
         viewModelScope.launch {
             val context = getApplication<Application>()
             if (networkStatus.value is NetworkObserver.NetworkStatus.Lost) {
@@ -897,6 +926,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun setErrorMessage(message: String?) {
+        _errorMessage.value = message
+    }
+
     fun clearError() {
         _errorMessage.value = null
     }
@@ -963,11 +996,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearCache() {
         viewModelScope.launch(Dispatchers.IO) {
-            val context = getApplication<Application>()
+            val baseContext = getApplication<Application>()
+            val lang = _appLanguage.value
+            val context = LocaleHelper.applyLocale(baseContext, lang)
+            
             _isLoading.value = true
             repository.clearEpg()
             prefs.edit().putLong("last_epg_update", 0L).apply()
-            context.cacheDir.deleteRecursively()
+            baseContext.cacheDir.deleteRecursively()
             _isLoading.value = false
             _errorMessage.value = context.getString(R.string.success_cache_cleared)
         }

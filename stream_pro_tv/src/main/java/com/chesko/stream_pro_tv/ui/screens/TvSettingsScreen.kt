@@ -155,11 +155,11 @@ fun TvSettingsScreen(
 
                 TvSettingsSection(title = stringResource(R.string.settings_group_display)) {
                     val langLabel = when (appLanguage) {
-                        "en" -> "English"
-                        "in" -> "Bahasa Indonesia"
-                        "ms" -> "Bahasa Melayu"
-                        "ar" -> "Arabic"
-                        else -> "System Default"
+                        "en" -> stringResource(R.string.language_en)
+                        "in" -> stringResource(R.string.language_in)
+                        "ms" -> stringResource(R.string.language_ms)
+                        "ar" -> stringResource(R.string.language_ar)
+                        else -> stringResource(R.string.label_system_default)
                     }
                     TvSettingsActionItem(
                         icon = Icons.Default.Language,
@@ -307,10 +307,10 @@ fun TvSettingsScreen(
                 icon = Icons.Default.Language
             ) {
                 val languages = listOf(
-                    "en" to "ENGLISH",
-                    "in" to "BAHASA INDONESIA",
-                    "ms" to "BAHASA MELAYU",
-                    "ar" to "ARABIC"
+                    "en" to stringResource(R.string.language_en),
+                    "in" to stringResource(R.string.language_in),
+                    "ms" to stringResource(R.string.language_ms),
+                    "ar" to stringResource(R.string.language_ar)
                 )
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     languages.forEach { (code, label) ->

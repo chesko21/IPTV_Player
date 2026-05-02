@@ -40,6 +40,7 @@
     <string name="item_language_subtitle">ปัจจุบัน: %1$s</string>
     <string name="item_accent_subtitle">เลือกสีประจำแอป</string>
     <string name="item_cache_subtitle">ล้างข้อมูลแอปชั่วคราว</string>
+    <string name="success_cache_cleared">ล้างแคชของแอปสำเร็จแล้ว!</string>
     <string name="unit_seconds">%1$d วินาที</string>
 
     <string name="dialog_color_desc">ปรับแต่งธีมแอป</string>
@@ -92,6 +93,7 @@
     <!-- Login Screen -->
     <string name="tab_remote_url">URL ระยะไกล</string>
     <string name="tab_local_file">ไฟล์ในเครื่อง</string>
+    <string name="tab_restore">คืนค่า XML</string>
     <string name="login_secure_msg">การเชื่อมต่อที่ปลอดภัยและเข้ารหัส</string>
     <string name="dialog_explore_demo">สำรวจเดโม</string>
     <string name="demo_playlist_label">เดโมเพลย์ลิสต์ %1$d</string>
@@ -103,6 +105,9 @@
     <string name="local_repo_label">ที่เก็บข้อมูลในเครื่อง</string>
     <string name="local_repo_msg">นำเข้าไฟล์ .m3u หรือ .m3u8 จากที่เก็บข้อมูลในเครื่องของคุณ</string>
     <string name="btn_browse_files">เรียกดูไฟล์</string>
+    <string name="restore_label">คืนค่าจากข้อมูลสำรอง</string>
+    <string name="restore_msg">คืนค่าช่อง รายการโปรด และการตั้งค่าจากไฟล์สำรอง XML</string>
+    <string name="btn_restore_xml">คืนค่าตอนนี้</string>
     <string name="invalid_url_protocol">โปรโตคอล URL ไม่ถูกต้อง</string>
 
     <!-- Help Screen -->

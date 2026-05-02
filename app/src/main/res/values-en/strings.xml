@@ -40,6 +40,7 @@
     <string name="item_language_subtitle">Currently: %1$s</string>
     <string name="item_accent_subtitle">Select app identity color</string>
     <string name="item_cache_subtitle">Clean temporary app data</string>
+    <string name="success_cache_cleared">App cache successfully cleared!</string>
     <string name="unit_seconds">%1$d Seconds</string>
 
     <string name="dialog_color_desc">Personalize app theme</string>
@@ -92,6 +93,7 @@
     <!-- Login Screen -->
     <string name="tab_remote_url">REMOTE URL</string>
     <string name="tab_local_file">LOCAL FILE</string>
+    <string name="tab_restore">RESTORE XML</string>
     <string name="login_secure_msg">SECURE ENCRYPTED CONNECTION</string>
     <string name="dialog_explore_demo">EXPLORE DEMO</string>
     <string name="demo_playlist_label">Demo Playlist %1$d</string>
@@ -103,6 +105,9 @@
     <string name="local_repo_label">LOCAL REPOSITORY</string>
     <string name="local_repo_msg">Import .m3u or .m3u8 files from your device storage</string>
     <string name="btn_browse_files">BROWSE FILES</string>
+    <string name="restore_label">RESTORE FROM BACKUP</string>
+    <string name="restore_msg">Restore your channels, favorites, and settings from an XML backup file</string>
+    <string name="btn_restore_xml">RESTORE NOW</string>
     <string name="invalid_url_protocol">Invalid URL protocol</string>
 
     <!-- Help Screen -->

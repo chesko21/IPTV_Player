@@ -411,7 +411,10 @@ fun NavHostContent(
             )
         }
         composable("live") {
-            LaunchedEffect(Unit) { viewModel.setCategoryFilter("live") }
+            LaunchedEffect(Unit) { 
+                viewModel.setSelectedGroup(null)
+                viewModel.setCategoryFilter("live") 
+            }
             HomeScreen(
                 viewModel = viewModel,
                 showGroupSelector = false,
@@ -422,7 +425,10 @@ fun NavHostContent(
             )
         }
         composable("movies") {
-            LaunchedEffect(Unit) { viewModel.setCategoryFilter("movies") }
+            LaunchedEffect(Unit) { 
+                viewModel.setSelectedGroup(null)
+                viewModel.setCategoryFilter("movies") 
+            }
             HomeScreen(
                 viewModel = viewModel,
                 showGroupSelector = false, // Sembunyikan untuk Movies
@@ -433,7 +439,25 @@ fun NavHostContent(
             )
         }
         composable("sport") {
-            LaunchedEffect(Unit) { viewModel.setCategoryFilter("sport") }
+            LaunchedEffect(Unit) { 
+                viewModel.setSelectedGroup(null)
+                viewModel.setCategoryFilter("sport") 
+            }
+            HomeScreen(
+                viewModel = viewModel,
+                showGroupSelector = false,
+                onChannelClick = { channel ->
+                    viewModel.setSelectedChannel(channel)
+                    navController.navigate("player")
+                }
+            )
+        }
+        composable("favorites") {
+            val favoritesLabel = stringResource(com.chesko.stream_pro.core.R.string.group_favorites)
+            LaunchedEffect(Unit) {
+                viewModel.setCategoryFilter(null)
+                viewModel.setSelectedGroup(favoritesLabel)
+            }
             HomeScreen(
                 viewModel = viewModel,
                 showGroupSelector = false,
@@ -444,7 +468,10 @@ fun NavHostContent(
             )
         }
         composable("home") {
-            LaunchedEffect(Unit) { viewModel.setCategoryFilter(null) }
+            LaunchedEffect(Unit) { 
+                viewModel.setSelectedGroup(null)
+                viewModel.setCategoryFilter(null) 
+            }
             HomeScreen(
                 viewModel = viewModel,
                 onChannelClick = { channel ->

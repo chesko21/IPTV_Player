@@ -2,6 +2,11 @@ package com.chesko.stream_pro.ui.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -19,6 +24,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,9 +33,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.HighQuality
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
@@ -46,8 +54,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -77,9 +83,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.chesko.stream_pro.R
 import com.chesko.stream_pro.core.ui.MainViewModel
 import android.graphics.Color as AndroidColor
+import kotlinx.coroutines.delay
 
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -99,8 +107,6 @@ fun SettingsScreen(
     val appLanguage by viewModel.appLanguage.collectAsState()
     val backgroundType by viewModel.backgroundType.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
-
-    val snackbarHostState = remember { SnackbarHostState() }
 
     val accentColor = MaterialTheme.colorScheme.primary
 
@@ -123,244 +129,289 @@ fun SettingsScreen(
     }
 
     LaunchedEffect(errorMessage) {
-        errorMessage?.let {
-            snackbarHostState.showSnackbar(it)
+        if (errorMessage != null) {
+            delay(4000)
             viewModel.clearError()
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(R.string.settings_title),
-                        fontWeight = FontWeight.Black
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        if (!isBackInvoked) {
-                            isBackInvoked = true
-                            onBack()
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            stringResource(R.string.settings_title),
+                            fontWeight = FontWeight.Black
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            if (!isBackInvoked) {
+                                isBackInvoked = true
+                                onBack()
+                            }
+                        }) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
                         }
-                    }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+            },
+            containerColor = Color.Transparent
+        ) { padding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                val contentWidth = when (windowSize.widthSizeClass) {
+                    WindowWidthSizeClass.Compact -> Modifier.fillMaxWidth()
+                    WindowWidthSizeClass.Medium -> Modifier.width(480.dp)
+                    else -> Modifier.width(560.dp)
+                }
+
+                Column(
+                    modifier = contentWidth
+                        .verticalScroll(rememberScrollState())
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    SettingsGroup(
+                        title = stringResource(R.string.group_player),
+                        accentColor = accentColor
+                    ) {
+                        SettingsItem(
+                            icon = Icons.Default.SettingsSuggest,
+                            title = stringResource(R.string.item_engine_title),
+                            subtitle = stringResource(
+                                R.string.item_engine_subtitle,
+                                if (playerEngine == "EXO") "ExoPlayer (Default)" else "VLC Player"
+                            ),
+                            onClick = { showEngineDialog = true }
+                        )
+                        SettingsItem(
+                            icon = Icons.Default.HighQuality,
+                            title = stringResource(R.string.item_quality_title),
+                            subtitle = if (maxVideoHeight == 0) stringResource(R.string.item_quality_auto) else stringResource(
+                                R.string.item_quality_subtitle,
+                                maxVideoHeight
+                            ),
+                            onClick = { showQualityDialog = true }
+                        )
+                        SettingsToggleItem(
+                            icon = if (hwAcceleration) Icons.Default.Bolt else Icons.Default.SettingsSuggest,
+                            title = stringResource(R.string.item_hw_title),
+                            subtitle = if (hwAcceleration) stringResource(R.string.item_hw_subtitle_on) else stringResource(
+                                R.string.item_hw_subtitle_off
+                            ),
+                            checked = hwAcceleration,
+                            onCheckedChange = { viewModel.setHwAcceleration(it) },
+                            accentColor = accentColor
+                        )
+                        SettingsItem(
+                            icon = Icons.Default.Timer,
+                            title = stringResource(R.string.item_buffer_title),
+                            subtitle = stringResource(R.string.item_buffer_subtitle, bufferSize),
+                            onClick = { showBufferDialog = true }
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        },
-        containerColor = Color.Transparent
-    ) { padding ->
-        Box(
+
+                    SettingsGroup(
+                        title = stringResource(R.string.group_display),
+                        accentColor = accentColor
+                    ) {
+                        SettingsToggleItem(
+                            icon = Icons.Default.DarkMode,
+                            title = stringResource(R.string.item_dark_mode),
+                            subtitle = stringResource(R.string.item_dark_mode_subtitle),
+                            checked = darkMode,
+                            onCheckedChange = { viewModel.setDarkMode(it) },
+                            accentColor = accentColor
+                        )
+                        val langLabel = when (appLanguage) {
+                            "in" -> "Indonesia"
+                            "ms" -> "Malay"
+                            "ar" -> "Arabic"
+                            "zh" -> "Chinese"
+                            "th" -> "Thai"
+                            "vi" -> "Vietnamese"
+                            "es" -> "Spanish"
+                            "fr" -> "French"
+                            "pt" -> "Portuguese"
+                            "ru" -> "Russian"
+                            "ja" -> "Japanese"
+                            else -> "English"
+                        }
+                        SettingsItem(
+                            icon = Icons.Default.Language,
+                            title = stringResource(R.string.item_language),
+                            subtitle = stringResource(R.string.item_language_subtitle, langLabel),
+                            onClick = { showLanguageDialog = true }
+                        )
+                        SettingsItem(
+                            icon = Icons.Default.Palette,
+                            title = stringResource(R.string.item_accent_color),
+                            subtitle = stringResource(R.string.item_accent_subtitle),
+                            onClick = { showColorPicker = true }
+                        )
+                        SettingsItem(
+                            icon = Icons.Default.Wallpaper,
+                            title = stringResource(R.string.item_background),
+                            subtitle = when (backgroundType) {
+                                "color" -> stringResource(R.string.background_color)
+                                "image" -> stringResource(R.string.background_image)
+                                else -> stringResource(R.string.background_default)
+                            },
+                            onClick = { showBackgroundDialog = true }
+                        )
+                    }
+
+                    SettingsGroup(title = stringResource(R.string.group_data), accentColor = accentColor) {
+                        SettingsItem(
+                            icon = Icons.Default.DeleteSweep,
+                            title = stringResource(R.string.item_clear_cache),
+                            subtitle = stringResource(R.string.item_cache_subtitle),
+                            onClick = { viewModel.clearCache() }
+                        )
+                    }
+                }
+            }
+        }
+
+        // Notifikasi diletakkan di luar Scaffold agar bisa menutupi TopAppBar (lebih ke atas)
+        AnimatedVisibility(
+            visible = errorMessage != null,
+            enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentAlignment = Alignment.TopCenter
+                .align(Alignment.TopCenter)
+                .padding(top = 80.dp) // Posisi sedikit lebih rendah agar tidak menempel ke atas sekali
+                .zIndex(100f)
         ) {
-            val contentWidth = when (windowSize.widthSizeClass) {
-                WindowWidthSizeClass.Compact -> Modifier.fillMaxWidth()
-                WindowWidthSizeClass.Medium -> Modifier.width(480.dp)
-                else -> Modifier.width(560.dp)
-            }
-
-            Column(
-                modifier = contentWidth
-                    .verticalScroll(rememberScrollState())
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                SettingsGroup(
-                    title = stringResource(R.string.group_player),
-                    accentColor = accentColor
+            errorMessage?.let { message ->
+                Surface(
+                    modifier = Modifier
+                        .padding(horizontal = 24.dp)
+                        .widthIn(max = 400.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = if (message.contains("berhasil", true) || message.contains("success", true))
+                        Color(0xFF2E7D32) else MaterialTheme.colorScheme.error,
+                    tonalElevation = 8.dp,
+                    shadowElevation = 8.dp
                 ) {
-                    SettingsItem(
-                        icon = Icons.Default.SettingsSuggest,
-                        title = stringResource(R.string.item_engine_title),
-                        subtitle = stringResource(
-                            R.string.item_engine_subtitle,
-                            if (playerEngine == "EXO") "ExoPlayer (Default)" else "VLC Player"
-                        ),
-                        onClick = { showEngineDialog = true }
-                    )
-                    SettingsItem(
-                        icon = Icons.Default.HighQuality,
-                        title = stringResource(R.string.item_quality_title),
-                        subtitle = if (maxVideoHeight == 0) stringResource(R.string.item_quality_auto) else stringResource(
-                            R.string.item_quality_subtitle,
-                            maxVideoHeight
-                        ),
-                        onClick = { showQualityDialog = true }
-                    )
-                    SettingsToggleItem(
-                        icon = if (hwAcceleration) Icons.Default.Bolt else Icons.Default.SettingsSuggest,
-                        title = stringResource(R.string.item_hw_title),
-                        subtitle = if (hwAcceleration) stringResource(R.string.item_hw_subtitle_on) else stringResource(
-                            R.string.item_hw_subtitle_off
-                        ),
-                        checked = hwAcceleration,
-                        onCheckedChange = { viewModel.setHwAcceleration(it) },
-                        accentColor = accentColor
-                    )
-                    SettingsItem(
-                        icon = Icons.Default.Timer,
-                        title = stringResource(R.string.item_buffer_title),
-                        subtitle = stringResource(R.string.item_buffer_subtitle, bufferSize),
-                        onClick = { showBufferDialog = true }
-                    )
-                }
-
-                SettingsGroup(
-                    title = stringResource(R.string.group_display),
-                    accentColor = accentColor
-                ) {
-                    SettingsToggleItem(
-                        icon = Icons.Default.DarkMode,
-                        title = stringResource(R.string.item_dark_mode),
-                        subtitle = stringResource(R.string.item_dark_mode_subtitle),
-                        checked = darkMode,
-                        onCheckedChange = { viewModel.setDarkMode(it) },
-                        accentColor = accentColor
-                    )
-                    val langLabel = when (appLanguage) {
-                        "in" -> "Indonesia"
-                        "ms" -> "Malay"
-                        "ar" -> "Arabic"
-                        "zh" -> "Chinese"
-                        "th" -> "Thai"
-                        "vi" -> "Vietnamese"
-                        "es" -> "Spanish"
-                        "fr" -> "French"
-                        "pt" -> "Portuguese"
-                        "ru" -> "Russian"
-                        "ja" -> "Japanese"
-                        else -> "English"
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (message.contains("berhasil", true) || message.contains("success", true))
+                                Icons.Default.CheckCircle else Icons.Default.ErrorOutline,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = message,
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
-                    SettingsItem(
-                        icon = Icons.Default.Language,
-                        title = stringResource(R.string.item_language),
-                        subtitle = stringResource(R.string.item_language_subtitle, langLabel),
-                        onClick = { showLanguageDialog = true }
-                    )
-                    SettingsItem(
-                        icon = Icons.Default.Palette,
-                        title = stringResource(R.string.item_accent_color),
-                        subtitle = stringResource(R.string.item_accent_subtitle),
-                        onClick = { showColorPicker = true }
-                    )
-                    SettingsItem(
-                        icon = Icons.Default.Wallpaper,
-                        title = stringResource(R.string.item_background),
-                        subtitle = when (backgroundType) {
-                            "color" -> stringResource(R.string.background_color)
-                            "image" -> stringResource(R.string.background_image)
-                            else -> stringResource(R.string.background_default)
-                        },
-                        onClick = { showBackgroundDialog = true }
-                    )
-                }
-
-                SettingsGroup(title = stringResource(R.string.group_data), accentColor = accentColor) {
-                    SettingsItem(
-                        icon = Icons.Default.DeleteSweep,
-                        title = stringResource(R.string.item_clear_cache),
-                        subtitle = stringResource(R.string.item_cache_subtitle),
-                        onClick = { viewModel.clearCache() }
-                    )
                 }
             }
         }
+    }
 
-        if (showColorPicker) {
-            ColorPickerDialog(
-                onDismiss = { showColorPicker = false },
-                onColorSelected = {
-                    viewModel.setAccentColor(it.toArgb())
-                    showColorPicker = false
-                }
-            )
-        }
+    if (showColorPicker) {
+        ColorPickerDialog(
+            onDismiss = { showColorPicker = false },
+            onColorSelected = {
+                viewModel.setAccentColor(it.toArgb())
+                showColorPicker = false
+            }
+        )
+    }
 
-        if (showBackgroundColorPicker) {
-            ColorPickerDialog(
-                onDismiss = { showBackgroundColorPicker = false },
-                onColorSelected = {
-                    viewModel.setBackgroundColor(it.toArgb())
-                    viewModel.setBackgroundType("color")
-                    showBackgroundColorPicker = false
-                }
-            )
-        }
+    if (showBackgroundColorPicker) {
+        ColorPickerDialog(
+            onDismiss = { showBackgroundColorPicker = false },
+            onColorSelected = {
+                viewModel.setBackgroundColor(it.toArgb())
+                viewModel.setBackgroundType("color")
+                showBackgroundColorPicker = false
+            }
+        )
+    }
 
-        if (showBackgroundDialog) {
-            BackgroundPickerDialog(
-                currentType = backgroundType,
-                onDismiss = { showBackgroundDialog = false },
-                onTypeSelected = { type ->
-                    if (type == "image") {
-                        imagePickerLauncher.launch("image/*")
-                    } else if (type == "color") {
-                        showBackgroundColorPicker = true
-                    } else {
-                        viewModel.setBackgroundType("default")
-                    }
-                    showBackgroundDialog = false
+    if (showBackgroundDialog) {
+        BackgroundPickerDialog(
+            currentType = backgroundType,
+            onDismiss = { showBackgroundDialog = false },
+            onTypeSelected = { type ->
+                if (type == "image") {
+                    imagePickerLauncher.launch("image/*")
+                } else if (type == "color") {
+                    showBackgroundColorPicker = true
+                } else {
+                    viewModel.setBackgroundType("default")
                 }
-            )
-        }
+                showBackgroundDialog = false
+            }
+        )
+    }
 
-        if (showLanguageDialog) {
-            LanguagePickerDialog(
-                currentLanguage = appLanguage,
-                onDismiss = { showLanguageDialog = false },
-                onLanguageSelected = {
-                    viewModel.setAppLanguage(it)
-                    showLanguageDialog = false
-                }
-            )
-        }
+    if (showLanguageDialog) {
+        LanguagePickerDialog(
+            currentLanguage = appLanguage,
+            onDismiss = { showLanguageDialog = false },
+            onLanguageSelected = {
+                viewModel.setAppLanguage(it)
+                showLanguageDialog = false
+            }
+        )
+    }
 
-        if (showBufferDialog) {
-            BufferPickerDialog(
-                currentBuffer = bufferSize,
-                onDismiss = { showBufferDialog = false },
-                onBufferSelected = {
-                    viewModel.setBufferSize(it)
-                    showBufferDialog = false
-                }
-            )
-        }
+    if (showBufferDialog) {
+        BufferPickerDialog(
+            currentBuffer = bufferSize,
+            onDismiss = { showBufferDialog = false },
+            onBufferSelected = {
+                viewModel.setBufferSize(it)
+                showBufferDialog = false
+            }
+        )
+    }
 
-        if (showQualityDialog) {
-            QualityPickerDialog(
-                currentHeight = maxVideoHeight,
-                onDismiss = { showQualityDialog = false },
-                onQualitySelected = {
-                    viewModel.setMaxVideoHeight(it)
-                    showQualityDialog = false
-                }
-            )
-        }
+    if (showQualityDialog) {
+        QualityPickerDialog(
+            currentHeight = maxVideoHeight,
+            onDismiss = { showQualityDialog = false },
+            onQualitySelected = {
+                viewModel.setMaxVideoHeight(it)
+                showQualityDialog = false
+            }
+        )
+    }
 
-        if (showEngineDialog) {
-            EnginePickerDialog(
-                currentEngine = playerEngine,
-                onDismiss = { showEngineDialog = false },
-                onEngineSelected = {
-                    viewModel.setPlayerEngine(it)
-                    showEngineDialog = false
-                }
-            )
-        }
+    if (showEngineDialog) {
+        EnginePickerDialog(
+            currentEngine = playerEngine,
+            onDismiss = { showEngineDialog = false },
+            onEngineSelected = {
+                viewModel.setPlayerEngine(it)
+                showEngineDialog = false
+            }
+        )
     }
 }
 

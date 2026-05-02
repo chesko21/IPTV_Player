@@ -40,6 +40,7 @@
     <string name="item_language_subtitle">Saat ini: %1$s</string>
     <string name="item_accent_subtitle">Pilih warna identitas aplikasi</string>
     <string name="item_cache_subtitle">Bersihkan data sementara aplikasi</string>
+    <string name="success_cache_cleared">Cache aplikasi berhasil dihapus!</string>
     <string name="unit_seconds">%1$d Detik</string>
 
     <string name="dialog_color_desc">Personalisasi tema aplikasi</string>
@@ -108,6 +109,11 @@
     <string name="restore_msg">Pulihkan saluran, favorit, dan pengaturan Anda dari file backup XML</string>
     <string name="btn_restore_xml">PULIHKAN SEKARANG</string>
     <string name="invalid_url_protocol">Protokol URL tidak valid</string>
+
+    <string name="login_preset_demos">PRESET DEMO URLS</string>
+    <string name="login_server_label">SERVER %1$d</string>
+    <string name="login_url_placeholder_example">https://example.com/playlist.m3u</string>
+    <string name="login_url_hint">Klik untuk memasukkan alamat</string>
 
     <!-- Help Screen -->
     <string name="help_center_title">Pusat Bantuan</string>

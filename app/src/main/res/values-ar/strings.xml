@@ -40,6 +40,7 @@
     <string name="item_language_subtitle">حالياً: %1$s</string>
     <string name="item_accent_subtitle">اختر لون هوية التطبيق</string>
     <string name="item_cache_subtitle">تنظيف بيانات التطبيق المؤقتة</string>
+    <string name="success_cache_cleared">تم مسح ذاكرة التخزين المؤقت بنجاح!</string>
     <string name="unit_seconds">%1$d ثانية</string>
 
     <string name="dialog_color_desc">تخصيص مظهر التطبيق</string>
@@ -92,6 +93,7 @@
     <!-- Login Screen -->
     <string name="tab_remote_url">رابط عن بعد</string>
     <string name="tab_local_file">ملف محلي</string>
+    <string name="tab_restore">استعادة XML</string>
     <string name="login_secure_msg">اتصال آمن ومشفر</string>
     <string name="dialog_explore_demo">استكشف التجربة</string>
     <string name="demo_playlist_label">قائمة تشغيل تجريبية %1$d</string>
@@ -103,6 +105,9 @@
     <string name="local_repo_label">المستودع المحلي</string>
     <string name="local_repo_msg">استيراد ملفات .m3u أو .m3u8 من ذاكرة جهازك</string>
     <string name="btn_browse_files">تصفح الملفات</string>
+    <string name="restore_label">استعادة من النسخة الاحتياطية</string>
+    <string name="restore_msg">استعادة القنوات والمفضلات والإعدادات من ملف نسخة احتياطية XML</string>
+    <string name="btn_restore_xml">استعادة الآن</string>
     <string name="invalid_url_protocol">بروتوكول الرابط غير صالح</string>
 
     <!-- Help Screen -->
