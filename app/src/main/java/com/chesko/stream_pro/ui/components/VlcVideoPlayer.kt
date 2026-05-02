@@ -1,4 +1,4 @@
-package com.chesko.stream_pro.core.player
+package com.chesko.stream_pro.ui.components
 
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -293,7 +293,7 @@ fun VlcVideoPlayer(
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-                text = stringResource(R.string.brand_name),
+                text = stringResource(com.chesko.stream_pro.R.string.brand_name),
                 color = Color.White,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
