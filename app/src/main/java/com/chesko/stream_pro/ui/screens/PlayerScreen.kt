@@ -481,13 +481,15 @@ fun PlayerScreenContent(
     LaunchedEffect(isCasting, currentChannel) {
         val castPlayerRef = castPlayer
         if (isCasting && castPlayerRef != null) {
+            // Jika TV sudah memutar sesuatu, jangan timpa kecuali channel berbeda
+            val mediaItem = PlayerUtils.buildMediaItem(currentChannel)
+            
             val currentPos = if (activeEngine == "VLC") {
                 vlcPlayer?.time ?: 0L
             } else {
                 exoPlayer?.currentPosition ?: 0L
             }
 
-            val mediaItem = PlayerUtils.buildMediaItem(currentChannel)
             castPlayerRef.setMediaItem(mediaItem, currentPos)
             castPlayerRef.prepare()
             castPlayerRef.play()
@@ -496,6 +498,13 @@ fun PlayerScreenContent(
             exoPlayer?.pause()
             vlcPlayer?.pause()
             isConnectingToCast = false
+        } else if (!isCasting) {
+            // Jika tidak casting, pastikan player lokal lanjut jika tadi di-pause karena cast
+            if (activeEngine == "VLC") {
+                if (vlcPlayer?.isPlaying == false) vlcPlayer?.play()
+            } else {
+                if (exoPlayer?.isPlaying == false) exoPlayer?.play()
+            }
         }
     }
 
@@ -1200,8 +1209,12 @@ fun PlayerScreenContent(
         }
 
         if (showCastDiscovery) {
+            val tvOnlyRoutes = availableRoutes.filter { 
+                it.deviceType == MediaRouter.RouteInfo.DEVICE_TYPE_TV 
+            }
+            
             CastDiscoveryOverlay(
-                routes = availableRoutes,
+                routes = tvOnlyRoutes,
                 onRouteSelected = { route ->
                     isConnectingToCast = true
                     route.select()
@@ -1437,34 +1450,26 @@ fun GestureHUD(type: String?, brightness: Float, volume: Float, seekPosition: Lo
                 }
             }
         } else {
-            Box(contentAlignment = if (displayType == "Brightness") Alignment.CenterStart else Alignment.CenterEnd) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(horizontal = 48.dp)
+            Box(contentAlignment = Alignment.Center) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
                     Icon(
                         imageVector = if (displayType == "Brightness") Icons.Default.Brightness6 else Icons.AutoMirrored.Filled.VolumeUp,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Box(
-                        modifier = Modifier
-                            .width(4.dp)
-                            .height(150.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(0.2f))
-                    ) {
-                        val progress = if (displayType == "Brightness") brightness else volume
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .fillMaxHeight(progress)
-                                .align(Alignment.BottomCenter)
-                                .background(MaterialTheme.colorScheme.primary)
-                        )
-                    }
+                    Spacer(modifier = Modifier.width(6.dp))
+                    val progress = if (displayType == "Brightness") brightness else volume
+                    val percentage = (progress * 100).toInt()
+                    Text(
+                        text = "$percentage%",
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -1942,7 +1947,10 @@ fun ControlOverlay(
                 modifier = Modifier.height(110.dp),
                 contentAlignment = Alignment.Center
             ) {
-                val isError = isPlaybackStuck || loadingStatus.contains("Gagal", true) || loadingStatus.contains("Error", true)
+                val isError = isPlaybackStuck || 
+                             loadingStatus.contains("Gagal", true) || 
+                             loadingStatus.contains("Error", true) ||
+                             loadingStatus == stringResource(R.string.player_ended)
                 
                 Box(contentAlignment = Alignment.Center) {
                     // Reduced glow size
@@ -2088,10 +2096,11 @@ fun QuickChannelList(
 ) {
     val listState = rememberLazyListState()
 
-    // Auto-scroll to current channel
-    LaunchedEffect(allChannels) {
+    // Optimized auto-scroll: Delay scroll until after the opening animation finishes
+    LaunchedEffect(currentChannel) {
         val index = allChannels.indexOfFirst { it.url == currentChannel.url }
         if (index >= 0) {
+            delay(300) // Wait for side-menu animation to settle
             listState.animateScrollToItem(index)
         }
     }
@@ -2099,9 +2108,9 @@ fun QuickChannelList(
     Surface(
         modifier = Modifier
             .fillMaxHeight()
-            .width(220.dp),
-        color = Color(0xFF0D0D0F).copy(alpha = 0.92f),
-        tonalElevation = 12.dp,
+            .width(240.dp),
+        color = Color(0xFF0D0D0F).copy(alpha = 0.95f),
+        tonalElevation = 8.dp,
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
     ) {
         Column(
@@ -2110,25 +2119,25 @@ fun QuickChannelList(
                 .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Vertical + WindowInsetsSides.End))
         ) {
             // Header
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
-                contentAlignment = Alignment.CenterStart
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = stringResource(R.string.player_channels_title).uppercase(Locale.getDefault()),
+                    text = stringResource(R.string.player_channels_title).uppercase(),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,
-                    color = Color.White.copy(alpha = 0.6f),
-                    letterSpacing = 1.sp,
-                    fontSize = 9.sp
+                    color = Color.White.copy(alpha = 0.5f),
+                    letterSpacing = 1.sp
                 )
                 IconButton(
                     onClick = onClose,
-                    modifier = Modifier.align(Alignment.CenterEnd).size(32.dp)
+                    modifier = Modifier.size(28.dp)
                 ) {
-                    Icon(Icons.Default.Close, null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Close, null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                 }
             }
 
@@ -2137,80 +2146,83 @@ fun QuickChannelList(
             // Channel List
             LazyColumn(
                 state = listState,
-                contentPadding = PaddingValues(vertical = 4.dp),
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(vertical = 4.dp)
             ) {
-                items(allChannels) { channel ->
-                    val isCurrent = channel.url == currentChannel.url
-                    Surface(
-                        onClick = { onChannelSelect(channel) },
-                        color = if (isCurrent) MaterialTheme.colorScheme.primary.copy(0.08f) else Color.Transparent,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // Status Indicator
-                            if (isCurrent) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(3.dp, 16.dp)
-                                        .background(MaterialTheme.colorScheme.primary, CircleShape)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                            }
-
-                            AsyncImage(
-                                model = channel.logo,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(48.dp, 32.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(Color.White.copy(0.03f)),
-                                contentScale = ContentScale.Fit,
-                                error = painterResource(R.drawable.app_icon_android),
-                                placeholder = painterResource(R.drawable.app_icon_android)
-                            )
-                            
-                            Spacer(modifier = Modifier.width(16.dp))
-                            
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = channel.name,
-                                    color = if (isCurrent) MaterialTheme.colorScheme.primary else Color.White.copy(0.8f),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = if (isCurrent) FontWeight.ExtraBold else FontWeight.Medium,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    fontSize = 11.sp
-                                )
-                                val groupName = channel.group
-                                if (!groupName.isNullOrEmpty()) {
-                                    Text(
-                                        text = groupName.uppercase(Locale.getDefault()),
-                                        color = if (isCurrent) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else Color.White.copy(alpha = 0.3f),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontSize = 8.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                            }
-
-                            if (isCurrent) {
-                                Icon(
-                                    Icons.Default.PlayArrow,
-                                    null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                            }
-                        }
-                    }
+                items(
+                    items = allChannels,
+                    key = { it.url } // Important for performance
+                ) { channel ->
+                    val isSelected = channel.url == currentChannel.url
+                    ChannelListItem(
+                        channel = channel,
+                        isSelected = isSelected,
+                        onClick = { onChannelSelect(channel) }
+                    )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun ChannelListItem(
+    channel: IptvChannel,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = channel.logo,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(40.dp, 28.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color.White.copy(alpha = 0.02f)),
+                contentScale = ContentScale.Fit,
+                error = painterResource(R.drawable.app_icon_android),
+                placeholder = painterResource(R.drawable.app_icon_android)
+            )
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = channel.name,
+                    color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.8f),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                val groupName = channel.group
+                if (!groupName.isNullOrEmpty()) {
+                    Text(
+                        text = groupName.uppercase(),
+                        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else Color.White.copy(alpha = 0.3f),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 8.sp,
+                        maxLines = 1
+                    )
+                }
+            }
+
+            if (isSelected) {
+                Icon(
+                    Icons.Default.PlayArrow,
+                    null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(12.dp)
+                )
             }
         }
     }

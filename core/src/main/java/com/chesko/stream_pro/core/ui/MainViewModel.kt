@@ -15,7 +15,8 @@ import com.chesko.stream_pro.core.utils.LocaleHelper
 import com.chesko.stream_pro.core.utils.NetworkObserver
 import android.net.Uri
 import android.provider.Settings
-import android.util.Xml
+import android.util.Log
+import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -34,22 +35,11 @@ import androidx.media3.cast.DefaultMediaItemConverter
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerNotificationManager
 import android.app.PendingIntent
-import android.content.Intent
 import android.graphics.Bitmap
 import com.google.android.gms.cast.framework.CastContext
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouteSelector
 import com.google.android.gms.cast.CastMediaControlIntent
-import com.chesko.stream_pro.core.utils.NsdHelper
-import com.chesko.stream_pro.core.utils.LocalCastServer
-import com.chesko.stream_pro.core.utils.CastRequest
-import android.net.nsd.NsdServiceInfo
-import io.ktor.client.*
-import io.ktor.client.engine.okhttp.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
 import java.io.File
 import java.io.InputStream
 import java.security.cert.X509Certificate
@@ -78,9 +68,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _selectedGroup = MutableStateFlow<String?>(null)
     val selectedGroup: StateFlow<String?> = _selectedGroup
-
-    private val _categoryFilter = MutableStateFlow<String?>(null) 
-    val categoryFilter: StateFlow<String?> = _categoryFilter
 
     private val _selectedChannel = MutableStateFlow<IptvChannel?>(null)
     val selectedChannel: StateFlow<IptvChannel?> = _selectedChannel
@@ -142,6 +129,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val memberSince: StateFlow<String> = _memberSince
 
     // Cast Discovery Logic
+
     private val _castPlayer = MutableStateFlow<CastPlayer?>(null)
     val castPlayer: StateFlow<CastPlayer?> = _castPlayer
 
@@ -153,23 +141,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _availableRoutes = MutableStateFlow<List<MediaRouter.RouteInfo>>(emptyList())
     val availableRoutes: StateFlow<List<MediaRouter.RouteInfo>> = _availableRoutes
-
-    // Custom Android-to-Android Cast
-    private val nsdHelper = NsdHelper(application)
-    private val localCastServer = LocalCastServer { url, name ->
-        viewModelScope.launch {
-            // Logic to play the received URL
-            val channel = IptvChannel(name = name, url = url)
-            _selectedChannel.value = channel
-        }
-    }
-    val discoveredDevices: StateFlow<List<NsdServiceInfo>> = nsdHelper.discoveredServices
-
-    private val ktorClient = HttpClient(OkHttp) {
-        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-            json()
-        }
-    }
 
     private val mediaRouter = MediaRouter.getInstance(application)
     private val selector = MediaRouteSelector.Builder()
@@ -185,6 +156,43 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         override fun onRouteChanged(router: MediaRouter, route: MediaRouter.RouteInfo) {
             updateRoutes()
+        }
+    }
+
+    private val sessionManagerListener = object : com.google.android.gms.cast.framework.SessionManagerListener<com.google.android.gms.cast.framework.CastSession> {
+        override fun onSessionStarted(session: com.google.android.gms.cast.framework.CastSession, sessionId: String) {
+            transferCurrentMediaToCast()
+        }
+        override fun onSessionResumed(session: com.google.android.gms.cast.framework.CastSession, wasSuspended: Boolean) {
+            transferCurrentMediaToCast()
+        }
+        override fun onSessionStarting(session: com.google.android.gms.cast.framework.CastSession) {}
+        override fun onSessionStartFailed(session: com.google.android.gms.cast.framework.CastSession, error: Int) {}
+        override fun onSessionEnding(session: com.google.android.gms.cast.framework.CastSession) {
+            _isCasting.value = false
+        }
+        override fun onSessionEnded(session: com.google.android.gms.cast.framework.CastSession, error: Int) {
+            _isCasting.value = false
+            // Opsional: Lanjutkan pemutaran di HP secara otomatis saat TV keluar
+            _selectedChannel.value?.let { channel ->
+                // Trigger UI untuk melanjutkan di player lokal jika diinginkan
+            }
+        }
+        override fun onSessionResuming(session: com.google.android.gms.cast.framework.CastSession, sessionId: String) {}
+        override fun onSessionResumeFailed(session: com.google.android.gms.cast.framework.CastSession, error: Int) {}
+        override fun onSessionSuspended(session: com.google.android.gms.cast.framework.CastSession, reason: Int) {}
+    }
+
+    private fun transferCurrentMediaToCast() {
+        val channel = _selectedChannel.value ?: return
+        val player = _castPlayer.value ?: return
+        
+        viewModelScope.launch {
+            val mediaItem = PlayerUtils.buildMediaItem(channel)
+            player.setMediaItem(mediaItem)
+            player.prepare()
+            player.play()
+            _isCasting.value = true
         }
     }
 
@@ -341,13 +349,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _randomCarouselChannels = MutableStateFlow<List<IptvChannel>>(emptyList())
     val randomCarouselChannels: StateFlow<List<IptvChannel>> = _randomCarouselChannels
 
-    // Optimized Smart Cache: Pre-fetched EPG for current programs and full schedules
-    private val _epgCache = MutableStateFlow<Map<String, List<EpgProgram>>>(emptyMap())
-    val epgCache: StateFlow<Map<String, List<EpgProgram>>> = _epgCache
-
-    private val _smartEpgCache = MutableStateFlow<Map<String, EpgProgram?>>(emptyMap())
-    val smartEpgCache: StateFlow<Map<String, EpgProgram?>> = _smartEpgCache
-
     private val _dynamicDemoUrls = MutableStateFlow<List<String>>(emptyList())
     val dynamicDemoUrls: StateFlow<List<String>> = _dynamicDemoUrls
 
@@ -382,36 +383,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             delay(5000)
             checkAndRefreshEpgIfNeeded()
-            // Start smart caching after initial delay
-            startSmartCaching()
         }
 
         initCastPlayer()
         mediaRouter.addCallback(selector, routeCallback, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY)
-        
-        // Start Local Cast Services
-        localCastServer.start(8080)
-        nsdHelper.registerService(8080)
-        nsdHelper.discoverServices()
+        try {
+            CastContext.getSharedInstance(application).sessionManager.addSessionManagerListener(sessionManagerListener, com.google.android.gms.cast.framework.CastSession::class.java)
+        } catch (e: Exception) {}
 
         fetchRemoteConfig()
-    }
-
-    private fun startSmartCaching() {
-        viewModelScope.launch {
-            // Wait for channels to be available
-            allChannels.collectLatest { channels ->
-                if (channels.isNotEmpty()) {
-                    // Pre-fetch programs for favorites and first 30 channels
-                    val targets = (favoriteChannels.value + channels.take(30)).distinctBy { it.url }
-                    targets.forEach { channel ->
-                        repository.getCurrentProgram(channel.tvgId, channel.name).take(1).collect { program ->
-                            _smartEpgCache.update { it + (channel.url to program) }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private fun fetchRemoteConfig() {
@@ -428,7 +408,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         _dynamicDemoUrls.value = urls
                     }
                 }
-            } catch (e: Exception) { }
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Failed to fetch remote config", e)
+            }
         }
     }
 
@@ -472,7 +454,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         allChannels,
         _searchQuery,
         _selectedGroup,
-        _categoryFilter,
         favoriteChannels,
         recentlyPlayed
     ) { array ->
@@ -480,11 +461,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val channels = array[0] as List<IptvChannel>
         val query = array[1] as String
         val group = array[2] as String?
-        val category = array[3] as String?
         @Suppress("UNCHECKED_CAST")
-        val favorites = array[4] as List<IptvChannel>
+        val favorites = array[3] as List<IptvChannel>
         @Suppress("UNCHECKED_CAST")
-        val history = array[5] as List<IptvChannel>
+        val history = array[4] as List<IptvChannel>
 
         val baseList = when (group) {
             getApplication<Application>().getString(R.string.group_favorites) -> favorites
@@ -499,35 +479,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 channel.name.contains(query, ignoreCase = true) ||
                         channel.group?.contains(query, ignoreCase = true) == true
             }
-            
-            val matchesCategory = when (category) {
-                "movies" -> channel.group?.contains("MOVIE", ignoreCase = true) == true || 
-                           channel.group?.contains("FILM", ignoreCase = true) == true ||
-                           channel.group?.contains("VOD", ignoreCase = true) == true ||
-                           channel.group?.contains("SERIES", ignoreCase = true) == true || 
-                           channel.group?.contains("TV SHOW", ignoreCase = true) == true ||
-                           channel.group?.contains("SEASON", ignoreCase = true) == true
-                "sport" -> channel.group?.contains("SPORT", ignoreCase = true) == true || 
-                           channel.group?.contains("BOLA", ignoreCase = true) == true ||
-                           channel.group?.contains("BEIN", ignoreCase = true) == true ||
-                           channel.group?.contains("ESPN", ignoreCase = true) == true ||
-                           channel.group?.contains("LIGA", ignoreCase = true) == true ||
-                           channel.group?.contains("FOOTBALL", ignoreCase = true) == true ||
-                           channel.group?.contains("BASKETBALL", ignoreCase = true) == true ||
-                           channel.group?.contains("HOCKEY", ignoreCase = true) == true ||
-                           channel.group?.contains("TENNIS", ignoreCase = true) == true ||
-                           channel.group?.contains("VOLLEY", ignoreCase = true) == true ||
-                           channel.group?.contains("BADMINTON", ignoreCase = true) == true ||
-                           channel.group?.contains("ATHLETICS", ignoreCase = true) == true ||
-                           channel.group?.contains("EVENT", ignoreCase = true) == true ||
-                           channel.group?.contains("SOCCER", ignoreCase = true) == true
-                "live" -> !(channel.group?.contains("MOVIE", ignoreCase = true) == true || 
-                           channel.group?.contains("SERIES", ignoreCase = true) == true ||
-                           channel.group?.contains("VOD", ignoreCase = true) == true ||
-                           channel.group?.contains("FILM", ignoreCase = true) == true ||
-                           channel.group?.contains("SPORT", ignoreCase = true) == true)
-                else -> true
-            }
 
             val matchesGroup = when (group) {
                 null, getApplication<Application>().getString(R.string.group_favorites), getApplication<Application>().getString(R.string.group_recently_played) -> true
@@ -535,7 +486,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 else -> channel.group == group
             }
             
-            matchesSearch && matchesGroup && matchesCategory
+            matchesSearch && matchesGroup
         }
     }.stateIn(
         viewModelScope,
@@ -682,10 +633,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
             urlSource?.let {
                 _lastUrl.value = it
-                prefs.edit().apply {
+                prefs.edit {
                     putString("last_m3u_url", it)
                     putLong("last_m3u_update", System.currentTimeMillis())
-                    apply()
                 }
             }
 
@@ -750,33 +700,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun getProgramsForChannel(channel: IptvChannel): Flow<List<EpgProgram>> {
-        val cached = _epgCache.value[channel.url]
-        if (cached != null) return flowOf(cached)
-        
         return repository.getProgramsForChannel(channel.tvgId, channel.name)
-            .onEach { programs ->
-                if (programs.isNotEmpty()) {
-                    _epgCache.update { it + (channel.url to programs) }
-                }
-            }
     }
 
     fun prefetchEpgForChannels(channels: List<IptvChannel>) {
         viewModelScope.launch {
             channels.forEach { channel ->
-                if (!_epgCache.value.containsKey(channel.url)) {
-                    val programs = repository.getProgramsForChannel(channel.tvgId, channel.name).first()
-                    if (programs.isNotEmpty()) {
-                        _epgCache.update { it + (channel.url to programs) }
-                    }
-                }
+                repository.getProgramsForChannel(channel.tvgId, channel.name).first()
             }
         }
     }
 
     fun getCurrentProgram(channel: IptvChannel): Flow<EpgProgram?> {
-        val cached = _smartEpgCache.value[channel.url]
-        if (cached != null) return flowOf(cached)
         return repository.getCurrentProgram(channel.tvgId, channel.name)
     }
 
@@ -793,8 +728,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun setCategoryFilter(category: String?) {
-        _categoryFilter.value = category
-        _selectedGroup.value = null
+        _selectedGroup.value = category
     }
 
     fun setSelectedChannel(channel: IptvChannel?) {
@@ -1018,10 +952,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _randomCarouselChannels.value = allDemoChannels.shuffled().take(10)
 
                 _lastUrl.value = "combined_demo"
-                prefs.edit().apply {
+                prefs.edit {
                     putString("last_m3u_url", "combined_demo")
                     putLong("last_m3u_update", System.currentTimeMillis())
-                    apply()
                 }
 
                 withContext(Dispatchers.Main) {
@@ -1063,11 +996,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             repository.clearEpg()
             repository.clearRecentlyPlayed()
             _lastUrl.value = ""
-            prefs.edit().apply {
+            prefs.edit {
                 remove("last_m3u_url")
                 remove("last_m3u_update")
                 remove("last_epg_update")
-                apply()
             }
             _isLoading.value = false
         }
@@ -1092,11 +1024,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _userName.value = name
         _userEmail.value = email
         _profileImageUri.value = imageUri ?: _profileImageUri.value
-        prefs.edit().apply {
+        prefs.edit {
             putString("user_name", name)
             putString("user_email", email)
             putString("profile_image_uri", _profileImageUri.value)
-            apply()
         }
     }
 
@@ -1133,90 +1064,68 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setHwAcceleration(enabled: Boolean) {
         _hwAcceleration.value = enabled
-        prefs.edit().putBoolean("hw_acceleration", enabled).apply()
+        prefs.edit { putBoolean("hw_acceleration", enabled) }
     }
 
     fun setBufferSize(seconds: Int) {
         _bufferSize.value = seconds
-        prefs.edit().putInt("buffer_size", seconds).apply()
-    }
-
-    fun setAutoQuality(enabled: Boolean) {
-        _autoQuality.value = enabled
-        prefs.edit().putBoolean("auto_quality", enabled).apply()
+        prefs.edit { putInt("buffer_size", seconds) }
     }
 
     fun setMaxVideoHeight(height: Int) {
         _maxVideoHeight.value = height
-        prefs.edit().putInt("max_video_height", height).apply()
+        prefs.edit { putInt("max_video_height", height) }
     }
 
     fun setPlayerEngine(engine: String) {
         _playerEngine.value = engine
-        prefs.edit().putString("player_engine", engine).apply()
+        prefs.edit { putString("player_engine", engine) }
     }
 
     fun setAudioBoost(enabled: Boolean) {
         _audioBoost.value = enabled
-        prefs.edit().putBoolean("audio_boost", enabled).apply()
+        prefs.edit { putBoolean("audio_boost", enabled) }
     }
 
     fun setDarkMode(enabled: Boolean) {
         _darkMode.value = enabled
-        prefs.edit().putBoolean("dark_mode_permanent", enabled).apply()
+        prefs.edit { putBoolean("dark_mode_permanent", enabled) }
     }
 
     fun setAccentColor(color: Int) {
         _accentColor.value = color
-        prefs.edit().putInt("accent_color", color).apply()
+        prefs.edit { putInt("accent_color", color) }
     }
 
     fun setBackgroundType(type: String) {
         _backgroundType.value = type
-        prefs.edit().putString("background_type", type).apply()
+        prefs.edit { putString("background_type", type) }
     }
 
     fun setBackgroundColor(color: Int) {
         _backgroundColor.value = color
-        prefs.edit().putInt("background_color", color).apply()
+        prefs.edit { putInt("background_color", color) }
     }
 
     fun setBackgroundImageUri(uri: String?) {
         _backgroundImageUri.value = uri
-        prefs.edit().putString("background_image_uri", uri).apply()
+        prefs.edit { putString("background_image_uri", uri) }
     }
 
     fun setAppLanguage(lang: String) {
         _appLanguage.value = lang
-        prefs.edit().putString("app_language", lang).apply()
+        prefs.edit { putString("app_language", lang) }
     }
 
     override fun onCleared() {
         super.onCleared()
         mediaRouter.removeCallback(routeCallback)
+        try {
+            CastContext.getSharedInstance(getApplication()).sessionManager.removeSessionManagerListener(sessionManagerListener, com.google.android.gms.cast.framework.CastSession::class.java)
+        } catch (e: Exception) {}
         notificationManager?.setPlayer(null)
         mediaSession?.release()
         _castPlayer.value?.release()
-        
-        nsdHelper.stopDiscovery()
-        nsdHelper.unregisterService()
-        localCastServer.stop()
-        ktorClient.close()
-    }
-
-    fun castToDevice(serviceInfo: NsdServiceInfo, channel: IptvChannel) {
-        viewModelScope.launch {
-            try {
-                val host = serviceInfo.host.hostAddress
-                val port = serviceInfo.port
-                ktorClient.post("http://$host:$port/play") {
-                    setBody(CastRequest(channel.url, channel.name))
-                    contentType(io.ktor.http.ContentType.Application.Json)
-                }
-            } catch (e: Exception) {
-                _errorMessage.value = "Failed to cast to device: ${e.message}"
-            }
-        }
     }
 
     fun clearCache() {
@@ -1227,7 +1136,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             
             _isLoading.value = true
             repository.clearEpg()
-            prefs.edit().putLong("last_epg_update", 0L).apply()
+            prefs.edit { putLong("last_epg_update", 0L) }
             baseContext.cacheDir.deleteRecursively()
             _isLoading.value = false
             _errorMessage.value = context.getString(R.string.success_cache_cleared)

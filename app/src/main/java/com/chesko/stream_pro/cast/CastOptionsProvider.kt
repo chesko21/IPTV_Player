@@ -11,15 +11,23 @@ import com.google.android.gms.cast.framework.media.MediaIntentReceiver
 class CastOptionsProvider : OptionsProvider {
     override fun getCastOptions(context: Context): CastOptions {
         val notificationOptions = NotificationOptions.Builder()
+            .setActions(
+                listOf(
+                    MediaIntentReceiver.ACTION_TOGGLE_PLAYBACK,
+                    MediaIntentReceiver.ACTION_STOP_CASTING
+                ), intArrayOf(0, 1)
+            )
             .setTargetActivityClassName("com.chesko.stream_pro.MainActivity")
             .build()
+        
         val mediaOptions = CastMediaOptions.Builder()
             .setNotificationOptions(notificationOptions)
             .build()
         
         return CastOptions.Builder()
-            .setReceiverApplicationId("CC1AD845") // Default Media Receiver
+            .setReceiverApplicationId("CC1AD845")
             .setCastMediaOptions(mediaOptions)
+            .setEnableReconnectionService(true)
             .build()
     }
 
