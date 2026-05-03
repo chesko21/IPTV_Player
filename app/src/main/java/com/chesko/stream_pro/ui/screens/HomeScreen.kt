@@ -54,6 +54,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asComposeRenderEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -67,6 +69,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
 import com.chesko.stream_pro.R
 import com.chesko.stream_pro.core.data.model.IptvChannel
@@ -181,11 +184,12 @@ fun HomeScreen(
                                 showExitDialog = false
                                 scope.launch {
                                     isShuttingDown = true
+                                    // Faster, punchier shutdown animation
                                     shutdownProgress.animateTo(
                                         targetValue = 1f,
-                                        animationSpec = tween(4500, easing = LinearOutSlowInEasing)
+                                        animationSpec = tween(800, easing = LinearOutSlowInEasing)
                                     )
-                                    delay(200)
+                                    delay(100)
                                     (context as? Activity)?.finish()
                                 }
                             },
@@ -217,6 +221,8 @@ fun HomeScreen(
 
     val lazyListState = rememberLazyListState()
     val groupLazyListState = rememberLazyListState()
+
+    // Smart Caching: Prefetch EPG for visible items indirectly handled by startSmartCaching in ViewModel
 
     // Auto-scroll to selected group chip
     LaunchedEffect(selectedGroup, groups) {
@@ -516,10 +522,13 @@ fun HomeScreen(
                 .graphicsLayer {
                     if (isShuttingDown) {
                         val p = shutdownProgress.value
-                        // Smooth scale down and fade
-                        scaleX = 1f - (p * 0.08f)
-                        scaleY = 1f - (p * 0.08f)
-                        alpha = (1f - p * 0.9f).coerceIn(0f, 1f)
+                        // 1. Digital Distortion Effect
+                        scaleX = 1f + (p * 0.1f)
+                        scaleY = (1f - p).coerceAtLeast(0.001f) // Squeeze vertically
+                        alpha = (1f - p * 1.5f).coerceIn(0f, 1f)
+                        
+                        // 2. Chromatic Aberration feel (offset)
+                        translationX = if (p > 0.5f) (java.util.Random().nextFloat() - 0.5f) * 20f else 0f
                     }
                 }
         ) {
@@ -609,7 +618,7 @@ fun HomeScreen(
                         }
                     }
 
-                    // Content Area refactored for LazyColumn performance
+                    // Content Area
                     if (selectedGroup != null || searchQuery.isNotEmpty()) {
                         item {
                             val title = when {
@@ -628,7 +637,6 @@ fun HomeScreen(
                             )
                         }
 
-                        // Use grid for selected group or search (2 columns)
                         if (filteredChannels.isEmpty()) {
                             item {
                                 Box(
@@ -707,7 +715,6 @@ fun HomeScreen(
                             onSelectChannel(channel)
                         }
 
-                        // Regular horizontal rows when no group selected
                         if (favoriteChannels.isNotEmpty()) {
                             item {
                                 ContentRow(
@@ -747,7 +754,6 @@ fun HomeScreen(
                             }
                         }
 
-                        // Remaining groups if many
                         if (groups.size > 15) {
                             item {
                                 Spacer(modifier = Modifier.height(12.dp))
@@ -889,215 +895,74 @@ fun HomeScreen(
                 modifier = Modifier.statusBarsPadding()
             )
 
-            // 1. UNIVERSAL SHUTDOWN ANIMATION OVERLAY (REFINED UNIVERSE THEME)
+            // 1. UNIVERSAL SHUTDOWN ANIMATION OVERLAY (CINEMATIC SLEEPY EYE THEME)
             if (isShuttingDown) {
                 val progress = shutdownProgress.value
                 
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = (progress * 1.2f).coerceIn(0f, 1f)))
+                        .zIndex(1000f)
                 ) {
-                    // Nebula Background Glow
+                    // Top Eyelid
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .drawBehind {
-                                val nebulaBrush = Brush.radialGradient(
-                                    colors = listOf(
-                                        Color(0xFF240046).copy(alpha = progress * 0.4f),
-                                        Color(0xFF10002B).copy(alpha = progress * 0.2f),
-                                        Color.Transparent
-                                    ),
-                                    center = center,
-                                    radius = size.maxDimension * 0.7f
-                                )
-                                drawRect(brush = nebulaBrush)
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.51f) // Overlap slightly in the middle
+                            .align(Alignment.TopCenter)
+                            .graphicsLayer {
+                                translationY = -size.height * (1f - progress)
                             }
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(Color.Black, Color.Black, Color.Black.copy(alpha = 0.9f))
+                                )
+                            )
                     )
 
-                    // Cosmic Warp Effect (Stars moving towards viewer with streaks)
-                    androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-                        val center = Offset(size.width / 2, size.height / 2)
-                        val particleCount = 200 // Increased count
-                        val random = java.util.Random(42)
-                        
-                        for (i in 0 until particleCount) {
-                            val angle = random.nextFloat() * 2 * PI
-                            val startDist = random.nextFloat() * size.width
-                            
-                            // High speed warp acceleration
-                            val speedFactor = progress * progress * progress * progress 
-                            val currentDist = (startDist + (speedFactor * size.width * 4.0f)) % (size.width * 2.0f)
-                            
-                            // Add a subtle swirl to the warp
-                            val swirlAngle = angle + (progress * 0.5f)
-                            
-                            val x = center.x + (cos(swirlAngle) * currentDist).toFloat()
-                            val y = center.y + (sin(swirlAngle) * currentDist).toFloat()
-                            
-                            val starAlpha = (1f - (currentDist / (size.width * 1.8f))).coerceIn(0f, 1f) * progress
-                            val starSize = (1f + (currentDist / size.width) * 5f).dp.toPx()
-                            
-                            // Universe Theme Colors (Cyan, Magenta, White)
-                            val starColor = when {
-                                i % 8 == 0 -> Color(0xFF00E5FF) // Cyan
-                                i % 12 == 0 -> Color(0xFFD500F9) // Magenta
-                                else -> Color.White
+                    // Bottom Eyelid
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.51f)
+                            .align(Alignment.BottomCenter)
+                            .graphicsLayer {
+                                translationY = size.height * (1f - progress)
                             }
-
-                            // Draw Star Streak
-                            if (progress > 0.1f) {
-                                val streakLength = (currentDist * 0.15f * progress).coerceAtMost(100f)
-                                val prevX = center.x + (cos(swirlAngle) * (currentDist - streakLength)).toFloat()
-                                val prevY = center.y + (sin(swirlAngle) * (currentDist - streakLength)).toFloat()
-                                
-                                drawLine(
-                                    color = starColor,
-                                    start = Offset(prevX, prevY),
-                                    end = Offset(x, y),
-                                    strokeWidth = starSize * 0.5f,
-                                    alpha = starAlpha * 0.5f
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(Color.Black.copy(alpha = 0.9f), Color.Black, Color.Black)
                                 )
-                            }
-
-                            drawCircle(
-                                brush = Brush.radialGradient(
-                                    colors = listOf(starColor, Color.Transparent),
-                                    center = Offset(x, y),
-                                    radius = starSize
-                                ),
-                                radius = starSize,
-                                center = Offset(x, y),
-                                alpha = starAlpha
                             )
-                        }
-                    }
+                    )
 
-                    // Stage 1: Text Presentation (with Glow/Neon effect)
-                    val textAlpha = when {
-                        progress < 0.1f -> progress / 0.1f
-                        progress < 0.75f -> 1f
-                        progress < 0.95f -> 1f - (progress - 0.75f) / 0.2f
-                        else -> 0f
-                    }.coerceIn(0f, 1f)
-
-                    if (textAlpha > 0f) {
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .graphicsLayer {
-                                    alpha = textAlpha
-                                    scaleX = 0.9f + progress * 0.3f
-                                    scaleY = 0.9f + progress * 0.3f
-                                    translationY = -progress * 40f
-                                },
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            // Sub-header
-                            Text(
-                                text = "SYSTEM DISCONNECT",
-                                color = Color(0xFF00E5FF).copy(alpha = 0.7f),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 4.sp
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            
-                            // Main Departure Message
-                            Text(
-                                text = stringResource(R.string.departure_msg).uppercase(),
-                                color = Color.White,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = (12 + progress * 24).sp,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.blur(if (progress > 0.8f) ((progress - 0.8f) * 20).dp else 0.dp)
-                            )
-                            
-                            Spacer(modifier = Modifier.height(16.dp))
-                            
-                            // Animated Divider
-                            Box(
-                                modifier = Modifier
-                                    .width((80 + progress * 120).dp)
-                                    .height(2.dp)
-                                    .background(
-                                        Brush.horizontalGradient(
-                                            listOf(
-                                                Color.Transparent, 
-                                                Color(0xFF00E5FF).copy(0.5f), 
-                                                Color.White, 
-                                                Color(0xFFD500F9).copy(0.5f), 
-                                                Color.Transparent
-                                            )
-                                        )
-                                    )
-                            )
-                        }
-                    }
-
-                    // Stage 2: Dimensional Rift (CRT + Universe Twist)
-                    val riftStartTime = 0.5f
-                    val riftProgress = ((progress - riftStartTime) / (1f - riftStartTime)).coerceIn(0f, 1f)
-                    
-                    if (progress > riftStartTime) {
-                        val vScale = if (riftProgress < 0.85f) {
-                            (1f - (riftProgress / 0.85f)).coerceAtLeast(0.001f)
-                        } else 0.001f
-                        
-                        val hScale = if (riftProgress < 0.85f) 1f 
-                                    else (1f - (riftProgress - 0.85f) / 0.15f).coerceAtLeast(0.001f)
-                        
-                        val beamAlpha = if (riftProgress < 0.98f) 1f 
-                                       else (1f - (riftProgress - 0.98f) / 0.02f).coerceIn(0f, 1f)
-
+                    // Closing Slit Glow (Garis cahaya tipis saat mata hampir menutup)
+                    if (progress > 0.7f && progress < 0.98f) {
+                        val slitAlpha = (1f - (progress - 0.7f) / 0.28f).coerceIn(0f, 1f)
                         Box(
                             modifier = Modifier
                                 .align(Alignment.Center)
                                 .fillMaxWidth()
-                                .height(4.dp)
-                                .graphicsLayer {
-                                    scaleY = vScale * 1000f
-                                    scaleX = hScale
-                                    alpha = beamAlpha
-                                }
-                                .background(
-                                    Brush.horizontalGradient(
-                                        colors = listOf(
-                                            Color.Transparent, 
-                                            Color(0xFF00E5FF).copy(0.6f),
-                                            Color(0xFF00E5FF),
-                                            Color.White, 
-                                            Color(0xFFD500F9),
-                                            Color(0xFFD500F9).copy(0.6f),
-                                            Color.Transparent
-                                        )
-                                    )
-                                )
-                                .blur(if (vScale > 0.02f) 24.dp else 6.dp)
+                                .height(2.dp)
+                                .background(Color.White.copy(alpha = slitAlpha * 0.3f))
+                                .blur(2.dp)
                         )
                     }
 
-                    // Final Cosmic Singularity Dot
-                    if (riftProgress > 0.90f) {
-                        val dotScale = (1f - (riftProgress - 0.90f) / 0.1f).coerceIn(0f, 1f)
-                        Box(
+                    // Goodbye Text (Tampil di celah mata yang menutup)
+                    if (progress < 0.9f) {
+                        Text(
+                            text = stringResource(R.string.departure_msg).uppercase(),
                             modifier = Modifier
                                 .align(Alignment.Center)
-                                .size(8.dp)
                                 .graphicsLayer {
-                                    scaleX = dotScale * 10f
-                                    scaleY = dotScale * 10f
-                                    alpha = dotScale
-                                }
-                                .background(
-                                    Brush.radialGradient(
-                                        listOf(Color.White, Color(0xFF00E5FF), Color.Transparent)
-                                    ),
-                                    CircleShape
-                                )
-                                .blur(8.dp)
+                                    alpha = (1f - progress * 1.1f).coerceIn(0f, 1f)
+                                    scaleX = 1f - (progress * 0.2f)
+                                },
+                            color = Color.White.copy(alpha = 0.8f),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Light,
+                            letterSpacing = 4.sp
                         )
                     }
                 }

@@ -186,8 +186,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _randomCarouselChannels = MutableStateFlow<List<IptvChannel>>(emptyList())
     val randomCarouselChannels: StateFlow<List<IptvChannel>> = _randomCarouselChannels
 
-    private val _epgCache = MutableStateFlow<Map<Int, List<EpgProgram>>>(emptyMap())
-    val epgCache: StateFlow<Map<Int, List<EpgProgram>>> = _epgCache
+    // Optimized Smart Cache: Pre-fetched EPG for current programs and full schedules
+    private val _epgCache = MutableStateFlow<Map<String, List<EpgProgram>>>(emptyMap())
+    val epgCache: StateFlow<Map<String, List<EpgProgram>>> = _epgCache
+
+    private val _smartEpgCache = MutableStateFlow<Map<String, EpgProgram?>>(emptyMap())
+    val smartEpgCache: StateFlow<Map<String, EpgProgram?>> = _smartEpgCache
 
     private val _dynamicDemoUrls = MutableStateFlow<List<String>>(emptyList())
     val dynamicDemoUrls: StateFlow<List<String>> = _dynamicDemoUrls
@@ -223,9 +227,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             delay(5000)
             checkAndRefreshEpgIfNeeded()
+            // Start smart caching after initial delay
+            startSmartCaching()
         }
 
         fetchRemoteConfig()
+    }
+
+    private fun startSmartCaching() {
+        viewModelScope.launch {
+            // Wait for channels to be available
+            allChannels.collectLatest { channels ->
+                if (channels.isNotEmpty()) {
+                    // Pre-fetch programs for favorites and first 30 channels
+                    val targets = (favoriteChannels.value + channels.take(30)).distinctBy { it.url }
+                    targets.forEach { channel ->
+                        repository.getCurrentProgram(channel.tvgId, channel.name).take(1).collect { program ->
+                            _smartEpgCache.update { it + (channel.url to program) }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun fetchRemoteConfig() {
@@ -555,13 +578,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun getProgramsForChannel(channel: IptvChannel): Flow<List<EpgProgram>> {
-        val cached = _epgCache.value[channel.id]
+        val cached = _epgCache.value[channel.url]
         if (cached != null) return flowOf(cached)
         
         return repository.getProgramsForChannel(channel.tvgId, channel.name)
             .onEach { programs ->
                 if (programs.isNotEmpty()) {
-                    _epgCache.value = _epgCache.value + (channel.id to programs)
+                    _epgCache.update { it + (channel.url to programs) }
                 }
             }
     }
@@ -569,10 +592,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun prefetchEpgForChannels(channels: List<IptvChannel>) {
         viewModelScope.launch {
             channels.forEach { channel ->
-                if (!_epgCache.value.containsKey(channel.id)) {
+                if (!_epgCache.value.containsKey(channel.url)) {
                     val programs = repository.getProgramsForChannel(channel.tvgId, channel.name).first()
                     if (programs.isNotEmpty()) {
-                        _epgCache.value = _epgCache.value + (channel.id to programs)
+                        _epgCache.update { it + (channel.url to programs) }
                     }
                 }
             }
@@ -580,6 +603,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun getCurrentProgram(channel: IptvChannel): Flow<EpgProgram?> {
+        val cached = _smartEpgCache.value[channel.url]
+        if (cached != null) return flowOf(cached)
         return repository.getCurrentProgram(channel.tvgId, channel.name)
     }
 
