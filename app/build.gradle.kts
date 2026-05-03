@@ -75,6 +75,14 @@ android {
     }
     ndkVersion = "27.1.12297006"
 
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/INDEX.LIST"
+            excludes += "META-INF/io.netty.versions.properties"
+        }
+    }
+
     lint {
         checkReleaseBuilds = false
         abortOnError = false
@@ -125,6 +133,9 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer.rtsp)
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.session)
+    implementation(libs.androidx.media3.cast)
+    implementation(libs.androidx.mediarouter)
+    implementation(libs.play.services.cast.framework)
     implementation(libs.libvlc.all)
 
     ksp(libs.androidx.room.compiler)

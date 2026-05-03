@@ -179,5 +179,8 @@
     <string name="player_default">По умолчанию</string>
     <string name="player_debug_title">Отладка</string>
     <string name="player_channels_title">КАНАЛЫ</string>
+    <string name="player_audio_delay">Задержка звука</string>
+    <string name="player_casting_active">Воспроизведение на ТВ</string>
+    <string name="player_casting_title">Трансляция на устройство</string>
     <string name="loading_message">ЗАГРУЗКА ВСЕЛЕННОЙ</string>
 </resources>

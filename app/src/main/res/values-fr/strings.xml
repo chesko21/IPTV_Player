@@ -179,5 +179,8 @@
     <string name="player_default">Par défaut</string>
     <string name="player_debug_title">Infos de Débogage</string>
     <string name="player_channels_title">CHAÎNES</string>
+    <string name="player_audio_delay">Retard Audio</string>
+    <string name="player_casting_active">Lecture sur la TV</string>
+    <string name="player_casting_title">Caster sur l\'appareil</string>
     <string name="loading_message">EXPLORATION DE L\'UNIVERS</string>
 </resources>

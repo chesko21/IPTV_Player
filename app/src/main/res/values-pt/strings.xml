@@ -179,5 +179,8 @@
     <string name="player_default">Padrão</string>
     <string name="player_debug_title">Informações de Debug</string>
     <string name="player_channels_title">CANAIS</string>
+    <string name="player_audio_delay">Atraso de Áudio</string>
+    <string name="player_casting_active">Reproduzindo na TV</string>
+    <string name="player_casting_title">Transmitir para dispositivo</string>
     <string name="loading_message">EXPLORANDO O UNIVERSO</string>
 </resources>

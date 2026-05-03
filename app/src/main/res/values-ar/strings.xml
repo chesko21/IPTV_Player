@@ -201,5 +201,8 @@
     <string name="player_default">افتراضي</string>
     <string name="player_debug_title">معلومات التصحيح</string>
     <string name="player_channels_title">القنوات</string>
+    <string name="player_audio_delay">تأخير الصوت</string>
+    <string name="player_casting_active">جاري التشغيل على التلفزيون</string>
+    <string name="player_casting_title">بث إلى الجهاز</string>
     <string name="loading_message">استكشاف الكون</string>
 </resources>

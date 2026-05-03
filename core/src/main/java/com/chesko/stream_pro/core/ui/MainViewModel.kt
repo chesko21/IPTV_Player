@@ -25,6 +25,31 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
+import com.chesko.stream_pro.core.utils.PlayerUtils
+import androidx.media3.common.Player
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.cast.CastPlayer
+import androidx.media3.cast.DefaultMediaItemConverter
+import androidx.media3.session.MediaSession
+import androidx.media3.ui.PlayerNotificationManager
+import android.app.PendingIntent
+import android.content.Intent
+import android.graphics.Bitmap
+import com.google.android.gms.cast.framework.CastContext
+import androidx.mediarouter.media.MediaRouter
+import androidx.mediarouter.media.MediaRouteSelector
+import com.google.android.gms.cast.CastMediaControlIntent
+import com.chesko.stream_pro.core.utils.NsdHelper
+import com.chesko.stream_pro.core.utils.LocalCastServer
+import com.chesko.stream_pro.core.utils.CastRequest
+import android.net.nsd.NsdServiceInfo
+import io.ktor.client.*
+import io.ktor.client.engine.okhttp.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import java.io.File
 import java.io.InputStream
 import java.security.cert.X509Certificate
@@ -33,6 +58,7 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
+@OptIn(UnstableApi::class)
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: ChannelRepository
     private val prefs = application.getSharedPreferences("iptv_player_prefs", Context.MODE_PRIVATE)
@@ -114,6 +140,135 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _memberSince = MutableStateFlow(getSavedMemberSince())
     val memberSince: StateFlow<String> = _memberSince
+
+    // Cast Discovery Logic
+    private val _castPlayer = MutableStateFlow<CastPlayer?>(null)
+    val castPlayer: StateFlow<CastPlayer?> = _castPlayer
+
+    private val _isCasting = MutableStateFlow(false)
+    val isCasting: StateFlow<Boolean> = _isCasting
+
+    private var mediaSession: MediaSession? = null
+    private var notificationManager: PlayerNotificationManager? = null
+
+    private val _availableRoutes = MutableStateFlow<List<MediaRouter.RouteInfo>>(emptyList())
+    val availableRoutes: StateFlow<List<MediaRouter.RouteInfo>> = _availableRoutes
+
+    // Custom Android-to-Android Cast
+    private val nsdHelper = NsdHelper(application)
+    private val localCastServer = LocalCastServer { url, name ->
+        viewModelScope.launch {
+            // Logic to play the received URL
+            val channel = IptvChannel(name = name, url = url)
+            _selectedChannel.value = channel
+        }
+    }
+    val discoveredDevices: StateFlow<List<NsdServiceInfo>> = nsdHelper.discoveredServices
+
+    private val ktorClient = HttpClient(OkHttp) {
+        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+            json()
+        }
+    }
+
+    private val mediaRouter = MediaRouter.getInstance(application)
+    private val selector = MediaRouteSelector.Builder()
+        .addControlCategory(CastMediaControlIntent.categoryForCast("CC1AD845"))
+        .build()
+
+    private val routeCallback = object : MediaRouter.Callback() {
+        override fun onRouteAdded(router: MediaRouter, route: MediaRouter.RouteInfo) {
+            updateRoutes()
+        }
+        override fun onRouteRemoved(router: MediaRouter, route: MediaRouter.RouteInfo) {
+            updateRoutes()
+        }
+        override fun onRouteChanged(router: MediaRouter, route: MediaRouter.RouteInfo) {
+            updateRoutes()
+        }
+    }
+
+    private fun setupNotification(player: Player) {
+        val context = getApplication<Application>()
+        notificationManager = PlayerNotificationManager.Builder(context, 1001, "cast_channel")
+            .setChannelNameResourceId(R.string.cast_notification_channel_name)
+            .setChannelDescriptionResourceId(R.string.cast_notification_channel_description)
+            .setSmallIconResourceId(R.drawable.app_icon_android)
+            .setMediaDescriptionAdapter(object : PlayerNotificationManager.MediaDescriptionAdapter {
+                override fun getCurrentContentTitle(player: Player): CharSequence = 
+                    context.getString(R.string.cast_notification_title)
+                
+                override fun getCurrentContentText(player: Player): CharSequence = 
+                    context.getString(R.string.cast_notification_text)
+                
+                override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? = null
+                
+                override fun createCurrentContentIntent(player: Player): PendingIntent? {
+                    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+                    return PendingIntent.getActivity(
+                        context, 0, intent, 
+                        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                    )
+                }
+            })
+            .setNotificationListener(object : PlayerNotificationManager.NotificationListener {
+                override fun onNotificationCancelled(notificationId: Int, dismissedByUser: Boolean) {
+                    if (dismissedByUser) stopCasting()
+                }
+            })
+            .build().apply {
+                setPlayer(player)
+                setUseNextAction(false)
+                setUsePreviousAction(false)
+                setUseStopAction(true)
+            }
+    }
+
+    private fun updateRoutes() {
+        _availableRoutes.value = mediaRouter.routes.filter { it.matchesSelector(selector) && !it.isDefault }
+    }
+
+    private fun initCastPlayer() {
+        viewModelScope.launch {
+            try {
+                val castContext = CastContext.getSharedInstance(getApplication())
+                val cp = CastPlayer(castContext, DefaultMediaItemConverter())
+                _castPlayer.value = cp
+                
+                // Set up MediaSession for notification and background controls
+                val intent = getApplication<Application>().packageManager.getLaunchIntentForPackage(getApplication<Application>().packageName)
+                val pendingIntent = PendingIntent.getActivity(
+                    getApplication(), 
+                    0, 
+                    intent, 
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                )
+                
+                mediaSession = MediaSession.Builder(getApplication(), cp)
+                    .setSessionActivity(pendingIntent)
+                    .build()
+
+                setupNotification(cp)
+
+                cp.addListener(object : Player.Listener {
+                    override fun onIsPlayingChanged(isPlaying: Boolean) {
+                        _isCasting.value = cp.isCastSessionAvailable
+                    }
+                    override fun onPlaybackStateChanged(state: Int) {
+                        _isCasting.value = cp.isCastSessionAvailable
+                    }
+                })
+                
+                // Keep isCasting state in sync
+                while (true) {
+                    _isCasting.value = cp.isCastSessionAvailable
+                    delay(2000)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MainViewModel", "Cast init failed: ${e.message}")
+            }
+        }
+    }
 
     private fun createUnsafeOkHttpClient(): OkHttpClient {
         try {
@@ -230,6 +385,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // Start smart caching after initial delay
             startSmartCaching()
         }
+
+        initCastPlayer()
+        mediaRouter.addCallback(selector, routeCallback, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY)
+        
+        // Start Local Cast Services
+        localCastServer.start(8080)
+        nsdHelper.registerService(8080)
+        nsdHelper.discoverServices()
 
         fetchRemoteConfig()
     }
@@ -569,6 +732,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val currentlyFavorite = existingChannel?.isFavorite ?: false
             repository.updateFavoriteStatusByUrl(targetUrl, !currentlyFavorite)
         }
+    }
+
+    fun stopCasting() {
+        _castPlayer.value?.stop()
+        try {
+            CastContext.getSharedInstance(getApplication()).sessionManager.endCurrentSession(true)
+        } catch (e: Exception) {}
+        notificationManager?.setPlayer(null)
+        _isCasting.value = false
     }
 
     fun markAsPlayed(channel: IptvChannel) {
@@ -1017,6 +1189,34 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setAppLanguage(lang: String) {
         _appLanguage.value = lang
         prefs.edit().putString("app_language", lang).apply()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        mediaRouter.removeCallback(routeCallback)
+        notificationManager?.setPlayer(null)
+        mediaSession?.release()
+        _castPlayer.value?.release()
+        
+        nsdHelper.stopDiscovery()
+        nsdHelper.unregisterService()
+        localCastServer.stop()
+        ktorClient.close()
+    }
+
+    fun castToDevice(serviceInfo: NsdServiceInfo, channel: IptvChannel) {
+        viewModelScope.launch {
+            try {
+                val host = serviceInfo.host.hostAddress
+                val port = serviceInfo.port
+                ktorClient.post("http://$host:$port/play") {
+                    setBody(CastRequest(channel.url, channel.name))
+                    contentType(io.ktor.http.ContentType.Application.Json)
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Failed to cast to device: ${e.message}"
+            }
+        }
     }
 
     fun clearCache() {

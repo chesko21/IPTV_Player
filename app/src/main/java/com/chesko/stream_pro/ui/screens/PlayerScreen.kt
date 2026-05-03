@@ -29,6 +29,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -59,11 +60,20 @@ import androidx.core.view.WindowInsetsControllerCompat
 import coil.compose.AsyncImage
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.cast.CastPlayer
+import androidx.media3.cast.DefaultMediaItemConverter
+import com.google.android.gms.cast.framework.CastContext
+import androidx.mediarouter.app.MediaRouteButton
+import com.google.android.gms.cast.framework.CastButtonFactory
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.C
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
+import androidx.mediarouter.media.MediaRouteSelector
+import androidx.mediarouter.media.MediaRouter
+import com.google.android.gms.cast.CastMediaControlIntent
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.player.VideoPlayer
 import android.content.ClipData
@@ -100,6 +110,7 @@ fun ChannelInfoBar(
     isFullscreen: Boolean = false,
     exoPlayer: ExoPlayer?,
     vlcPlayer: org.videolan.libvlc.MediaPlayer?,
+    castPlayer: CastPlayer?,
     onSeek: (Long) -> Unit
 ) {
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
@@ -108,10 +119,13 @@ fun ChannelInfoBar(
     var isDragging by remember { mutableStateOf(false) }
     var dragPosition by remember { mutableFloatStateOf(0f) }
 
-    LaunchedEffect(exoPlayer, vlcPlayer) {
+    LaunchedEffect(exoPlayer, vlcPlayer, castPlayer) {
         while (true) {
             if (!isDragging) {
-                if (exoPlayer != null) {
+                if (castPlayer?.isCastSessionAvailable == true) {
+                    playbackPosition = castPlayer.currentPosition
+                    playbackDuration = castPlayer.duration
+                } else if (exoPlayer != null) {
                     playbackPosition = exoPlayer.currentPosition
                     playbackDuration = exoPlayer.duration
                 } else if (vlcPlayer != null) {
@@ -171,7 +185,8 @@ fun ChannelInfoBar(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Black,
-                                letterSpacing = 2.sp
+                                letterSpacing = 1.5.sp,
+                                fontSize = 9.sp
                             )
                         }
                         Text(
@@ -217,7 +232,7 @@ fun ChannelInfoBar(
                             text = stringResource(R.string.player_next, nextProgram.title),
                             color = Color.White.copy(0.6f),
                             style = MaterialTheme.typography.labelSmall,
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -227,6 +242,7 @@ fun ChannelInfoBar(
                             text = timeFormatter.format(Date(nextProgram.startTime)),
                             color = Color.White.copy(0.4f),
                             style = MaterialTheme.typography.labelSmall,
+                            fontSize = 9.sp,
                             fontWeight = FontWeight.Black
                         )
                     }
@@ -288,17 +304,17 @@ fun ChannelInfoBar(
                     ) {
                         Text(
                             PlayerUtils.formatTime(if (isDragging) (dragPosition * playbackDuration).toLong() else playbackPosition),
-                            color = Color.White.copy(0.7f),
+                            color = Color.White.copy(0.5f),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 10.sp
+                            fontSize = 9.sp
                         )
                         Text(
                             PlayerUtils.formatTime(playbackDuration),
-                            color = Color.White.copy(0.7f),
+                            color = Color.White.copy(0.5f),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 10.sp
+                            fontSize = 9.sp
                         )
                     }
                 }
@@ -454,6 +470,34 @@ fun PlayerScreenContent(
     
     var exoPlayer by remember { mutableStateOf<ExoPlayer?>(null) }
     var vlcPlayer by remember { mutableStateOf<org.videolan.libvlc.MediaPlayer?>(null) }
+    
+    val castPlayer by viewModel.castPlayer.collectAsState()
+    val isCasting by viewModel.isCasting.collectAsState()
+    val availableRoutes by viewModel.availableRoutes.collectAsState()
+    var showCastDiscovery by remember { mutableStateOf(false) }
+    var isConnectingToCast by remember { mutableStateOf(false) }
+
+    // Auto-transfer media item to CastPlayer when casting starts
+    LaunchedEffect(isCasting, currentChannel) {
+        val castPlayerRef = castPlayer
+        if (isCasting && castPlayerRef != null) {
+            val currentPos = if (activeEngine == "VLC") {
+                vlcPlayer?.time ?: 0L
+            } else {
+                exoPlayer?.currentPosition ?: 0L
+            }
+
+            val mediaItem = PlayerUtils.buildMediaItem(currentChannel)
+            castPlayerRef.setMediaItem(mediaItem, currentPos)
+            castPlayerRef.prepare()
+            castPlayerRef.play()
+            
+            // Stop local players
+            exoPlayer?.pause()
+            vlcPlayer?.pause()
+            isConnectingToCast = false
+        }
+    }
 
     DisposableEffect(Unit) {
         activity?.window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -827,6 +871,50 @@ fun PlayerScreenContent(
                     }
                 )
             }
+
+            if (isCasting) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.6f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Surface(
+                        color = Color.Black.copy(alpha = 0.8f),
+                        shape = RoundedCornerShape(24.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                        modifier = Modifier.padding(32.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.CastConnected,
+                                null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(32.dp)
+                            )
+                            Column {
+                                Text(
+                                    stringResource(R.string.player_casting_active),
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    targetChannel.name,
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -901,17 +989,17 @@ fun PlayerScreenContent(
                     Text(
                         text = errorMessage ?: stringResource(R.string.player_connection_lost),
                         color = Color.White,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = if (errorMessage != null) stringResource(R.string.player_link_dead) else stringResource(R.string.player_stopped),
-                        color = Color.White.copy(alpha = 0.5f),
+                        color = Color.White.copy(alpha = 0.4f),
                         style = MaterialTheme.typography.labelSmall,
-                        fontSize = 10.sp,
+                        fontSize = 9.sp,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -948,8 +1036,11 @@ fun PlayerScreenContent(
                 isFullscreen = isFullscreen,
                 exoPlayer = exoPlayer,
                 vlcPlayer = vlcPlayer,
+                castPlayer = castPlayer,
                 onSeek = { position ->
-                    if (activeEngine == "VLC") {
+                    if (isCasting) {
+                        castPlayer?.seekTo(position)
+                    } else if (activeEngine == "VLC") {
                         vlcPlayer?.time = position
                     } else {
                         exoPlayer?.seekTo(position)
@@ -995,8 +1086,11 @@ fun PlayerScreenContent(
                 },
                 canSwitchEngine = !isExoOnly,
                 onShowDebug = { if (isDebug) showDebugDialog = true },
+                onShowCast = { showCastDiscovery = true },
                 exoPlayer = exoPlayer,
                 vlcPlayer = vlcPlayer,
+                castPlayer = castPlayer,
+                isCasting = isCasting,
                 playerEngine = activeEngine,
                 isPlayingState = isPlayingState,
                 isDebug = isDebug,
@@ -1103,6 +1197,166 @@ fun PlayerScreenContent(
                 },
                 onClose = { showChannelList = false }
             )
+        }
+
+        if (showCastDiscovery) {
+            CastDiscoveryOverlay(
+                routes = availableRoutes,
+                onRouteSelected = { route ->
+                    isConnectingToCast = true
+                    route.select()
+                    showCastDiscovery = false
+                },
+                onDismiss = { showCastDiscovery = false }
+            )
+        }
+
+        if (isConnectingToCast) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.7f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = stringResource(R.string.player_preparing),
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CastDiscoveryOverlay(
+    routes: List<MediaRouter.RouteInfo>,
+    onRouteSelected: (MediaRouter.RouteInfo) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var isSearching by remember { mutableStateOf(true) }
+    
+    LaunchedEffect(isSearching) {
+        if (isSearching) {
+            delay(5000)
+            isSearching = false
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onDismiss
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Surface(
+            modifier = Modifier
+                .width(210.dp)
+                .padding(16.dp),
+            shape = RoundedCornerShape(20.dp),
+            color = Color(0xFF121212).copy(alpha = 0.98f),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                if (isSearching) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Mencari perangkat...",
+                        color = Color.White.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                } else if (routes.isEmpty()) {
+                    Text(
+                        text = "Perangkat Tidak ditemukan",
+                        color = Color.White.copy(alpha = 0.5f),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 10.sp,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    TextButton(
+                        onClick = { isSearching = true },
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.height(32.dp)
+                    ) {
+                        Text(
+                            "Coba Lagi", 
+                            color = MaterialTheme.colorScheme.primary, 
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.sp
+                        )
+                    }
+                } else {
+                    Text(
+                        text = stringResource(R.string.player_cast_to).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.4f),
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 1.sp,
+                        fontSize = 9.sp,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    
+                    LazyColumn(
+                        modifier = Modifier.heightIn(max = 200.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        items(routes) { route ->
+                            Surface(
+                                onClick = { onRouteSelected(route) },
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color.White.copy(alpha = 0.03f),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.03f))
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = if (route.deviceType == MediaRouter.RouteInfo.DEVICE_TYPE_TV) Icons.Default.Tv else Icons.Default.Cast,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Text(
+                                        text = route.name,
+                                        color = Color.White.copy(alpha = 0.9f),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -1596,8 +1850,11 @@ fun ControlOverlay(
     onSwitchEngine: () -> Unit,
     canSwitchEngine: Boolean = true,
     onShowDebug: () -> Unit,
+    onShowCast: () -> Unit = {},
     exoPlayer: ExoPlayer? = null,
     vlcPlayer: org.videolan.libvlc.MediaPlayer? = null,
+    castPlayer: CastPlayer? = null,
+    isCasting: Boolean = false,
     playerEngine: String = "ExoPlayer",
     isPlayingState: Boolean = false,
     isDebug: Boolean = false,
@@ -1644,13 +1901,17 @@ fun ControlOverlay(
                         color = if (canSwitchEngine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(0.5f),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp
+                        letterSpacing = 1.sp,
+                        fontSize = 9.sp
                     )
                 }
             }
             
             Spacer(modifier = Modifier.width(12.dp))
-            PlayerControlAction(icon = Icons.Default.LockOpen, onClick = onLock)
+
+            // Cast Button
+            PlayerControlAction(icon = Icons.Default.Cast, onClick = onShowCast)
+            
             Spacer(modifier = Modifier.width(12.dp))
             PlayerControlAction(icon = Icons.AutoMirrored.Filled.FormatListBulleted, onClick = onShowChannels)
         }
@@ -1741,11 +2002,12 @@ fun ControlOverlay(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .padding(bottom = 0.dp),
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.primary.copy(0.8f),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
                         letterSpacing = 1.sp,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        fontSize = 9.sp
                     )
                 }
             }
@@ -1783,6 +2045,7 @@ fun ControlOverlay(
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     PlayerControlAction(icon = Icons.Default.HighQuality, onClick = onShowResolution)
                     if (isDebug) PlayerControlAction(icon = Icons.Default.BugReport, onClick = onShowDebug)
+                    PlayerControlAction(icon = Icons.Default.LockOpen, onClick = onLock)
                     PlayerControlAction(icon = if (isFullscreen) Icons.Default.FullscreenExit else Icons.Default.Fullscreen, onClick = onFullscreenToggle)
                 }
             }
@@ -1855,10 +2118,11 @@ fun QuickChannelList(
             ) {
                 Text(
                     text = stringResource(R.string.player_channels_title).uppercase(Locale.getDefault()),
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,
-                    color = Color.White.copy(alpha = 0.9f),
-                    letterSpacing = 2.sp
+                    color = Color.White.copy(alpha = 0.6f),
+                    letterSpacing = 1.sp,
+                    fontSize = 9.sp
                 )
                 IconButton(
                     onClick = onClose,
@@ -1916,18 +2180,19 @@ fun QuickChannelList(
                                 Text(
                                     text = channel.name,
                                     color = if (isCurrent) MaterialTheme.colorScheme.primary else Color.White.copy(0.8f),
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = MaterialTheme.typography.labelSmall,
                                     fontWeight = if (isCurrent) FontWeight.ExtraBold else FontWeight.Medium,
                                     maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
+                                    overflow = TextOverflow.Ellipsis,
+                                    fontSize = 11.sp
                                 )
                                 val groupName = channel.group
                                 if (!groupName.isNullOrEmpty()) {
                                     Text(
                                         text = groupName.uppercase(Locale.getDefault()),
-                                        color = if (isCurrent) MaterialTheme.colorScheme.primary.copy(alpha = 0.7f) else Color.White.copy(alpha = 0.4f),
+                                        color = if (isCurrent) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else Color.White.copy(alpha = 0.3f),
                                         style = MaterialTheme.typography.labelSmall,
-                                        fontSize = 9.sp,
+                                        fontSize = 8.sp,
                                         fontWeight = FontWeight.Bold,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis

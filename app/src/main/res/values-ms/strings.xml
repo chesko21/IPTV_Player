@@ -41,6 +41,9 @@
     <string name="item_accent_subtitle">Pilih warna identiti aplikasi</string>
     <string name="item_cache_subtitle">Bersihkan data aplikasi sementara</string>
     <string name="success_cache_cleared">Cache aplikasi berjaya dipadamkan!</string>
+    <string name="player_audio_delay">Lengah Audio</string>
+    <string name="player_casting_active">Memainkan di TV</string>
+    <string name="player_casting_title">Casting ke Peranti</string>
     <string name="unit_seconds">%1$d Saat</string>
 
     <string name="dialog_color_desc">Peribadikan tema aplikasi</string>

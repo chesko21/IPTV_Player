@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -67,4 +68,22 @@ dependencies {
     implementation(libs.coil.compose)
 
     implementation(libs.androidx.compose.foundation)
+    
+    // Cast dependencies moved from app to core to support background casting
+    implementation(libs.androidx.media3.cast)
+    implementation(libs.androidx.mediarouter)
+    implementation(libs.play.services.cast.framework)
+    implementation(libs.androidx.media3.session)
+
+    // Ktor for Local Cast Receiver
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.kotlinx.serialization.json)
+
+    // Ktor Client for sending cast requests
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
 }

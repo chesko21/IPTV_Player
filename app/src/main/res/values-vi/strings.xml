@@ -201,5 +201,8 @@
     <string name="player_default">Mặc định</string>
     <string name="player_debug_title">Thông tin gỡ lỗi</string>
     <string name="player_channels_title">KÊNH</string>
+    <string name="player_audio_delay">Độ trễ âm thanh</string>
+    <string name="player_casting_active">Đang phát trên TV</string>
+    <string name="player_casting_title">Truyền tới thiết bị</string>
     <string name="loading_message">ĐANG KHÁM PHÁ</string>
 </resources>

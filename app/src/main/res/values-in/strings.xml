@@ -203,5 +203,7 @@
     <string name="player_debug_title">Info Debug</string>
     <string name="player_channels_title">SALURAN</string>
     <string name="player_audio_delay">Tunda Audio</string>
+    <string name="player_casting_active">Memutar di TV</string>
+    <string name="player_casting_title">Casting ke Perangkat</string>
     <string name="loading_message">MENJELAJAHI SEMESTA</string>
 </resources>

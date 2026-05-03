@@ -201,5 +201,8 @@
     <string name="player_default">เริ่มต้น</string>
     <string name="player_debug_title">ข้อมูลดีบัก</string>
     <string name="player_channels_title">ช่อง</string>
+    <string name="player_audio_delay">การหน่วงเสียง</string>
+    <string name="player_casting_active">กำลังเล่นบนทีวี</string>
+    <string name="player_casting_title">แคสต์ไปยังอุปกรณ์</string>
     <string name="loading_message">กำลังสำรวจจักรวาล</string>
 </resources>

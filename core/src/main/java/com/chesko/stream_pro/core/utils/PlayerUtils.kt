@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Base64
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import org.json.JSONArray
@@ -16,6 +17,12 @@ object PlayerUtils {
         val mediaItemBuilder = MediaItem.Builder()
             .setUri(channel.url)
             .setMediaId(channel.url)
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setTitle(channel.name)
+                    .setArtworkUri(if (!channel.logo.isNullOrBlank()) Uri.parse(channel.logo) else null)
+                    .build()
+            )
             .setTag(channel)
 
         when {

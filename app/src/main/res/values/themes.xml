@@ -5,6 +5,15 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowLayoutInDisplayCutoutMode" ifTarget="p">shortEdges</item>
+        <item name="mediaRouteTheme">@style/CustomMediaRouteTheme</item>
+    </style>
+
+    <style name="CustomMediaRouteTheme" parent="Theme.MediaRouter.Light">
+        <item name="mediaRouteButtonStyle">@style/CustomMediaRouteButtonStyle</item>
+    </style>
+
+    <style name="CustomMediaRouteButtonStyle" parent="Widget.MediaRouter.Light.MediaRouteButton">
+        <item name="mediaRouteButtonTint">#FFFFFF</item>
     </style>
 
     <!-- Tema Splash Screen Sistem -->

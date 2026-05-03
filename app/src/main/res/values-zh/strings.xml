@@ -41,6 +41,9 @@
     <string name="item_accent_subtitle">选择应用标识颜色</string>
     <string name="item_cache_subtitle">清除应用临时数据</string>
     <string name="success_cache_cleared">应用缓存已成功清除！</string>
+    <string name="player_audio_delay">音频延迟</string>
+    <string name="player_casting_active">正在电视上播放</string>
+    <string name="player_casting_title">投屏到设备</string>
     <string name="unit_seconds">%1$d 秒</string>
 
     <string name="dialog_color_desc">个性化应用主题</string>
