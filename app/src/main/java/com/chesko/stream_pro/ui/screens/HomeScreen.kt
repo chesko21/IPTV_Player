@@ -591,27 +591,30 @@ fun HomeScreen(
 
                         if (groups.isNotEmpty()) {
                             item {
-                                LazyRow(
-                                    state = groupLazyListState,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 14.dp),
-                                    contentPadding = PaddingValues(horizontal = 16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    item {
-                                        GroupChip(
-                                            text = stringResource(R.string.group_all),
-                                            isSelected = selectedGroup == null,
-                                            onClick = { viewModel.setSelectedGroup(null) }
-                                        )
-                                    }
-                                    items(groups) { group ->
-                                        GroupChip(
-                                            text = group,
-                                            isSelected = selectedGroup == group,
-                                            onClick = { viewModel.setSelectedGroup(group) }
-                                        )
+                                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                    LazyRow(
+                                        state = groupLazyListState,
+                                        modifier = Modifier
+                                            .widthIn(max = 1200.dp)
+                                            .fillMaxWidth()
+                                            .padding(bottom = 14.dp),
+                                        contentPadding = PaddingValues(horizontal = 16.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        item {
+                                            GroupChip(
+                                                text = stringResource(R.string.group_all),
+                                                isSelected = selectedGroup == null,
+                                                onClick = { viewModel.setSelectedGroup(null) }
+                                            )
+                                        }
+                                        items(groups) { group ->
+                                            GroupChip(
+                                                text = group,
+                                                isSelected = selectedGroup == group,
+                                                onClick = { viewModel.setSelectedGroup(group) }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -621,20 +624,22 @@ fun HomeScreen(
                     // Content Area
                     if (selectedGroup != null || searchQuery.isNotEmpty()) {
                         item {
-                            val title = when {
-                                searchQuery.isNotEmpty() -> stringResource(R.string.search_results)
-                                selectedGroup == "Favorit" -> stringResource(R.string.row_favorite)
-                                selectedGroup == "Terakhir Ditonton" -> stringResource(R.string.row_history)
-                                selectedGroup != null -> selectedGroup!!
-                                else -> ""
+                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                val title = when {
+                                    searchQuery.isNotEmpty() -> stringResource(R.string.search_results)
+                                    selectedGroup == "Favorit" -> stringResource(R.string.row_favorite)
+                                    selectedGroup == "Terakhir Ditonton" -> stringResource(R.string.row_history)
+                                    selectedGroup != null -> selectedGroup!!
+                                    else -> ""
+                                }
+                                Text(
+                                    text = title,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.widthIn(max = 1200.dp).fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp)
+                                )
                             }
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
-                            )
                         }
 
                         if (filteredChannels.isEmpty()) {
@@ -648,6 +653,7 @@ fun HomeScreen(
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         modifier = Modifier
+                                            .widthIn(max = 600.dp)
                                             .fillMaxWidth()
                                             .padding(32.dp)
                                             .background(
@@ -686,25 +692,28 @@ fun HomeScreen(
                             }
                             val chunkedChannels = filteredChannels.chunked(columns)
                             items(chunkedChannels) { chunk ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                                ) {
-                                    chunk.forEach { channel ->
-                                        ChannelModernItem(
-                                            viewModel = viewModel,
-                                            channel = channel,
-                                            modifier = Modifier.weight(1f),
-                                            onClick = {
-                                                viewModel.markAsPlayed(channel)
-                                                onSelectChannel(channel)
-                                            }
-                                        )
-                                    }
-                                    repeat(columns - chunk.size) {
-                                        Spacer(modifier = Modifier.weight(1f))
+                                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                    Row(
+                                        modifier = Modifier
+                                            .widthIn(max = 1200.dp)
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        chunk.forEach { channel ->
+                                            ChannelModernItem(
+                                                viewModel = viewModel,
+                                                channel = channel,
+                                                modifier = Modifier.weight(1f),
+                                                onClick = {
+                                                    viewModel.markAsPlayed(channel)
+                                                    onSelectChannel(channel)
+                                                }
+                                            )
+                                        }
+                                        repeat(columns - chunk.size) {
+                                            Spacer(modifier = Modifier.weight(1f))
+                                        }
                                     }
                                 }
                             }
@@ -757,120 +766,123 @@ fun HomeScreen(
                         if (groups.size > 15) {
                             item {
                                 Spacer(modifier = Modifier.height(12.dp))
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp)
-                                        .background(
-                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
-                                            RoundedCornerShape(24.dp)
-                                        )
-                                        .border(
-                                            1.dp,
-                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
-                                            RoundedCornerShape(24.dp)
-                                        )
-                                        .padding(20.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
+                                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                    Column(
+                                        modifier = Modifier
+                                            .widthIn(max = 1200.dp)
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp)
+                                            .background(
+                                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
+                                                RoundedCornerShape(24.dp)
+                                            )
+                                            .border(
+                                                1.dp,
+                                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                                                RoundedCornerShape(24.dp)
+                                            )
+                                            .padding(20.dp)
                                     ) {
-                                        Column {
-                                            Text(
-                                                stringResource(R.string.other_groups).uppercase(),
-                                                style = MaterialTheme.typography.labelMedium,
-                                                fontWeight = FontWeight.Black,
-                                                color = MaterialTheme.colorScheme.primary,
-                                                letterSpacing = 1.5.sp
-                                            )
-                                            Box(
-                                                modifier = Modifier
-                                                    .width(24.dp)
-                                                    .height(2.dp)
-                                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
-                                            )
-                                        }
-                                        Surface(
-                                            onClick = { isGroupsExpanded = !isGroupsExpanded },
-                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                            shape = RoundedCornerShape(8.dp)
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            Row(
-                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
+                                            Column {
                                                 Text(
-                                                    if (isGroupsExpanded) stringResource(R.string.see_less) else stringResource(R.string.see_all),
-                                                    style = MaterialTheme.typography.labelSmall,
+                                                    stringResource(R.string.other_groups).uppercase(),
+                                                    style = MaterialTheme.typography.labelMedium,
                                                     fontWeight = FontWeight.Black,
-                                                    color = MaterialTheme.colorScheme.primary
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    letterSpacing = 1.5.sp
                                                 )
-                                                Icon(
-                                                    if (isGroupsExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                                    null,
-                                                    modifier = Modifier.size(14.dp),
-                                                    tint = MaterialTheme.colorScheme.primary
+                                                Box(
+                                                    modifier = Modifier
+                                                        .width(24.dp)
+                                                        .height(2.dp)
+                                                        .background(MaterialTheme.colorScheme.primary, CircleShape)
                                                 )
                                             }
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(20.dp))
-
-                                    val remainingGroups = if (isGroupsExpanded) groups.drop(15) else groups.drop(15).take(6)
-                                    val otherGroupColumns = when (windowSize.widthSizeClass) {
-                                        WindowWidthSizeClass.Compact -> 2
-                                        WindowWidthSizeClass.Medium -> 3
-                                        else -> 4
-                                    }
-                                    Column(
-                                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                                    ) {
-                                        remainingGroups.chunked(otherGroupColumns).forEach { chunk ->
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                            Surface(
+                                                onClick = { isGroupsExpanded = !isGroupsExpanded },
+                                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                                shape = RoundedCornerShape(8.dp)
                                             ) {
-                                                chunk.forEach { group ->
-                                                    Surface(
-                                                        onClick = { viewModel.setSelectedGroup(group) },
-                                                        modifier = Modifier.weight(1f),
-                                                        shape = RoundedCornerShape(16.dp),
-                                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
-                                                    ) {
-                                                        Row(
-                                                            modifier = Modifier.padding(12.dp),
-                                                            verticalAlignment = Alignment.CenterVertically
+                                                Row(
+                                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Text(
+                                                        if (isGroupsExpanded) stringResource(R.string.see_less) else stringResource(R.string.see_all),
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        fontWeight = FontWeight.Black,
+                                                        color = MaterialTheme.colorScheme.primary
+                                                    )
+                                                    Icon(
+                                                        if (isGroupsExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                                        null,
+                                                        modifier = Modifier.size(14.dp),
+                                                        tint = MaterialTheme.colorScheme.primary
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.height(20.dp))
+
+                                        val remainingGroups = if (isGroupsExpanded) groups.drop(15) else groups.drop(15).take(6)
+                                        val otherGroupColumns = when (windowSize.widthSizeClass) {
+                                            WindowWidthSizeClass.Compact -> 2
+                                            WindowWidthSizeClass.Medium -> 3
+                                            else -> 4
+                                        }
+                                        Column(
+                                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
+                                            remainingGroups.chunked(otherGroupColumns).forEach { chunk ->
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                                ) {
+                                                    chunk.forEach { group ->
+                                                        Surface(
+                                                            onClick = { viewModel.setSelectedGroup(group) },
+                                                            modifier = Modifier.weight(1f),
+                                                            shape = RoundedCornerShape(16.dp),
+                                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
                                                         ) {
-                                                            Box(
-                                                                modifier = Modifier
-                                                                    .size(36.dp)
-                                                                    .background(MaterialTheme.colorScheme.primary.copy(0.12f), CircleShape),
-                                                                contentAlignment = Alignment.Center
+                                                            Row(
+                                                                modifier = Modifier.padding(12.dp),
+                                                                verticalAlignment = Alignment.CenterVertically
                                                             ) {
-                                                                Icon(
-                                                                    Icons.Default.Folder,
-                                                                    null,
-                                                                    tint = MaterialTheme.colorScheme.primary,
-                                                                    modifier = Modifier.size(18.dp)
+                                                                Box(
+                                                                    modifier = Modifier
+                                                                        .size(36.dp)
+                                                                        .background(MaterialTheme.colorScheme.primary.copy(0.12f), CircleShape),
+                                                                    contentAlignment = Alignment.Center
+                                                                ) {
+                                                                    Icon(
+                                                                        Icons.Default.Folder,
+                                                                        null,
+                                                                        tint = MaterialTheme.colorScheme.primary,
+                                                                        modifier = Modifier.size(18.dp)
+                                                                    )
+                                                                }
+                                                                Spacer(modifier = Modifier.width(12.dp))
+                                                                Text(
+                                                                    group,
+                                                                    style = MaterialTheme.typography.labelMedium,
+                                                                    fontWeight = FontWeight.Bold,
+                                                                    color = MaterialTheme.colorScheme.onSurface,
+                                                                    maxLines = 1,
+                                                                    overflow = TextOverflow.Ellipsis
                                                                 )
                                                             }
-                                                            Spacer(modifier = Modifier.width(12.dp))
-                                                            Text(
-                                                                group,
-                                                                style = MaterialTheme.typography.labelMedium,
-                                                                fontWeight = FontWeight.Bold,
-                                                                color = MaterialTheme.colorScheme.onSurface,
-                                                                maxLines = 1,
-                                                                overflow = TextOverflow.Ellipsis
-                                                            )
                                                         }
                                                     }
-                                                }
-                                                repeat(otherGroupColumns - chunk.size) {
-                                                    Spacer(modifier = Modifier.weight(1f))
+                                                    repeat(otherGroupColumns - chunk.size) {
+                                                        Spacer(modifier = Modifier.weight(1f))
+                                                    }
                                                 }
                                             }
                                         }
@@ -1042,7 +1054,8 @@ fun EnhancedHeroCarousel(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(carouselHeight)
+            .height(carouselHeight),
+        contentAlignment = Alignment.Center
     ) {
         // Dynamic Background based on current page
         val currentChannel = channels.getOrNull(pagerState.currentPage)
@@ -1080,7 +1093,9 @@ fun EnhancedHeroCarousel(
 
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .widthIn(max = 1200.dp)
+                .fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 20.dp),
             pageSpacing = 16.dp
         ) { page ->
@@ -1311,109 +1326,109 @@ fun HeaderSection(
                     .padding(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-            if (!isSearchExpanded) {
-                IconButton(
-                    onClick = onMenuClick,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
-                        .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), CircleShape)
-                ) {
-                    Icon(Icons.Default.Menu, stringResource(R.string.content_desc_menu), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
-                }
+                if (!isSearchExpanded) {
+                    IconButton(
+                        onClick = onMenuClick,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
+                            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), CircleShape)
+                    ) {
+                        Icon(Icons.Default.Menu, stringResource(R.string.content_desc_menu), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
+                    }
 
-                Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
 
-                Image(
-                    painter = painterResource(id = R.drawable.app_icon_android),
-                    contentDescription = null,
-                    modifier = Modifier.size(32.dp)
-                )
-
-                Spacer(modifier = Modifier.width(10.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        stringResource(R.string.brand_name),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary,
-                        letterSpacing = 1.sp
+                    Image(
+                        painter = painterResource(id = R.drawable.app_icon_android),
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp)
                     )
-                    Text(
-                        stringResource(R.string.brand_slogan),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 8.sp
-                    )
-                }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    HeaderActionButton(Icons.Default.Search, stringResource(R.string.content_desc_search)) { isSearchExpanded = true }
-                    HeaderActionButton(Icons.Default.Refresh, stringResource(R.string.content_desc_refresh)) { onRefresh() }
-                }
-            } else {
-                TextField(
-                    value = localSearchQuery,
-                    onValueChange = {
-                        localSearchQuery = it
-                        onSearchQueryChange(it)
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(24.dp)),
-                    placeholder = {
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            stringResource(R.string.search_placeholder),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            stringResource(R.string.brand_name),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.primary,
+                            letterSpacing = 1.sp
                         )
-                    },
-                    trailingIcon = {
-                        IconButton(
-                            onClick = {
-                                if (localSearchQuery.isNotEmpty()) {
-                                    localSearchQuery = ""
-                                    onSearchQueryChange("")
-                                } else {
-                                    isSearchExpanded = false
-                                }
-                            },
-                            modifier = Modifier.size(32.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = if (localSearchQuery.isNotEmpty())
-                                    stringResource(R.string.content_desc_close_search)
-                                else stringResource(R.string.content_desc_close_search),
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(18.dp)
+                        Text(
+                            stringResource(R.string.brand_slogan),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 8.sp
+                        )
+                    }
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        HeaderActionButton(Icons.Default.Search, stringResource(R.string.content_desc_search)) { isSearchExpanded = true }
+                        HeaderActionButton(Icons.Default.Refresh, stringResource(R.string.content_desc_refresh)) { onRefresh() }
+                    }
+                } else {
+                    TextField(
+                        value = localSearchQuery,
+                        onValueChange = {
+                            localSearchQuery = it
+                            onSearchQueryChange(it)
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp)
+                            .clip(RoundedCornerShape(24.dp)),
+                        placeholder = {
+                            Text(
+                                stringResource(R.string.search_placeholder),
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                             )
-                        }
-                    },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                    singleLine = true,
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(
-                        onSearch = {
-                            onSearchQueryChange(localSearchQuery)
-                        }
+                        },
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    if (localSearchQuery.isNotEmpty()) {
+                                        localSearchQuery = ""
+                                        onSearchQueryChange("")
+                                    } else {
+                                        isSearchExpanded = false
+                                    }
+                                },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = if (localSearchQuery.isNotEmpty())
+                                        stringResource(R.string.content_desc_close_search)
+                                    else stringResource(R.string.content_desc_close_search),
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        },
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(
+                            onSearch = {
+                                onSearchQueryChange(localSearchQuery)
+                            }
+                        )
                     )
-                )
+                }
             }
         }
     }
-}
 }
 
 @Composable
@@ -1445,118 +1460,120 @@ fun ContentRow(
     onSeeAllClick: () -> Unit,
     onChannelSelected: (IptvChannel) -> Unit
 ) {
-    Column(modifier = Modifier.padding(bottom = 12.dp)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = title.uppercase(),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        letterSpacing = 1.2.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    // Scroll Affordance Indicator
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(2.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        repeat(3) { i ->
-                            Box(
-                                modifier = Modifier
-                                    .size(width = (4 + (i * 2)).dp, height = 2.dp)
-                                    .background(
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.3f + (i * 0.2f)),
-                                        CircleShape
-                                    )
-                            )
+    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Column(modifier = Modifier.widthIn(max = 1200.dp).padding(bottom = 12.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = title.uppercase(),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            letterSpacing = 1.2.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        // Scroll Affordance Indicator
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            repeat(3) { i ->
+                                Box(
+                                    modifier = Modifier
+                                        .size(width = (4 + (i * 2)).dp, height = 2.dp)
+                                        .background(
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.3f + (i * 0.2f)),
+                                            CircleShape
+                                        )
+                                )
+                            }
                         }
                     }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Box(
+                        modifier = Modifier
+                            .width(28.dp)
+                            .height(3.dp)
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(MaterialTheme.colorScheme.primary, Color.Transparent)
+                                ),
+                                CircleShape
+                            )
+                    )
                 }
-                Spacer(modifier = Modifier.height(2.dp))
+                Surface(
+                    onClick = onSeeAllClick,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.row_see_all, channels.size),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Black
+                        )
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Box(modifier = Modifier.fillMaxWidth()) {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(channels, key = { it.url }) { channel ->
+                        ChannelModernItem(
+                            viewModel = viewModel,
+                            channel = channel,
+                            modifier = Modifier.width(160.dp),
+                            onClick = { onChannelSelected(channel) }
+                        )
+                    }
+                }
+                
+                // Subtle edge fade to indicate more content
                 Box(
                     modifier = Modifier
-                        .width(28.dp)
-                        .height(3.dp)
+                        .align(Alignment.CenterEnd)
+                        .fillMaxHeight()
+                        .width(32.dp)
                         .background(
                             Brush.horizontalGradient(
-                                listOf(MaterialTheme.colorScheme.primary, Color.Transparent)
-                            ),
-                            CircleShape
+                                listOf(Color.Transparent, MaterialTheme.colorScheme.background.copy(alpha = 0.5f))
+                            )
                         )
                 )
             }
-            Surface(
-                onClick = onSeeAllClick,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.row_see_all, channels.size),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Black
-                    )
-                    Icon(
-                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        null,
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Box(modifier = Modifier.fillMaxWidth()) {
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(channels, key = { it.url }) { channel ->
-                    ChannelModernItem(
-                        viewModel = viewModel,
-                        channel = channel,
-                        modifier = Modifier.width(160.dp),
-                        onClick = { onChannelSelected(channel) }
-                    )
-                }
-            }
             
-            // Subtle edge fade to indicate more content
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .fillMaxHeight()
-                    .width(32.dp)
-                    .background(
-                        Brush.horizontalGradient(
-                            listOf(Color.Transparent, MaterialTheme.colorScheme.background.copy(alpha = 0.5f))
-                        )
-                    )
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
             )
         }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            thickness = 1.dp,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
-        )
     }
 }
 

@@ -131,10 +131,8 @@ fun VideoPlayer(
                             loudnessEnhancer?.release()
                             if (audioSessionId != android.media.AudioDeviceInfo.TYPE_UNKNOWN) {
                                 val enhancer = LoudnessEnhancer(audioSessionId)
-                                if (audioBoost) {
-                                    enhancer.setTargetGain(3000)
-                                    enhancer.enabled = true
-                                }
+                                enhancer.setTargetGain(if (audioBoost) 2000 else 0)
+                                enhancer.enabled = audioBoost
                                 loudnessEnhancer = enhancer
                             }
                         } catch (e: Exception) {
@@ -200,15 +198,16 @@ fun VideoPlayer(
         }
     }
 
-    LaunchedEffect(audioBoost) {
+    LaunchedEffect(audioBoost, exoPlayer) {
         try {
+            if (loudnessEnhancer == null && exoPlayer.audioSessionId != android.media.AudioDeviceInfo.TYPE_UNKNOWN) {
+                val enhancer = LoudnessEnhancer(exoPlayer.audioSessionId)
+                loudnessEnhancer = enhancer
+            }
+            
             loudnessEnhancer?.let { enhancer ->
-                if (audioBoost) {
-                    enhancer.setTargetGain(3000)
-                    enhancer.enabled = true
-                } else {
-                    enhancer.enabled = false
-                }
+                enhancer.setTargetGain(if (audioBoost) 2000 else 0)
+                enhancer.enabled = audioBoost
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -273,6 +272,9 @@ fun VideoPlayer(
                 }
             },
             update = { view ->
+                if (view.player != exoPlayer) {
+                    view.player = exoPlayer
+                }
                 if (view.resizeMode != resizeMode) {
                     view.resizeMode = resizeMode
                 }

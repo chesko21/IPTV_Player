@@ -9,8 +9,19 @@ import coil.request.CachePolicy
 import coil.util.DebugLogger
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
+import com.google.android.gms.cast.framework.CastContext
 
 class StreamProApp : Application(), ImageLoaderFactory {
+
+    override fun onCreate() {
+        super.onCreate()
+        // Initialize CastContext early to prevent crashes during CastPlayer initialization in ViewModels
+        try {
+            CastContext.getSharedInstance(this)
+        } catch (e: Exception) {
+            android.util.Log.e("StreamProApp", "CastContext initialization failed: ${e.message}")
+        }
+    }
 
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(this)

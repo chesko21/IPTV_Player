@@ -56,6 +56,7 @@ fun VlcVideoPlayer(
     modifier: Modifier = Modifier,
     hwAcceleration: Boolean = true,
     resizeMode: Int = 0,
+    audioBoost: Boolean = false,
     onPlayerInit: ((MediaPlayer?) -> Unit)? = null,
     onBuffering: ((Boolean) -> Unit)? = null,
     onPlayingChanged: ((Boolean) -> Unit)? = null,
@@ -166,6 +167,16 @@ fun VlcVideoPlayer(
             mediaPlayer.release()
             libVLC.release()
         }
+    }
+
+    LaunchedEffect(audioBoost, mediaPlayer) {
+        try {
+            if (audioBoost) {
+                mediaPlayer.volume = 150 // Boost to 150%
+            } else {
+                mediaPlayer.volume = 100 // Normal 100%
+            }
+        } catch (_: Exception) {}
     }
 
     LaunchedEffect(resizeMode, mediaPlayer) {

@@ -6,6 +6,11 @@ import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -145,6 +150,25 @@ class MainActivity : FragmentActivity() {
                 darkTheme = darkMode,
                 accentColor = Color(accentColorInt)
             ) {
+                val context = LocalContext.current
+                
+                // Request Notification Permission for Android 13+
+                val permissionLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.RequestPermission()
+                ) { _ -> }
+
+                LaunchedEffect(Unit) {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                        if (ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.POST_NOTIFICATIONS
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                    }
+                }
+
                 val navController = rememberNavController()
 
                 val snackbarHostState = remember { SnackbarHostState() }
@@ -155,8 +179,6 @@ class MainActivity : FragmentActivity() {
                 var topNotifIcon by remember { mutableStateOf(Icons.Default.Wifi) }
                 var topNotifColor by remember { mutableStateOf(Color(0xFF4CAF50)) }
                 var isTopNotifVisible by remember { mutableStateOf(false) }
-
-                val context = LocalContext.current
                 LaunchedEffect(networkStatus) {
                     when (networkStatus) {
                         is NetworkObserver.NetworkStatus.Lost -> {
@@ -360,12 +382,8 @@ class MainActivity : FragmentActivity() {
                                         Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
                                     val adapter = moshi.adapter(IptvChannel::class.java)
 
-                                    val encodedJson =
+                                    val channelJson =
                                         backStackEntry.arguments?.getString("channelJson") ?: ""
-                                    val channelJson = URLDecoder.decode(
-                                        encodedJson,
-                                        StandardCharsets.UTF_8.toString()
-                                    )
                                     val channel = adapter.fromJson(channelJson)
 
                                     if (channel != null) {

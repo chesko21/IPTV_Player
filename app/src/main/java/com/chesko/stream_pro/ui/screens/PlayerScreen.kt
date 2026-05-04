@@ -118,9 +118,23 @@ fun ChannelInfoBar(
     var playbackDuration by remember { mutableLongStateOf(0L) }
     var isDragging by remember { mutableStateOf(false) }
     var dragPosition by remember { mutableFloatStateOf(0f) }
+    var currentTimeMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
+
+    // Smart EPG Transition: Pre-fetch or refresh EPG data when current program is about to end
+    LaunchedEffect(currentProgram, currentTimeMillis) {
+        currentProgram?.let {
+            val remainingTime = it.endTime - currentTimeMillis
+            // If less than 30 seconds remaining, and we haven't refreshed, could poke the VM
+            if (remainingTime in 1..30000) {
+                // The Flow in ViewModel will automatically emit the next program once currentTime passes endTime
+                // because repository.getCurrentProgram uses System.currentTimeMillis() internally.
+            }
+        }
+    }
 
     LaunchedEffect(exoPlayer, vlcPlayer, castPlayer) {
         while (true) {
+            currentTimeMillis = System.currentTimeMillis()
             if (!isDragging) {
                 if (castPlayer?.isCastSessionAvailable == true) {
                     playbackPosition = castPlayer.currentPosition
@@ -319,8 +333,7 @@ fun ChannelInfoBar(
                     }
                 }
             } else if (currentProgram != null) {
-                val currentTime = System.currentTimeMillis()
-                val progress = ((currentTime - currentProgram.startTime).toFloat() /
+                val progress = ((currentTimeMillis - currentProgram.startTime).toFloat() /
                                (currentProgram.endTime - currentProgram.startTime).toFloat()).coerceIn(0f, 1f)
 
                 LinearProgressIndicator(
@@ -432,17 +445,17 @@ fun PlayerScreenContent(
 
     val isExoOnly = remember(currentChannel.url, currentChannel.drmType, currentChannel.drmConfig) {
         val url = currentChannel.url.lowercase().trim()
-        url.contains(".mpd") || url.contains(".m3u8") || 
+        url.contains(".mpd") || 
         !currentChannel.drmType.isNullOrBlank() || 
         !currentChannel.drmConfig.isNullOrBlank()
     }
 
-    val initialEngine = remember(playerEngineSetting, currentChannel.url) { 
+    val initialEngine = remember(playerEngineSetting, currentChannel.url, isExoOnly) { 
         val url = currentChannel.url.lowercase().trim()
         when {
             isExoOnly -> "EXO"
-            
-            url.startsWith("rtsp://") || url.startsWith("rtmp://") || 
+
+            url.startsWith("rtsp://") || url.startsWith("rtmp://") ||
             url.startsWith("udp://") || url.startsWith("rtp://") -> "VLC"
 
             url.contains(".ts") || url.contains("mpegts") -> "VLC"
@@ -451,7 +464,7 @@ fun PlayerScreenContent(
         }
     }
 
-    var activeEngine by remember(initialEngine) { mutableStateOf(initialEngine) }
+    var activeEngine by remember(currentChannel.url) { mutableStateOf(initialEngine) }
     
     val hwAcceleration by viewModel.hwAcceleration.collectAsState()
     val bufferSize by viewModel.bufferSize.collectAsState()
@@ -479,32 +492,30 @@ fun PlayerScreenContent(
 
     // Auto-transfer media item to CastPlayer when casting starts
     LaunchedEffect(isCasting, currentChannel) {
-        val castPlayerRef = castPlayer
-        if (isCasting && castPlayerRef != null) {
-            // Jika TV sudah memutar sesuatu, jangan timpa kecuali channel berbeda
+        val castPlayerRef = castPlayer ?: return@LaunchedEffect
+        if (isCasting) {
             val mediaItem = PlayerUtils.buildMediaItem(currentChannel)
             
-            val currentPos = if (activeEngine == "VLC") {
-                vlcPlayer?.time ?: 0L
-            } else {
-                exoPlayer?.currentPosition ?: 0L
-            }
+            // Only set media item if it's different or player is idle
+            val currentMediaId = try { castPlayerRef.currentMediaItem?.mediaId } catch(_: Exception) { null }
+            if (currentMediaId != currentChannel.url || castPlayerRef.playbackState == Player.STATE_IDLE) {
+                
+                val currentPos = if (activeEngine == "VLC") {
+                    vlcPlayer?.time ?: 0L
+                } else {
+                    exoPlayer?.currentPosition ?: 0L
+                }
 
-            castPlayerRef.setMediaItem(mediaItem, currentPos)
-            castPlayerRef.prepare()
-            castPlayerRef.play()
+                castPlayerRef.setMediaItem(mediaItem, currentPos)
+                castPlayerRef.prepare()
+                castPlayerRef.playWhenReady = true
+            }
             
             // Stop local players
             exoPlayer?.pause()
             vlcPlayer?.pause()
             isConnectingToCast = false
-        } else if (!isCasting) {
-            // Jika tidak casting, pastikan player lokal lanjut jika tadi di-pause karena cast
-            if (activeEngine == "VLC") {
-                if (vlcPlayer?.isPlaying == false) vlcPlayer?.play()
-            } else {
-                if (exoPlayer?.isPlaying == false) exoPlayer?.play()
-            }
+            showCastDiscovery = false
         }
     }
 
@@ -571,13 +582,7 @@ fun PlayerScreenContent(
     val currentProgram by viewModel.getCurrentProgram(currentChannel).collectAsState(initial = null)
     val nextProgram by viewModel.getNextProgram(currentChannel).collectAsState(initial = null)
 
-    val currentGroupChannels = remember(currentChannel.group, allChannels) {
-        if (currentChannel.group.isNullOrEmpty()) {
-            allChannels
-        } else {
-            allChannels.filter { it.group == currentChannel.group }
-        }
-    }
+    val currentGroupChannels = allChannels
 
     var showAudioDialog by remember { mutableStateOf(false) }
     var showSubtitleDialog by remember { mutableStateOf(false) }
@@ -593,7 +598,7 @@ fun PlayerScreenContent(
         zappingJob?.cancel()
         currentChannel = nextChan
         viewModel.markAsPlayed(nextChan)
-        
+
         zappingJob = scope.launch {
             delay(1500)
         }
@@ -637,7 +642,7 @@ fun PlayerScreenContent(
         isPlaybackStuck = false
         isBuffering = true
         loadingStatus = playerLoadingDefault
-        
+
         showChannelInfo = true
         delay(5000)
         showChannelInfo = false
@@ -659,7 +664,7 @@ fun PlayerScreenContent(
 
     DisposableEffect(exoPlayer, currentChannel) {
         val player = exoPlayer ?: return@DisposableEffect onDispose {}
-        
+
         val listener = object : Player.Listener {
             override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
                 if (videoSize.width > 0 && videoSize.height > 0) {
@@ -689,7 +694,17 @@ fun PlayerScreenContent(
                     }
                     Player.STATE_ENDED -> {
                         isBuffering = false
-                        loadingStatus = playerEnded
+                        if (player.isCurrentMediaItemLive) {
+                            // If live, treat 'Ended' as a temporary loss of stream and try to recover
+                            scope.launch {
+                                isBuffering = true
+                                loadingStatus = playerLoadingStream
+                                delay(3000) // Give it a few seconds to see if it's just a momentary gap
+                                reloadVideo()
+                            }
+                        } else {
+                            loadingStatus = playerEnded
+                        }
                     }
                 }
             }
@@ -717,21 +732,22 @@ fun PlayerScreenContent(
         }
 
         player.addListener(listener)
-        
+
         val monitorJob = scope.launch {
             var bufferCount = 0
             var lastPosCheck = -1L
             var stuckCount = 0
-            
+
             while (true) {
                 delay(2000)
                 if (player.playbackState == Player.STATE_BUFFERING) {
                     bufferCount++
-                    if (bufferCount >= 5) {
+                    if (bufferCount >= 5) { // After 10 seconds of buffering (2s * 5)
                         isPlaybackStuck = true
                     }
-                    if (bufferCount == 8) {
+                    if (bufferCount >= 10) { // After 20 seconds of buffering (2s * 10)
                         reloadVideo()
+                        bufferCount = 0
                     }
                 } else if (player.isPlaying && player.playbackState == Player.STATE_READY) {
                     bufferCount = 0
@@ -827,13 +843,14 @@ fun PlayerScreenContent(
                     modifier = Modifier.fillMaxSize(),
                     hwAcceleration = hwAcceleration,
                     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT,
+                    audioBoost = audioBoost,
                     onPlayerInit = { player ->
                         if (player != null) vlcPlayer = player
                     },
                     onSuccess = {
                         android.util.Log.d("PlayerAnalytics", "VLC Success: ${targetChannel.name}")
                     },
-                    onBuffering = { buffering -> 
+                    onBuffering = { buffering ->
                         isBuffering = buffering
                         if (!buffering) {
                             loadingStatus = ""
@@ -841,17 +858,19 @@ fun PlayerScreenContent(
                             loadingStatus = playerLoadingVlc
                         }
                     },
-                    onPlayingChanged = { playing -> 
+                    onPlayingChanged = { playing ->
                         isPlayingState = playing
                         if (playing) {
                             loadingStatus = ""
                             isBuffering = false
                             isPlaybackStuck = false
+                        } else if (isBuffering) {
+                            // Keep loading status if we are actually buffering
                         }
                     },
-                    onError = { 
+                    onError = {
                         errorMessage = it
-                        isPlaybackStuck = true 
+                        isPlaybackStuck = true
                         loadingStatus = context.getString(R.string.player_error_vlc, it)
                     }
                 )
@@ -871,9 +890,9 @@ fun PlayerScreenContent(
                         loadingStatus = ""
                         android.util.Log.d("PlayerAnalytics", "Exo Success: ${targetChannel.name}")
                     },
-                    onError = { 
+                    onError = {
                         errorMessage = it
-                        isPlaybackStuck = true 
+                        isPlaybackStuck = true
                     },
                     onEngineSwitch = {
                         activeEngine = it
@@ -940,7 +959,17 @@ fun PlayerScreenContent(
                     onVerticalDrag = { change, dragAmount ->
                         change.consume()
                         val delta = -dragAmount / size.height
-                        if (change.position.x < size.width / 2) {
+                        val third = size.width / 3f
+
+                        val topThreshold = if (size.height > size.width) size.height * 0.30f else size.height * 0.15f
+                        val bottomThreshold = if (size.height > size.width) size.height * 0.70f else size.height * 0.85f
+
+                        if (change.position.y < topThreshold || change.position.y > bottomThreshold) {
+                            gestureType = null
+                            return@detectVerticalDragGestures
+                        }
+
+                        if (change.position.x < third) {
                             gestureType = "Brightness"
                             brightness = (brightness + delta).coerceIn(0.01f, 1f)
                             activity?.let {
@@ -948,11 +977,14 @@ fun PlayerScreenContent(
                                 lp.screenBrightness = brightness
                                 it.window.attributes = lp
                             }
-                        } else {
+                        } else if (change.position.x > (2 * third)) {
                             gestureType = "Volume"
                             volume = (volume + delta).coerceIn(0f, 1f)
                             val maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
                             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, (volume * maxVol).toInt(), 0)
+                        } else {
+
+                            gestureType = null
                         }
                     }
                 )
@@ -1074,15 +1106,17 @@ fun PlayerScreenContent(
                 onShowChannels = { showChannelList = true },
                 onLock = { isLocked = true },
                 onPrev = {
-                    val idx = currentGroupChannels.indexOfFirst { it.url == currentChannel.url }
-                    if (idx > 0) {
-                        changeChannel(currentGroupChannels[idx - 1])
+                    if (currentGroupChannels.isNotEmpty()) {
+                        val idx = currentGroupChannels.indexOfFirst { it.url == currentChannel.url }
+                        val prevIdx = if (idx <= 0) currentGroupChannels.size - 1 else idx - 1
+                        changeChannel(currentGroupChannels[prevIdx])
                     }
                 },
                 onNext = {
-                    val idx = currentGroupChannels.indexOfFirst { it.url == currentChannel.url }
-                    if (idx < currentGroupChannels.size - 1) {
-                        changeChannel(currentGroupChannels[idx + 1])
+                    if (currentGroupChannels.isNotEmpty()) {
+                        val idx = currentGroupChannels.indexOfFirst { it.url == currentChannel.url }
+                        val nextIdx = if (idx == -1 || idx >= currentGroupChannels.size - 1) 0 else idx + 1
+                        changeChannel(currentGroupChannels[nextIdx])
                     }
                 },
                 onFullscreenToggle = toggleFullscreen,
@@ -1209,12 +1243,8 @@ fun PlayerScreenContent(
         }
 
         if (showCastDiscovery) {
-            val tvOnlyRoutes = availableRoutes.filter { 
-                it.deviceType == MediaRouter.RouteInfo.DEVICE_TYPE_TV 
-            }
-            
             CastDiscoveryOverlay(
-                routes = tvOnlyRoutes,
+                routes = availableRoutes,
                 onRouteSelected = { route ->
                     isConnectingToCast = true
                     route.select()
@@ -1252,7 +1282,7 @@ fun CastDiscoveryOverlay(
     onDismiss: () -> Unit
 ) {
     var isSearching by remember { mutableStateOf(true) }
-    
+
     LaunchedEffect(isSearching) {
         if (isSearching) {
             delay(5000)
@@ -1312,8 +1342,8 @@ fun CastDiscoveryOverlay(
                         modifier = Modifier.height(32.dp)
                     ) {
                         Text(
-                            "Coba Lagi", 
-                            color = MaterialTheme.colorScheme.primary, 
+                            "Coba Lagi",
+                            color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             fontSize = 10.sp
@@ -1329,7 +1359,7 @@ fun CastDiscoveryOverlay(
                         fontSize = 9.sp,
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
-                    
+
                     LazyColumn(
                         modifier = Modifier.heightIn(max = 200.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -1348,7 +1378,11 @@ fun CastDiscoveryOverlay(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
-                                        imageVector = if (route.deviceType == MediaRouter.RouteInfo.DEVICE_TYPE_TV) Icons.Default.Tv else Icons.Default.Cast,
+                                        imageVector = when (route.deviceType) {
+                                            MediaRouter.RouteInfo.DEVICE_TYPE_TV -> Icons.Default.Tv
+                                            MediaRouter.RouteInfo.DEVICE_TYPE_REMOTE_SPEAKER -> Icons.Default.Speaker
+                                            else -> Icons.Default.Cast
+                                        },
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
                                         modifier = Modifier.size(16.dp)
@@ -1396,7 +1430,7 @@ fun GestureHUD(type: String?, brightness: Float, volume: Float, seekPosition: Lo
         modifier = Modifier.fillMaxSize()
     ) {
         val displayType = currentType ?: return@AnimatedVisibility
-        
+
         if (displayType == "Seek") {
             Box(contentAlignment = Alignment.Center) {
                 Surface(
@@ -1429,7 +1463,7 @@ fun GestureHUD(type: String?, brightness: Float, volume: Float, seekPosition: Lo
                                 style = MaterialTheme.typography.titleMedium
                             )
                         }
-                        
+
                         val diff = seekTarget - seekPosition
                         Text(
                             text = "${if (diff >= 0) "+" else ""}${PlayerUtils.formatTime(Math.abs(diff))}",
@@ -1437,9 +1471,9 @@ fun GestureHUD(type: String?, brightness: Float, volume: Float, seekPosition: Lo
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold
                         )
-                        
+
                         Spacer(modifier = Modifier.height(16.dp))
-                        
+
                         LinearProgressIndicator(
                             progress = { (seekTarget.toFloat() / seekDuration.toFloat()).coerceIn(0f, 1f) },
                             modifier = Modifier.width(200.dp).height(4.dp).clip(CircleShape),
@@ -1542,7 +1576,7 @@ fun TrackSelectionMenu(
 
             if (trackType == C.TRACK_TYPE_AUDIO && vlcPlayer != null) {
                 var currentDelay by remember { mutableLongStateOf(vlcPlayer.audioDelay / 1000) } // ms
-                
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1563,7 +1597,7 @@ fun TrackSelectionMenu(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         IconButton(
-                            onClick = { 
+                            onClick = {
                                 currentDelay -= 50
                                 vlcPlayer.audioDelay = currentDelay * 1000
                             },
@@ -1578,7 +1612,7 @@ fun TrackSelectionMenu(
                             fontWeight = FontWeight.Bold
                         )
                         IconButton(
-                            onClick = { 
+                            onClick = {
                                 currentDelay += 50
                                 vlcPlayer.audioDelay = currentDelay * 1000
                             },
@@ -1733,7 +1767,7 @@ fun TrackItem(label: String, isSelected: Boolean, onClick: () -> Unit) {
             Spacer(modifier = Modifier.width(6.dp))
         }
         Text(
-            label, 
+            label,
             color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
@@ -1879,7 +1913,7 @@ fun ControlOverlay(
             verticalAlignment = Alignment.CenterVertically
         ) {
             PlayerControlAction(icon = Icons.AutoMirrored.Filled.ArrowBack, onClick = onBack)
-            
+
             Spacer(modifier = Modifier.weight(1f))
 
             // Engine Switcher (Top Position)
@@ -1895,9 +1929,9 @@ fun ControlOverlay(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        Icons.Default.SettingsInputComponent, 
-                        null, 
-                        tint = if (canSwitchEngine) Color.White else Color.White.copy(0.3f), 
+                        Icons.Default.SettingsInputComponent,
+                        null,
+                        tint = if (canSwitchEngine) Color.White else Color.White.copy(0.3f),
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -1911,12 +1945,12 @@ fun ControlOverlay(
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.width(12.dp))
 
             // Cast Button
             PlayerControlAction(icon = Icons.Default.Cast, onClick = onShowCast)
-            
+
             Spacer(modifier = Modifier.width(12.dp))
             PlayerControlAction(icon = Icons.AutoMirrored.Filled.FormatListBulleted, onClick = onShowChannels)
         }
@@ -1933,7 +1967,7 @@ fun ControlOverlay(
         ) {
             // Previous Button
             IconButton(
-                onClick = onPrev, 
+                onClick = onPrev,
                 modifier = Modifier
                     .size(42.dp)
                     .background(Color.Black.copy(0.3f), CircleShape)
@@ -1947,11 +1981,11 @@ fun ControlOverlay(
                 modifier = Modifier.height(110.dp),
                 contentAlignment = Alignment.Center
             ) {
-                val isError = isPlaybackStuck || 
-                             loadingStatus.contains("Gagal", true) || 
+                val isError = isPlaybackStuck ||
+                             loadingStatus.contains("Gagal", true) ||
                              loadingStatus.contains("Error", true) ||
                              loadingStatus == stringResource(R.string.player_ended)
-                
+
                 Box(contentAlignment = Alignment.Center) {
                     // Reduced glow size
                     if (isPlayingState && !isBuffering) {
@@ -1968,8 +2002,8 @@ fun ControlOverlay(
                     }
 
                     Surface(
-                        onClick = { 
-                            if (isError) onReload() 
+                        onClick = {
+                            if (isError) onReload()
                             else {
                                 if (playerEngine == "VLC") {
                                     vlcPlayer?.let { if (it.isPlaying) it.pause() else it.play() }
@@ -1993,7 +2027,7 @@ fun ControlOverlay(
                             )
                         }
                     }
-                    
+
                     if (isBuffering) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(80.dp),
@@ -2003,7 +2037,7 @@ fun ControlOverlay(
                         )
                     }
                 }
-                
+
                 if (loadingStatus.isNotEmpty() && !isPlaybackStuck) {
                     Text(
                         text = loadingStatus.uppercase(),
@@ -2022,7 +2056,7 @@ fun ControlOverlay(
 
             // Next Button
             IconButton(
-                onClick = onNext, 
+                onClick = onNext,
                 modifier = Modifier
                     .size(42.dp)
                     .background(Color.Black.copy(0.3f), CircleShape)
@@ -2066,7 +2100,7 @@ fun PlayerControlAction(icon: ImageVector, tint: Color = Color.White, onClick: (
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(if (isPressed) 0.85f else 1f, label = "scale")
-    
+
     Surface(
         modifier = Modifier
             .size(38.dp)
@@ -2192,9 +2226,9 @@ fun ChannelListItem(
                 error = painterResource(R.drawable.app_icon_android),
                 placeholder = painterResource(R.drawable.app_icon_android)
             )
-            
+
             Spacer(modifier = Modifier.width(12.dp))
-            
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = channel.name,

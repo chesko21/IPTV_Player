@@ -11,8 +11,12 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URI
 
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
+
 object PlayerUtils {
 
+    @OptIn(UnstableApi::class)
     fun buildMediaItem(channel: IptvChannel): MediaItem {
         val mediaItemBuilder = MediaItem.Builder()
             .setUri(channel.url)
@@ -36,6 +40,8 @@ object PlayerUtils {
             }
             channel.url.contains(".m3u8") -> mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_M3U8)
             channel.url.contains(".ism") -> mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_SS)
+            channel.url.lowercase().contains(".ts") || channel.url.lowercase().contains("mpegts") -> mediaItemBuilder.setMimeType("video/mp2t")
+            else -> mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_M3U8) // Default to HLS for better compatibility with Cast
         }
 
         val allHeaders = getHeadersFromChannel(channel)

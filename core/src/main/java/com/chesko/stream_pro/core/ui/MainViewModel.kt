@@ -27,6 +27,7 @@ import okhttp3.Request
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import com.chesko.stream_pro.core.utils.PlayerUtils
+import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
@@ -161,38 +162,50 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val sessionManagerListener = object : com.google.android.gms.cast.framework.SessionManagerListener<com.google.android.gms.cast.framework.CastSession> {
         override fun onSessionStarted(session: com.google.android.gms.cast.framework.CastSession, sessionId: String) {
+            _isCasting.value = true
             transferCurrentMediaToCast()
         }
         override fun onSessionResumed(session: com.google.android.gms.cast.framework.CastSession, wasSuspended: Boolean) {
+            _isCasting.value = true
             transferCurrentMediaToCast()
         }
         override fun onSessionStarting(session: com.google.android.gms.cast.framework.CastSession) {}
-        override fun onSessionStartFailed(session: com.google.android.gms.cast.framework.CastSession, error: Int) {}
-        override fun onSessionEnding(session: com.google.android.gms.cast.framework.CastSession) {
+        override fun onSessionStartFailed(session: com.google.android.gms.cast.framework.CastSession, error: Int) {
             _isCasting.value = false
+        }
+        override fun onSessionEnding(session: com.google.android.gms.cast.framework.CastSession) {
+            // Prepare to stop casting
         }
         override fun onSessionEnded(session: com.google.android.gms.cast.framework.CastSession, error: Int) {
             _isCasting.value = false
-            // Opsional: Lanjutkan pemutaran di HP secara otomatis saat TV keluar
-            _selectedChannel.value?.let { channel ->
-                // Trigger UI untuk melanjutkan di player lokal jika diinginkan
-            }
         }
         override fun onSessionResuming(session: com.google.android.gms.cast.framework.CastSession, sessionId: String) {}
-        override fun onSessionResumeFailed(session: com.google.android.gms.cast.framework.CastSession, error: Int) {}
-        override fun onSessionSuspended(session: com.google.android.gms.cast.framework.CastSession, reason: Int) {}
+        override fun onSessionResumeFailed(session: com.google.android.gms.cast.framework.CastSession, error: Int) {
+            _isCasting.value = false
+        }
+        override fun onSessionSuspended(session: com.google.android.gms.cast.framework.CastSession, reason: Int) {
+            _isCasting.value = false
+        }
     }
 
     private fun transferCurrentMediaToCast() {
         val channel = _selectedChannel.value ?: return
         val player = _castPlayer.value ?: return
         
+        if (!player.isCastSessionAvailable) return
+
         viewModelScope.launch {
-            val mediaItem = PlayerUtils.buildMediaItem(channel)
-            player.setMediaItem(mediaItem)
-            player.prepare()
-            player.play()
-            _isCasting.value = true
+            try {
+                val mediaItem = PlayerUtils.buildMediaItem(channel)
+                // Clear existing queue and set new item
+                player.setMediaItem(mediaItem)
+                player.prepare()
+                player.play()
+                _isCasting.value = true
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Error transferring media to cast: ${e.message}")
+                _isCasting.value = false
+            }
         }
     }
 
@@ -237,26 +250,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun initCastPlayer() {
-        viewModelScope.launch {
+        if (_castPlayer.value != null) return // Already initialized
+
+        viewModelScope.launch(Dispatchers.Main) {
             try {
                 val castContext = CastContext.getSharedInstance(getApplication())
                 val cp = CastPlayer(castContext, DefaultMediaItemConverter())
                 _castPlayer.value = cp
-                
-                // Set up MediaSession for notification and background controls
-                val intent = getApplication<Application>().packageManager.getLaunchIntentForPackage(getApplication<Application>().packageName)
-                val pendingIntent = PendingIntent.getActivity(
-                    getApplication(), 
-                    0, 
-                    intent, 
-                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-                )
-                
-                mediaSession = MediaSession.Builder(getApplication(), cp)
-                    .setSessionActivity(pendingIntent)
-                    .build()
-
-                setupNotification(cp)
 
                 cp.addListener(object : Player.Listener {
                     override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -265,13 +265,33 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     override fun onPlaybackStateChanged(state: Int) {
                         _isCasting.value = cp.isCastSessionAvailable
                     }
+                    override fun onPositionDiscontinuity(
+                        oldPosition: Player.PositionInfo,
+                        newPosition: Player.PositionInfo,
+                        reason: Int
+                    ) {
+                        _isCasting.value = cp.isCastSessionAvailable
+                    }
+                    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                        _isCasting.value = cp.isCastSessionAvailable
+                    }
                 })
+
+                // Set up MediaSession for notification and background controls
+                val intent = getApplication<Application>().packageManager.getLaunchIntentForPackage(getApplication<Application>().packageName)
+                val pendingIntent = PendingIntent.getActivity(
+                    getApplication(),
+                    0,
+                    intent,
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                )
+
+                mediaSession = MediaSession.Builder(getApplication(), cp)
+                    .setSessionActivity(pendingIntent)
+                    .build()
                 
-                // Keep isCasting state in sync
-                while (true) {
-                    _isCasting.value = cp.isCastSessionAvailable
-                    delay(2000)
-                }
+                // Initial state check
+                _isCasting.value = cp.isCastSessionAvailable
             } catch (e: Exception) {
                 android.util.Log.e("MainViewModel", "Cast init failed: ${e.message}")
             }
@@ -689,7 +709,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         try {
             CastContext.getSharedInstance(getApplication()).sessionManager.endCurrentSession(true)
         } catch (e: Exception) {}
-        notificationManager?.setPlayer(null)
         _isCasting.value = false
     }
 
@@ -717,6 +736,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun getNextProgram(channel: IptvChannel): Flow<EpgProgram?> {
         return repository.getNextProgram(channel.tvgId, channel.name)
+    }
+
+    fun refreshEpgForChannel(channel: IptvChannel) {
+        viewModelScope.launch {
+            // This triggers a re-query of the Flow in the UI by slightly poking the repository or just relying on Flow collection
+            // In Room, since we use Flow, it should auto-update if the database changes.
+            // If we want to force a refresh from network:
+            checkAndRefreshEpgIfNeeded()
+        }
     }
 
     fun setSearchQuery(query: String) {
@@ -1123,7 +1151,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         try {
             CastContext.getSharedInstance(getApplication()).sessionManager.removeSessionManagerListener(sessionManagerListener, com.google.android.gms.cast.framework.CastSession::class.java)
         } catch (e: Exception) {}
-        notificationManager?.setPlayer(null)
         mediaSession?.release()
         _castPlayer.value?.release()
     }
