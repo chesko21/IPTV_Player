@@ -24,13 +24,17 @@ object PlayerUtils {
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(channel.name)
-                    .setArtworkUri(if (!channel.logo.isNullOrBlank()) Uri.parse(channel.logo) else null)
+                    .setSubtitle(channel.group ?: "IPTV Stream")
+                    .setArtist("StreamPro")
+                    .setAlbumTitle("Live TV")
+                    .setArtworkUri(if (!channel.logo.isNullOrBlank() && channel.logo.startsWith("http")) Uri.parse(channel.logo) else null)
                     .build()
             )
             .setTag(channel)
 
+        val urlLower = channel.url.lowercase()
         when {
-            channel.url.contains(".mpd") -> {
+            urlLower.contains(".mpd") || urlLower.contains("format=mpd") -> {
                 mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_MPD)
                 mediaItemBuilder.setLiveConfiguration(
                     MediaItem.LiveConfiguration.Builder()
@@ -38,10 +42,33 @@ object PlayerUtils {
                         .build()
                 )
             }
-            channel.url.contains(".m3u8") -> mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_M3U8)
-            channel.url.contains(".ism") -> mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_SS)
-            channel.url.lowercase().contains(".ts") || channel.url.lowercase().contains("mpegts") -> mediaItemBuilder.setMimeType("video/mp2t")
-            else -> mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_M3U8) // Default to HLS for better compatibility with Cast
+            urlLower.contains(".m3u8") || urlLower.contains("format=m3u8") || urlLower.contains("/hls/") -> {
+                mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_M3U8)
+                mediaItemBuilder.setLiveConfiguration(
+                    MediaItem.LiveConfiguration.Builder()
+                        .setTargetOffsetMs(10000)
+                        .build()
+                )
+            }
+            urlLower.contains(".ism") || urlLower.contains("/manifest") -> {
+                mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_SS)
+            }
+            urlLower.contains(".ts") || urlLower.contains("mpegts") || urlLower.contains("protocol=ts") -> {
+                mediaItemBuilder.setMimeType(MimeTypes.VIDEO_MP2T)
+            }
+            urlLower.contains(".mp4") -> {
+                mediaItemBuilder.setMimeType(MimeTypes.VIDEO_MP4)
+            }
+            urlLower.contains(".mkv") -> {
+                mediaItemBuilder.setMimeType(MimeTypes.VIDEO_MATROSKA)
+            }
+            urlLower.startsWith("rtsp://") -> {
+                mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_RTSP)
+            }
+            else -> {
+                // Default to HLS for many IPTV links if unknown
+                mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_M3U8)
+            }
         }
 
         val allHeaders = getHeadersFromChannel(channel)
@@ -77,6 +104,17 @@ object PlayerUtils {
                 drmType = C.CLEARKEY_UUID
             }
 
+            // Fallback to separate DRM fields if licenseUri is still null
+            if (licenseUri == null && !channel.drmKey.isNullOrBlank() && !channel.drmKeyId.isNullOrBlank()) {
+                licenseUri = formatClearKeyLicense("${channel.drmKeyId}:${channel.drmKey}")
+                drmType = C.CLEARKEY_UUID
+            } else if (licenseUri == null && !channel.drmLicenseUrl.isNullOrBlank()) {
+                licenseUri = channel.drmLicenseUrl
+                if (channel.drmType?.lowercase()?.contains("clearkey") == true) {
+                    drmType = C.CLEARKEY_UUID
+                }
+            }
+
             if (licenseUri != null) {
                 val drmBuilder = MediaItem.DrmConfiguration.Builder(drmType)
                     .setLicenseUri(licenseUri)
@@ -106,20 +144,36 @@ object PlayerUtils {
     fun getHeadersFromChannel(channel: IptvChannel): Map<String, String> {
         val headers = mutableMapOf<String, String>()
         
-        // Priority to parsed M3U User-Agent, fallback to standard browser UA
+        // Base Headers
         headers["User-Agent"] = if (!channel.userAgent.isNullOrBlank()) {
             channel.userAgent
         } else {
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
-        channel.referrer?.let { 
-            headers["Referer"] = it 
-            try {
-                val uri = URI(it)
-                headers["Origin"] = "${uri.scheme}://${uri.host}"
-            } catch (e: Exception) {}
-        }
+        channel.referrer?.let { headers["Referer"] = it }
         channel.cookie?.let { headers["Cookie"] = it }
+
+        // Extra parsing for URL pipes (Common in many IPTV playlists)
+        // Format: http://url.com/playlist.m3u8|User-Agent=Mozilla&Referer=...
+        if (channel.url.contains("|")) {
+            val parts = channel.url.split("|")
+            if (parts.size > 1) {
+                val params = parts[1].split("&")
+                params.forEach { param ->
+                    val pair = param.split("=")
+                    if (pair.size == 2) {
+                        val key = pair[0].trim()
+                        val value = pair[1].trim()
+                        when (key.lowercase()) {
+                            "user-agent", "ua" -> headers["User-Agent"] = value
+                            "referer", "ref" -> headers["Referer"] = value
+                            "origin" -> headers["Origin"] = value
+                            "cookie" -> headers["Cookie"] = value
+                        }
+                    }
+                }
+            }
+        }
 
         val url = channel.url.lowercase()
         if (url.contains("indihome") || url.contains("telkom") || url.contains("jtedge")) {
@@ -128,7 +182,6 @@ object PlayerUtils {
             headers["Origin"] = "https://www.indihometv.com"
             headers["Referer"] = "https://www.indihometv.com/"
             headers["Accept"] = "*/*"
-            headers["Connection"] = "keep-alive"
         }
 
         channel.drmConfig?.let { config ->

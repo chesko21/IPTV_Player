@@ -3,10 +3,10 @@
     <string name="app_name">StreamPro</string>
     <string name="settings_title">Tetapan</string>
     <string name="group_player">Pemain Video</string>
-    <string name="item_engine_title">Enjin Pemain</string>
+
     <string name="item_quality_title">Kualiti Video</string>
-    <string name="item_hw_title">Penyahkod Perkakasan</string>
-    <string name="item_buffer_title">Saiz Penyangga</string>
+    <string name="item_hw_title">Dekoder Perkakasan</string>
+    <string name="item_buffer_title">Saiz Penimbal</string>
 
     <string name="group_display">Paparan</string>
     <string name="item_dark_mode">Mod Gelap</string>
@@ -14,36 +14,32 @@
     <string name="item_accent_color">Warna Aksen</string>
     <string name="item_background">Latar Belakang</string>
 
-    <string name="group_data">Data &amp; Stor</string>
+    <string name="group_data">Data &amp; Simpanan</string>
     <string name="item_clear_cache">Kosongkan Cache</string>
 
     <string name="dialog_language_title">Pilih Bahasa</string>
-    <string name="dialog_engine_title">Pilih Enjin</string>
     <string name="dialog_quality_title">Kualiti Video</string>
-    <string name="dialog_buffer_title">Saiz Penyangga</string>
+    <string name="dialog_buffer_title">Saiz Penimbal</string>
     <string name="dialog_background_title">Latar Belakang</string>
 
     <string name="btn_close">Tutup</string>
     <string name="btn_cancel">Batal</string>
-    <string name="btn_apply">Gunakan</string>
+    <string name="btn_apply">Terapkan</string>
     <string name="btn_save">Simpan</string>
     <string name="background_default">Lalai</string>
     <string name="background_color">Warna Tersuai</string>
     <string name="background_image">Imej Tersuai</string>
-    <string name="item_engine_subtitle">Sekarang: %1$s</string>
-    <string name="item_quality_subtitle">Maksimum: %1$sp</string>
-    <string name="item_quality_auto">Automatik</string>
+
+    <string name="item_quality_subtitle">Maks: %1$sp</string>
+    <string name="item_quality_auto">Automatik (Auto)</string>
     <string name="item_hw_subtitle_on">Mod: Perkakasan (Prestasi Tinggi)</string>
     <string name="item_hw_subtitle_off">Mod: Perisian (Lebih Stabil)</string>
-    <string name="item_buffer_subtitle">Penyangga sekarang: %1$ss</string>
+    <string name="item_buffer_subtitle">Saiz penimbal semasa: %1$ss</string>
     <string name="item_dark_mode_subtitle">Aktifkan tema gelap kekal</string>
-    <string name="item_language_subtitle">Sekarang: %1$s</string>
+    <string name="item_language_subtitle">Semasa: %1$s</string>
     <string name="item_accent_subtitle">Pilih warna identiti aplikasi</string>
-    <string name="item_cache_subtitle">Bersihkan data aplikasi sementara</string>
-    <string name="success_cache_cleared">Cache aplikasi berjaya dipadamkan!</string>
-    <string name="player_audio_delay">Lengah Audio</string>
-    <string name="player_casting_active">Memainkan di TV</string>
-    <string name="player_casting_title">Casting ke Peranti</string>
+    <string name="item_cache_subtitle">Bersihkan data sementara aplikasi</string>
+    <string name="success_cache_cleared">Cache aplikasi berjaya dikosongkan!</string>
     <string name="unit_seconds">%1$d Saat</string>
 
     <string name="dialog_color_desc">Peribadikan tema aplikasi</string>
@@ -53,7 +49,7 @@
     <string name="brand_name">STREAMPRO</string>
     <string name="brand_slogan">Hiburan Premium</string>
     <string name="status_live">LANGSUNG</string>
-    <string name="departure_msg">KELUAR DARI SEMESTA</string>
+    <string name="departure_msg">KELUAR DARI ALAM SEMESTA</string>
 
     <!-- Content Descriptions -->
     <string name="content_desc_search">Cari</string>
@@ -64,8 +60,8 @@
     <string name="content_desc_drm">DRM</string>
 
     <!-- Home Screen -->
-    <string name="exit_confirm_title">Pengesahan Keluar</string>
-    <string name="exit_confirm_msg">Adakah anda pasti mahu keluar?</string>
+    <string name="exit_confirm_title">Sahkan Keluar</string>
+    <string name="exit_confirm_msg">Adakah anda pasti ingin keluar?</string>
     <string name="btn_exit">KELUAR</string>
     <string name="premium_badge">PREMIUM</string>
     <string name="drawer_group_main">UTAMA</string>
@@ -76,14 +72,14 @@
     <string name="menu_sync">Segerak</string>
     <string name="menu_backup">Sandaran</string>
     <string name="menu_help">Bantuan</string>
-    <string name="menu_about">Tentang</string>
+    <string name="menu_about">Perihal</string>
     <string name="menu_logout">Log Keluar</string>
-    <string name="carousel_rec">SARAAN</string>
+    <string name="carousel_rec">DISYORKAN</string>
     <string name="carousel_watch_now">TONTON SEKARANG</string>
     <string name="group_all">Semua</string>
     <string name="search_results">Hasil Carian</string>
-    <string name="search_not_found_title">Alamak! Saluran tidak dijumpai</string>
-    <string name="search_not_found_msg">Cuba kata kunci lain atau semak sambungan anda</string>
+    <string name="search_not_found_title">Oops! Saluran tidak dijumpai</string>
+    <string name="search_not_found_msg">Cuba kata kunci lain atau periksa sambungan anda</string>
     <string name="row_favorite">Kegemaran</string>
     <string name="row_history">Terakhir Ditonton</string>
     <string name="row_see_all">LIHAT SEMUA (%1$d)</string>
@@ -91,17 +87,17 @@
     <string name="see_less">LIHAT SEDIKIT</string>
     <string name="see_all">LIHAT SEMUA</string>
     <string name="search_placeholder">Cari saluran atau kumpulan...</string>
-    <string name="no_program_info">Tiada maklumat program</string>
+    <string name="no_program_info">Tiada info program</string>
 
     <!-- Login Screen -->
     <string name="tab_remote_url">URL JAUH</string>
     <string name="tab_local_file">FAIL TEMPATAN</string>
     <string name="tab_restore">PULIHKAN XML</string>
-    <string name="login_secure_msg">SAMBUNGAN TERSEKRIPSI SELAMAT</string>
-    <string name="dialog_explore_demo">TEROKA DEMO</string>
+    <string name="login_secure_msg">SAMBUNGAN SELAMAT TERENKRIPSI</string>
+    <string name="dialog_explore_demo">TEROKAI DEMO</string>
     <string name="demo_playlist_label">Senarai Main Demo %1$d</string>
-    <string name="demo_playlist_name">Universal Playlist %1$d</string>
-    <string name="m3u_endpoint_label">HUJUNG TITIK SENARAI MAIN M3U</string>
+    <string name="demo_playlist_name">Senarai Main Sejagat %1$d</string>
+    <string name="m3u_endpoint_label">TITIK AKHIR SENARAI MAIN M3U</string>
     <string name="url_placeholder">https://pembekal-anda.com/playlist.m3u</string>
     <string name="btn_connect">SAMBUNG</string>
     <string name="btn_demo">DEMO</string>
@@ -109,39 +105,39 @@
     <string name="local_repo_msg">Import fail .m3u atau .m3u8 daripada storan peranti anda</string>
     <string name="btn_browse_files">LAYARI FAIL</string>
     <string name="restore_label">PULIHKAN DARIPADA SANDARAN</string>
-    <string name="restore_msg">Pulihkan saluran, kegemaran, dan tetapan anda daripada fail sandaran XML</string>
+    <string name="restore_msg">Pulihkan saluran, kegemaran dan tetapan anda daripada fail sandaran XML</string>
     <string name="btn_restore_xml">PULIHKAN SEKARANG</string>
     <string name="invalid_url_protocol">Protokol URL tidak sah</string>
 
-    <string name="login_preset_demos">PRESET URL DEMO</string>
-    <string name="login_server_label">SERVER %1$d</string>
-    <string name="login_url_placeholder_example">https://example.com/playlist.m3u</string>
+    <string name="login_preset_demos">PRA-TETAP URL DEMO</string>
+    <string name="login_server_label">PELAYAN %1$d</string>
+    <string name="login_url_placeholder_example">https://contoh.com/playlist.m3u</string>
     <string name="login_url_hint">Klik untuk masukkan alamat</string>
 
     <!-- Help Screen -->
     <string name="help_center_title">Pusat Bantuan</string>
     <string name="faq_title">Soalan Lazim</string>
     <string name="faq_subtitle">Cari jawapan untuk masalah anda di bawah</string>
-    <string name="help_more_title">Masih Perlu Bantuan?</string>
+    <string name="help_more_title">Masih Perlukan Bantuan?</string>
     <string name="help_more_msg">Hubungi pasukan sokongan kami melalui e-mel di https://chesko-25.vercel.app untuk bantuan lanjut.</string>
 
     <string name="faq_q1">Bagaimana cara menambah senarai main?</string>
     <string name="faq_a1">Anda boleh menambah senarai main dengan menekan butang \'Tambah\' di skrin log masuk, kemudian masukkan URL M3U yang sah atau pilih fail dari storan peranti anda.</string>
-    <string name="faq_q2">Kenapa saluran tidak boleh dimainkan?</string>
+    <string name="faq_q2">Mengapa saluran tidak dapat dimainkan?</string>
     <string name="faq_a2">Pastikan sambungan internet anda stabil. Sesetengah saluran mungkin memerlukan VPN atau mempunyai sekatan wilayah. Jika masalah berlanjutan, hubungi pembekal senarai main anda.</string>
-    <string name="faq_q3">Bagaimana cara melihat panduan TV (EPG)?</string>
-    <string name="faq_a3">Buka Menu Drawer (ikon tiga baris kiri atas) kemudian pilih \'Panduan TV\'. EPG akan dimuat turun secara automatik jika sumber senarai main menyediakannya.</string>
+    <string name="faq_q3">Bagaimana cara melihat jadual TV (EPG)?</string>
+    <string name="faq_a3">Buka Menu Drawer (ikon tiga baris di sudut kiri atas) kemudian pilih \'Panduan TV\'. EPG akan dimuat turun secara automatik jika sumber senarai main menyediakannya.</string>
     <string name="faq_q4">Bagaimana cara menambah ke Kegemaran?</string>
-    <string name="faq_a4">Semasa memainkan video, tekan ikon \'Bintang\' pada kawalan pemain. Atau anda boleh menekan lama pada item saluran dalam senarai utama.</string>
+    <string name="faq_a4">Semasa memainkan video, tekan ikon \'Bintang\' pada kawalan pemain. Atau anda boleh menekan lama pada item saluran di senarai utama.</string>
     <string name="faq_q5">Aplikasi terasa lambat, apa yang perlu dilakukan?</string>
     <string name="faq_a5">Anda boleh cuba mengosongkan cache dalam Tetapan Android, atau kurangkan jumlah senarai main yang aktif jika terlalu banyak.</string>
 
     <!-- Profile Screen -->
     <string name="profile_title">Profil Saya</string>
     <string name="edit_name">Ubah Nama</string>
-    <string name="edit_email">Ubah Emel</string>
+    <string name="edit_email">Ubah E-mel</string>
     <string name="label_name">Nama</string>
-    <string name="label_email">Emel</string>
+    <string name="label_email">E-mel</string>
     <string name="premium_member">AHLI PREMIUM</string>
     <string name="stat_favorite">Kegemaran</string>
     <string name="stat_playlist">Senarai Main</string>
@@ -150,27 +146,27 @@
     <string name="account_info">Maklumat Akaun</string>
     <string name="label_device_id">ID Peranti</string>
     <string name="label_member_since">Ahli Sejak</string>
-    <string name="btn_logout_account">Log Keluar Akaun</string>
-    <string name="msg_device_id_copied">ID Peranti disalin!</string>
+    <string name="btn_logout_account">Log keluar daripada Akaun</string>
+    <string name="msg_device_id_copied">ID Peranti berjaya disalin!</string>
 
     <!-- SplashScreen -->
-    <string name="splash_universe_subtitle">TEROKA SEMESTA DIGITAL</string>
-    <string name="splash_initializing">MENGASALKAN SISTEM</string>
+    <string name="splash_universe_subtitle">TEROKAI ALAM DIGITAL</string>
+    <string name="splash_initializing">MENGINISIALKAN SISTEM</string>
     <string name="splash_designed_by">DIREKA OLEH CHESKO</string>
 
     <!-- About Screen -->
-    <string name="about_title">Tentang Aplikasi</string>
+    <string name="about_title">Perihal Aplikasi</string>
     <string name="about_version">Versi %1$s (Stabil)</string>
-    <string name="about_description">Stream Pro ialah pemain IPTV moden yang direka untuk memberikan pengalaman tontonan terbaik dengan antara muka yang bersih dan prestasi tinggi.</string>
+    <string name="about_description">Stream Pro adalah pemain IPTV moden yang direka untuk memberikan pengalaman menonton terbaik dengan antara muka yang bersih dan prestasi tinggi.</string>
     <string name="about_label_developer">Pembangun</string>
     <string name="about_label_dev_team">Pasukan Pembangun Chesko</string>
     <string name="about_label_license">Lesen</string>
     <string name="about_label_license_val">Langganan Premium</string>
-    <string name="about_label_website">Laman Web</string>
+    <string name="about_label_website">Tapak Web</string>
     <string name="about_support_dev">Sokong Pembangun</string>
-    <string name="about_donation_msg">Jika anda menyukai aplikasi ini, anda boleh memberi derma untuk menyokong pembangunan lanjut.</string>
+    <string name="about_donation_msg">Jika anda menyukai aplikasi ini, anda boleh memberikan sumbangan untuk menyokong pembangunan lanjut.</string>
     <string name="about_copy_number">Salin Nombor</string>
-    <string name="about_label_dana_name">a/n Bae***** Ati**</string>
+    <string name="about_label_dana_name">u/p Bae***** Ati**</string>
     <string name="about_footer_rights">© %1$d Stream Pro IPTV. Hak cipta terpelihara.</string>
 
     <!-- EPG Screen -->
@@ -188,12 +184,8 @@
     <string name="player_loading_stream">Memuatkan Aliran...</string>
     <string name="player_preparing">Menyediakan...</string>
     <string name="player_ended">Siaran Tamat</string>
-    <string name="player_loading_vlc">Memuatkan Video (VLC)...</string>
-    <string name="player_fallback_vlc">Fallback ke VLC...</string>
-    <string name="player_exo_fallback">Exo Gagal, Mencuba VLC...</string>
     <string name="player_error_load">Gagal Memuatkan Aliran</string>
-    <string name="player_error_vlc">Ralat VLC: %1$s</string>
-    <string name="player_on_air">SEDANG KE UDARA</string>
+    <string name="player_on_air">LANGSUNG</string>
     <string name="player_next">SETERUSNYA: %1$s</string>
     <string name="player_connection_lost">Sambungan Terputus</string>
     <string name="player_link_dead">TIADA ISYARAT / PAUTAN MATI</string>
@@ -202,12 +194,17 @@
     <string name="player_menu_subtitle">SARIKATA / CC</string>
     <string name="player_menu_quality">KUALITI VIDEO</string>
     <string name="player_boost">Boost</string>
-    <string name="player_mute">Bisu</string>
+    <string name="player_mute">Senyap</string>
     <string name="player_no_subtitle">Tiada Sarikata</string>
-    <string name="player_disable">Nyahdayakan</string>
+    <string name="player_disable">Nyahaktifkan</string>
     <string name="player_auto">Automatik</string>
     <string name="player_default">Lalai</string>
-    <string name="player_debug_title">Maklumat Debug</string>
+    <string name="player_debug_title">Info Debug</string>
     <string name="player_channels_title">SALURAN</string>
-    <string name="loading_message">MENEROKA SEMESTA</string>
+    <string name="player_audio_delay">Lengah Audio</string>
+    <string name="player_casting_active">Dimainkan di TV</string>
+    <string name="player_casting_title">Casting ke Peranti</string>
+    <string name="player_cast_to">Sambung ke Peranti</string>
+    <string name="btn_stop_casting">Hentikan Casting</string>
+    <string name="loading_message">MENEROKAI ALAM SEMESTA</string>
 </resources>

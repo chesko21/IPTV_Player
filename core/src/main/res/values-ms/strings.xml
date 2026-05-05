@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="vlc_error_discontinuity">Ralat Main Balik (Isu Diskontinuitas/Server)</string>
     <string name="player_error_format">Ralat: %1$s</string>
     <string name="exo_error_link_dead">PAUTAN MATI (404)</string>
     <string name="exo_error_connection_failed">SAMBUNGAN GAGAL</string>
-    <string name="exo_error_timeout">TAMAT TEMPOH (TIMEOUT)</string>
+    <string name="exo_error_timeout">TAMAT MASA (TIMEOUT)</string>
     <string name="exo_error_ssl">RALAT SSL (Guna HTTPS)</string>
     <string name="exo_error_file_not_found">FAIL TIDAK DIJUMPAI</string>
     <string name="exo_error_decode_failed">RALAT DEKOD</string>
@@ -15,30 +14,35 @@
     <!-- MainViewModel Strings -->
     <string name="error_invalid_url">URL M3U tidak sah. Sila semak URL dan cuba lagi.</string>
     <string name="error_connection_failed">Sambungan gagal: %1$s</string>
-    <string name="error_no_internet">Koneksi internet tidak tersedia</string>
-    <string name="error_host_not_found">Gagal memuatkan: Hos tidak dijumpai. Semak sambungan atau URL.</string>
-    <string name="error_connection_refused">Gagal memuatkan: Sambungan ditolak atau pelayan sedang turun.</string>
-    <string name="error_socket_timeout">Gagal memuatkan: Masa tamat sambungan (Timeout).</string>
-    <string name="error_load_playlist_failed">Gagal memuatkan senarai main: %1$s</string>
-    <string name="error_save_parse_failed">Gagal menyimpan/menghuraikan fail: %1$s</string>
+    <string name="error_no_internet">Sambungan internet tidak tersedia</string>
+    <string name="error_host_not_found">Gagal memuat: Host tidak dijumpai. Semak sambungan atau URL.</string>
+    <string name="error_connection_refused">Gagal memuat: Sambungan ditolak atau pelayan terhenti.</string>
+    <string name="error_socket_timeout">Gagal memuat: Masa sambungan tamat (Timeout).</string>
+    <string name="error_load_playlist_failed">Gagal memuat senarai main: %1$s</string>
+    <string name="error_save_parse_failed">Gagal menyimpan/menghurai fail: %1$s</string>
     <string name="error_no_channels_found">Tiada saluran dijumpai dalam senarai main.</string>
-    <string name="error_backup_failed">Gagal membuat sandaran: %1$s</string>
+    <string name="error_backup_failed">Gagal menyandar: %1$s</string>
     <string name="error_restore_failed">Gagal memulihkan: %1$s</string>
     <string name="error_invalid_backup_file">Fail sandaran tidak sah atau kosong</string>
-    <string name="error_demo_load_failed">Gagal memuatkan senarai main demo. Semak sambungan internet anda.</string>
-    <string name="error_demo_generic_failed">Gagal memuatkan demo: %1$s</string>
+    <string name="error_demo_load_failed">Gagal memuat senarai main demo. Semak sambungan internet anda.</string>
+    <string name="error_demo_generic_failed">Gagal memuat demo: %1$s</string>
     <string name="error_save_photo_failed">Gagal menyimpan foto: %1$s</string>
 
-    <string name="success_backup">Berhasil membuat sandaran data</string>
-    <string name="success_restore">Data berhasil dipulihkan</string>
-    <string name="success_cache_cleared">Cache berhasil dikosongkan</string>
+    <string name="success_backup">Berjaya menyandar data</string>
+    <string name="success_restore">Data berjaya dipulihkan</string>
+    <string name="success_cache_cleared">Cache berjaya dipadamkan</string>
 
     <string name="group_favorites">Kegemaran</string>
     <string name="group_recently_played">Terakhir Ditonton</string>
     <string name="group_other">Lain-lain</string>
 
     <string name="default_user_name">Pengguna Stream Pro</string>
-    <string name="default_user_email">user@streampro.com</string>
+    <string name="default_user_email">pengguna@streampro.com</string>
     <string name="default_member_since_date">Januari 2026</string>
     <string name="member_since_format">d MMMM yyyy</string>
+
+    <string name="cast_notification_channel_name">Status Cast</string>
+    <string name="cast_notification_channel_description">Memaparkan status semasa sedang cast ke TV</string>
+    <string name="cast_notification_title">Sedang Cast ke TV</string>
+    <string name="cast_notification_text">Video sedang dimainkan pada peranti lain</string>
 </resources>

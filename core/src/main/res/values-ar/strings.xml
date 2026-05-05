@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="vlc_error_discontinuity">خطأ في التشغيل (مشكلة في الاستمرارية/الخادم)</string>
     <string name="player_error_format">خطأ: %1$s</string>
-    <string name="exo_error_link_dead">الرابط معطل (404)</string>
+    <string name="exo_error_link_dead">رابط معطل (404)</string>
     <string name="exo_error_connection_failed">فشل الاتصال</string>
-    <string name="exo_error_timeout">انتهت المهلة</string>
+    <string name="exo_error_timeout">انتهت مهلة الاتصال</string>
     <string name="exo_error_ssl">خطأ SSL (استخدم HTTPS)</string>
     <string name="exo_error_file_not_found">الملف غير موجود</string>
     <string name="exo_error_decode_failed">خطأ في فك التشفير</string>
@@ -17,10 +16,10 @@
     <string name="error_connection_failed">فشل الاتصال: %1$s</string>
     <string name="error_no_internet">اتصال الإنترنت غير متوفر</string>
     <string name="error_host_not_found">فشل التحميل: المضيف غير موجود. تحقق من الاتصال أو الرابط.</string>
-    <string name="error_connection_refused">فشل التحميل: تم رفض الاتصال أو الخادم متعطل.</string>
-    <string name="error_socket_timeout">فشل التحميل: انتهت مهلة الاتصال (Timeout).</string>
+    <string name="error_connection_refused">فشل التحميل: تم رفض الاتصال أو الخادم متوقف.</string>
+    <string name="error_socket_timeout">فشل التحميل: انتهت مهلة الاتصال.</string>
     <string name="error_load_playlist_failed">فشل تحميل قائمة التشغيل: %1$s</string>
-    <string name="error_save_parse_failed">فشل حفظ/تحليل الملف: %1$s</string>
+    <string name="error_save_parse_failed">فشل في حفظ/تحليل الملف: %1$s</string>
     <string name="error_no_channels_found">لم يتم العثور على قنوات في قائمة التشغيل.</string>
     <string name="error_backup_failed">فشل النسخ الاحتياطي: %1$s</string>
     <string name="error_restore_failed">فشلت الاستعادة: %1$s</string>
@@ -29,7 +28,7 @@
     <string name="error_demo_generic_failed">فشل تحميل العرض التجريبي: %1$s</string>
     <string name="error_save_photo_failed">فشل حفظ الصورة: %1$s</string>
 
-    <string name="success_backup">تم النسخ الاحتياطي للبيانات بنجاح</string>
+    <string name="success_backup">تم نسخ البيانات احتياطياً بنجاح</string>
     <string name="success_restore">تم استعادة البيانات بنجاح</string>
     <string name="success_cache_cleared">تم مسح ذاكرة التخزين المؤقت بنجاح</string>
 
@@ -41,4 +40,9 @@
     <string name="default_user_email">user@streampro.com</string>
     <string name="default_member_since_date">يناير 2026</string>
     <string name="member_since_format">d MMMM yyyy</string>
+
+    <string name="cast_notification_channel_name">حالة البث</string>
+    <string name="cast_notification_channel_description">يعرض الحالة عند البث إلى التلفزيون</string>
+    <string name="cast_notification_title">جاري البث إلى التلفزيون</string>
+    <string name="cast_notification_text">الفيديو يعمل على جهاز آخر</string>
 </resources>

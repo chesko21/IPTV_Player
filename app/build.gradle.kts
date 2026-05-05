@@ -136,7 +136,7 @@ dependencies {
     implementation(libs.androidx.media3.cast)
     implementation(libs.androidx.mediarouter)
     implementation(libs.play.services.cast.framework)
-    implementation(libs.libvlc.all)
+
 
     ksp(libs.androidx.room.compiler)
     ksp(libs.moshi.kotlin.codegen)

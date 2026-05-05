@@ -3,7 +3,7 @@
     <string name="app_name">StreamPro</string>
     <string name="settings_title">Settings</string>
     <string name="group_player">Video Player</string>
-    <string name="item_engine_title">Player Engine</string>
+
     <string name="item_quality_title">Video Quality</string>
     <string name="item_hw_title">Hardware Decoder</string>
     <string name="item_buffer_title">Buffer Size</string>
@@ -18,7 +18,6 @@
     <string name="item_clear_cache">Clear Cache</string>
 
     <string name="dialog_language_title">Select Language</string>
-    <string name="dialog_engine_title">Select Engine</string>
     <string name="dialog_quality_title">Video Quality</string>
     <string name="dialog_buffer_title">Buffer Size</string>
     <string name="dialog_background_title">Background</string>
@@ -30,17 +29,17 @@
     <string name="background_default">Default</string>
     <string name="background_color">Custom Color</string>
     <string name="background_image">Custom Image</string>
-    <string name="item_engine_subtitle">Currently: %1$s</string>
-    <string name="item_quality_subtitle">Maximum: %1$sp</string>
-    <string name="item_quality_auto">Auto</string>
+
+    <string name="item_quality_subtitle">Max: %1$sp</string>
+    <string name="item_quality_auto">Automatic (Auto)</string>
     <string name="item_hw_subtitle_on">Mode: Hardware (High Performance)</string>
     <string name="item_hw_subtitle_off">Mode: Software (More Stable)</string>
-    <string name="item_buffer_subtitle">Current buffer: %1$ss</string>
+    <string name="item_buffer_subtitle">Current buffer size: %1$ss</string>
     <string name="item_dark_mode_subtitle">Enable permanent dark theme</string>
-    <string name="item_language_subtitle">Currently: %1$s</string>
-    <string name="item_accent_subtitle">Select app identity color</string>
+    <string name="item_language_subtitle">Current: %1$s</string>
+    <string name="item_accent_subtitle">Choose app identity color</string>
     <string name="item_cache_subtitle">Clean temporary app data</string>
-    <string name="success_cache_cleared">App cache successfully cleared!</string>
+    <string name="success_cache_cleared">App cache cleared successfully!</string>
     <string name="unit_seconds">%1$d Seconds</string>
 
     <string name="dialog_color_desc">Personalize app theme</string>
@@ -57,7 +56,7 @@
     <string name="content_desc_refresh">Refresh</string>
     <string name="content_desc_menu">Menu</string>
     <string name="content_desc_close_search">Close Search</string>
-    <string name="content_desc_scroll_top">Scroll to top</string>
+    <string name="content_desc_scroll_top">Back to top</string>
     <string name="content_desc_drm">DRM</string>
 
     <!-- Home Screen -->
@@ -75,14 +74,14 @@
     <string name="menu_help">Help</string>
     <string name="menu_about">About</string>
     <string name="menu_logout">Logout</string>
-    <string name="carousel_rec">RECOMMENDATION</string>
+    <string name="carousel_rec">RECOMMENDED</string>
     <string name="carousel_watch_now">WATCH NOW</string>
     <string name="group_all">All</string>
     <string name="search_results">Search Results</string>
     <string name="search_not_found_title">Oops! Channel not found</string>
     <string name="search_not_found_msg">Try another keyword or check your connection</string>
     <string name="row_favorite">Favorite</string>
-    <string name="row_history">Recently Watched</string>
+    <string name="row_history">Last Watched</string>
     <string name="row_see_all">SEE ALL (%1$d)</string>
     <string name="other_groups">OTHER GROUPS</string>
     <string name="see_less">SEE LESS</string>
@@ -106,9 +105,14 @@
     <string name="local_repo_msg">Import .m3u or .m3u8 files from your device storage</string>
     <string name="btn_browse_files">BROWSE FILES</string>
     <string name="restore_label">RESTORE FROM BACKUP</string>
-    <string name="restore_msg">Restore your channels, favorites, and settings from an XML backup file</string>
+    <string name="restore_msg">Restore your channels, favorites, and settings from XML backup file</string>
     <string name="btn_restore_xml">RESTORE NOW</string>
     <string name="invalid_url_protocol">Invalid URL protocol</string>
+
+    <string name="login_preset_demos">PRESET DEMO URLS</string>
+    <string name="login_server_label">SERVER %1$d</string>
+    <string name="login_url_placeholder_example">https://example.com/playlist.m3u</string>
+    <string name="login_url_hint">Click to enter address</string>
 
     <!-- Help Screen -->
     <string name="help_center_title">Help Center</string>
@@ -119,31 +123,31 @@
 
     <string name="faq_q1">How to add a playlist?</string>
     <string name="faq_a1">You can add a playlist by pressing the \'Add\' button on the login screen, then enter a valid M3U URL or select a file from your device storage.</string>
-    <string name="faq_q2">Why can\'t the channel be played?</string>
-    <string name="faq_a2">Make sure your internet connection is stable. Some channels may require a VPN or have regional restrictions. If the problem persists, contact your playlist provider.</string>
-    <string name="faq_q3">How to see the TV guide (EPG)?</string>
-    <string name="faq_a3">Open the Menu Drawer (three-line icon top left) then select \'TV Guide\'. EPG will automatically download if the playlist source provides it.</string>
+    <string name="faq_q2">Why is the channel not playing?</string>
+    <string name="faq_a2">Ensure your internet connection is stable. Some channels may require a VPN or have region restrictions. If the problem persists, contact your playlist provider.</string>
+    <string name="faq_q3">How to view the TV schedule (EPG)?</string>
+    <string name="faq_a3">Open the Drawer Menu (three-line icon in the top left corner) then select \'TV Guide\'. EPG will be automatically downloaded if the playlist source provides it.</string>
     <string name="faq_q4">How to add to Favorites?</string>
-    <string name="faq_a4">While playing a video, press the \'Star\' icon in the player controls. Or you can long-press on a channel item in the home list.</string>
+    <string name="faq_a4">While playing a video, press the \'Star\' icon on the player controls. Or you can long-press on a channel item in the home list.</string>
     <string name="faq_q5">The app feels slow, what to do?</string>
     <string name="faq_a5">You can try clearing the cache in Android Settings, or reduce the number of active playlists if there are too many.</string>
 
     <!-- Profile Screen -->
     <string name="profile_title">My Profile</string>
-    <string name="edit_name">Edit Name</string>
-    <string name="edit_email">Edit Email</string>
+    <string name="edit_name">Change Name</string>
+    <string name="edit_email">Change Email</string>
     <string name="label_name">Name</string>
     <string name="label_email">Email</string>
     <string name="premium_member">PREMIUM MEMBER</string>
-    <string name="stat_favorite">Favorite</string>
+    <string name="stat_favorite">Favorites</string>
     <string name="stat_playlist">Playlist</string>
     <string name="stat_expired">Expired</string>
     <string name="stat_expired_never">Forever</string>
     <string name="account_info">Account Information</string>
     <string name="label_device_id">Device ID</string>
     <string name="label_member_since">Member Since</string>
-    <string name="btn_logout_account">Logout Account</string>
-    <string name="msg_device_id_copied">Device ID copied!</string>
+    <string name="btn_logout_account">Log out from Account</string>
+    <string name="msg_device_id_copied">Device ID copied successfully!</string>
 
     <!-- SplashScreen -->
     <string name="splash_universe_subtitle">EXPLORE DIGITAL UNIVERSE</string>
@@ -151,22 +155,22 @@
     <string name="splash_designed_by">DESIGNED BY CHESKO</string>
 
     <!-- About Screen -->
-    <string name="about_title">About App</string>
+    <string name="about_title">About Application</string>
     <string name="about_version">Version %1$s (Stable)</string>
     <string name="about_description">Stream Pro is a modern IPTV player designed to provide the best viewing experience with a clean interface and high performance.</string>
     <string name="about_label_developer">Developer</string>
-    <string name="about_label_dev_team">Chesko Dev Team</string>
+    <string name="about_label_dev_team">Chesko Developer Team</string>
     <string name="about_label_license">License</string>
     <string name="about_label_license_val">Premium Subscription</string>
     <string name="about_label_website">Website</string>
     <string name="about_support_dev">Support Developer</string>
-    <string name="about_donation_msg">If you like this app, you can give a donation to support further development.</string>
+    <string name="about_donation_msg">If you like this app, you can make a donation to support further development.</string>
     <string name="about_copy_number">Copy Number</string>
-    <string name="about_label_dana_name">a/n Bae***** Ati**</string>
+    <string name="about_label_dana_name">o/b Bae***** Ati**</string>
     <string name="about_footer_rights">© %1$d Stream Pro IPTV. All rights reserved.</string>
 
     <!-- EPG Screen -->
-    <string name="epg_title">TV GUIDE</string>
+    <string name="epg_title">TV SCHEDULE</string>
     <string name="epg_search_placeholder">Search channel...</string>
     <string name="epg_no_program">No broadcast schedule available</string>
 
@@ -180,29 +184,27 @@
     <string name="player_loading_stream">Loading Stream...</string>
     <string name="player_preparing">Preparing...</string>
     <string name="player_ended">Broadcast Ended</string>
-    <string name="player_loading_vlc">Loading Video (VLC)...</string>
-    <string name="player_fallback_vlc">Fallback to VLC...</string>
-    <string name="player_exo_fallback">Exo Failed, Trying VLC...</string>
     <string name="player_error_load">Failed to Load Stream</string>
-    <string name="player_error_vlc">VLC Error: %1$s</string>
     <string name="player_on_air">ON AIR</string>
     <string name="player_next">NEXT: %1$s</string>
     <string name="player_connection_lost">Connection Lost</string>
-    <string name="player_link_dead">NO SIGNAL / DEAD LINK</string>
+    <string name="player_link_dead">NO SIGNAL / LINK DEAD</string>
     <string name="player_stopped">Video stopped playing.</string>
     <string name="player_menu_audio">AUDIO OPTIONS</string>
-    <string name="player_menu_subtitle">SUBTITLES / CC</string>
+    <string name="player_menu_subtitle">SUBTITLE / CC</string>
     <string name="player_menu_quality">VIDEO QUALITY</string>
     <string name="player_boost">Boost</string>
     <string name="player_mute">Mute</string>
-    <string name="player_no_subtitle">No Subtitles</string>
+    <string name="player_no_subtitle">No Subtitle</string>
     <string name="player_disable">Disable</string>
-    <string name="player_auto">Auto</string>
+    <string name="player_auto">Automatic</string>
     <string name="player_default">Default</string>
     <string name="player_debug_title">Debug Info</string>
     <string name="player_channels_title">CHANNELS</string>
     <string name="player_audio_delay">Audio Delay</string>
     <string name="player_casting_active">Playing on TV</string>
     <string name="player_casting_title">Casting to Device</string>
+    <string name="player_cast_to">Connect to Device</string>
+    <string name="btn_stop_casting">Stop Casting</string>
     <string name="loading_message">EXPLORING UNIVERSE</string>
 </resources>

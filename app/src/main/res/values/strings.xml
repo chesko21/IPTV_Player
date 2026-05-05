@@ -3,7 +3,7 @@
     <string name="app_name">StreamPro</string>
     <string name="settings_title">Pengaturan</string>
     <string name="group_player">Pemutar Video</string>
-    <string name="item_engine_title">Player Engine</string>
+
     <string name="item_quality_title">Kualitas Video</string>
     <string name="item_hw_title">Hardware Decoder</string>
     <string name="item_buffer_title">Ukuran Buffer</string>
@@ -18,7 +18,7 @@
     <string name="item_clear_cache">Hapus Cache</string>
 
     <string name="dialog_language_title">Pilih Bahasa</string>
-    <string name="dialog_engine_title">Pilih Engine</string>
+
     <string name="dialog_quality_title">Kualitas Video</string>
     <string name="dialog_buffer_title">Ukuran Buffer</string>
     <string name="dialog_background_title">Latar Belakang</string>
@@ -30,7 +30,7 @@
     <string name="background_default">Default</string>
     <string name="background_color">Warna Kustom</string>
     <string name="background_image">Gambar Kustom</string>
-    <string name="item_engine_subtitle">Saat ini: %1$s</string>
+
     <string name="item_quality_subtitle">Maksimal: %1$sp</string>
     <string name="item_quality_auto">Otomatis (Auto)</string>
     <string name="item_hw_subtitle_on">Mode: Hardware (Performa Tinggi)</string>
@@ -185,11 +185,7 @@
     <string name="player_loading_stream">Memuat Aliran...</string>
     <string name="player_preparing">Menyiapkan...</string>
     <string name="player_ended">Siaran Berakhir</string>
-    <string name="player_loading_vlc">Memuat Video (VLC)...</string>
-    <string name="player_fallback_vlc">Fallback ke VLC...</string>
-    <string name="player_exo_fallback">Exo Gagal, Mencoba VLC...</string>
     <string name="player_error_load">Gagal Memuat Aliran</string>
-    <string name="player_error_vlc">Kesalahan VLC: %1$s</string>
     <string name="player_on_air">SEDANG TAYANG</string>
     <string name="player_next">BERIKUTNYA: %1$s</string>
     <string name="player_connection_lost">Koneksi Terputus</string>
@@ -210,5 +206,6 @@
     <string name="player_casting_active">Memutar di TV</string>
     <string name="player_casting_title">Casting ke Perangkat</string>
     <string name="player_cast_to">Hubungkan ke Perangkat</string>
+    <string name="btn_stop_casting">Hentikan Casting</string>
     <string name="loading_message">MENJELAJAHI SEMESTA</string>
 </resources>

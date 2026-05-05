@@ -1,0 +1,172 @@
+<resources>
+    <string name="app_name">StreamPro TV</string>
+
+    <!-- Settings -->
+    <string name="settings_config_label">CONFIGURATION</string>
+    <string name="settings_title">UNIVERSE SETTINGS</string>
+    <string name="settings_group_engine">CINEMATIC ENGINE</string>
+    <string name="settings_quality_title">Video Quality</string>
+    <string name="settings_quality_subtitle">Current Target: %1$s</string>
+    <string name="settings_quality_auto">Auto</string>
+    <string name="settings_hw_title">Hardware Acceleration</string>
+    <string name="settings_hw_subtitle">Optimize playback performance for your device</string>
+    <string name="settings_buffer_title">Star-Buffer Size</string>
+    <string name="settings_buffer_subtitle">Current latency buffer: %1$ss</string>
+
+    <string name="settings_group_management">STAR-CHART MANAGEMENT</string>
+    <string name="settings_reload_title">Reload Playlist</string>
+    <string name="settings_reload_subtitle">Re-sync star-charts from the master server</string>
+    <string name="settings_reload_success">Playlist synced successfully</string>
+    <string name="settings_cache_title">Clear Space Cache</string>
+    <string name="settings_cache_subtitle">Clean temporary data and stardust</string>
+    <string name="settings_cache_success">Cache cleared</string>
+
+    <string name="settings_group_logs">APPLICATION LOGS</string>
+    <string name="settings_about_title">About Universe</string>
+    <string name="settings_about_subtitle">Version %1$s - Premium Cinematic Edition</string>
+
+    <string name="settings_group_exit">STATION EXIT</string>
+    <string name="settings_logout_title">Logout &amp; Disconnect</string>
+    <string name="settings_logout_subtitle">Clear all charts and exit to terminal</string>
+
+    <string name="settings_group_display">DISPLAY &amp; LANGUAGE</string>
+    <string name="settings_language_title">Universe Language</string>
+    <string name="settings_language_subtitle">Current: %1$s</string>
+    <string name="language_en">ENGLISH</string>
+    <string name="language_in">BAHASA INDONESIA</string>
+    <string name="language_ms">BAHASA MELAYU</string>
+    <string name="language_ar">ARABIC</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_buffer_title">SELECT BUFFER SIZE</string>
+    <string name="dialog_quality_title">VIDEO TARGET</string>
+    <string name="dialog_language_title">SELECT LANGUAGE</string>
+    <string name="dialog_about_title">ABOUT UNIVERSE</string>
+    <string name="dialog_unit_seconds">SECONDS</string>
+    <string name="dialog_auto_adaptive">AUTO-ADAPTIVE</string>
+    <string name="dialog_resolution_p">%1$dP RESOLUTION</string>
+    <string name="dialog_dismiss">DISMISS</string>
+
+    <!-- Branding -->
+    <string name="branding_explore">EXPLORE THE CINEMATIC UNIVERSE</string>
+    <string name="branding_design">DESIGN By CHESKO</string>
+    <string name="branding_developed">DEVELOPED BY CHESKO</string>
+    <string name="branding_description">Designed for high-performance cinematic experiences on Android TV.</string>
+    <string name="branding_premium">PREMIUM EDITION</string>
+    <string name="branding_premium_iptv">PREMIUM IPTV</string>
+
+    <!-- Login -->
+    <string name="login_tab_url">M3U URL</string>
+    <string name="login_tab_file">LOCAL FILE</string>
+    <string name="login_source_config">SOURCE CONFIGURATION</string>
+    <string name="login_preset_demos">PRESET DEMO URLS</string>
+    <string name="login_server_label">SERVER %1$d</string>
+    <string name="login_url_placeholder">Playlist M3U URL</string>
+    <string name="login_url_placeholder_example">https://example.com/playlist.m3u</string>
+    <string name="login_url_hint">Click to enter address</string>
+    <string name="login_target_url">Target URL</string>
+    <string name="login_btn_login">LOGIN</string>
+    <string name="login_btn_demo">DEMO</string>
+    <string name="login_file_config">FILE CONFIGURATION</string>
+    <string name="login_file_placeholder">Select Local M3U File</string>
+    <string name="login_file_hint">Browse internal storage</string>
+    <string name="login_file_selected">Selected File</string>
+    <string name="login_btn_connect_file">CONNECT FILE</string>
+    <string name="login_no_file">No file selected</string>
+
+    <!-- Home -->
+    <string name="home_explore">Explore TV Stream</string>
+    <string name="home_no_charts">No star-charts discovered in this sector</string>
+    <string name="home_all_channels">ALL Channel</string>
+
+    <!-- Search -->
+    <string name="search_discover">DISCOVER</string>
+    <string name="search_universe">UNIVERSE SEARCH</string>
+    <string name="search_placeholder">Search for stars, planets, or channels&#8230;</string>
+    <string name="search_no_results">No star-charts found in this sector</string>
+
+    <!-- Player -->
+    <string name="player_syncing">SYNCING SIGNAL…</string>
+    <string name="player_back">BACK</string>
+    <string name="player_menu">MENU</string>
+    <string name="player_prev">Previous</string>
+    <string name="player_rewind">Rewind 10s</string>
+    <string name="player_reload">Reload</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_play">Play</string>
+    <string name="player_forward">Forward 10s</string>
+    <string name="player_next">Next</string>
+    <string name="player_now_streaming">NOW STREAMING</string>
+    <string name="player_current_program">CURRENT PROGRAM</string>
+    <string name="player_no_program">NO PROGRAM INFORMATION DISCOVERED</string>
+    <string name="player_coming_up">COMING UP NEXT</string>
+    <string name="player_sidebar_quality">VIDEO QUALITY</string>
+    <string name="player_sidebar_audio">AUDIO OPTIONS</string>
+    <string name="player_sidebar_channels">CHANNEL LIST</string>
+    <string name="player_sidebar_favorite_add">Add to Favorites</string>
+    <string name="player_sidebar_favorite_remove">Remove Favorite</string>
+    <string name="player_sidebar_audio_boost">Audio Boost: %1$s</string>
+    <string name="player_sidebar_audio_tracks">AUDIO TRACKS</string>
+    <string name="player_sidebar_auto">Automatic</string>
+    <string name="player_sidebar_audio_label">AUDIO</string>
+    <string name="player_sidebar_quality_label">Quality %1$d</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">HOME</string>
+    <string name="nav_search">SEARCH</string>
+    <string name="nav_live">LIVE TV</string>
+    <string name="nav_movies">MOVIES</string>
+    <string name="nav_sports">SPORTS</string>
+    <string name="nav_favorites">FAVORITES</string>
+    <string name="nav_settings">SETTINGS</string>
+
+    <!-- Network -->
+    <string name="net_lost">Internet connection lost. Please check your network.</string>
+    <string name="net_restored">Internet connection restored.</string>
+
+    <!-- Player Errors -->
+    <string name="error_video_stuck">Video stuck, please reload</string>
+    <string name="error_404">Channel not found (404)</string>
+    <string name="error_403">Access denied by server (403)</string>
+    <string name="error_401">Access token expired (401)</string>
+    <string name="error_504">Server Timeout (504) - Server is busy</string>
+    <string name="error_server_issue">Server Issue (%1$d)</string>
+    <string name="error_load_failed">Failed to load: Code %1$d</string>
+    <string name="error_http_connection">Server connection issue (HTTP Error)</string>
+    <string name="error_network_lost">Internet connection lost</string>
+    <string name="error_timeout">Connection timed out (Timeout)</string>
+    <string name="error_protocol">Protocol error (HTTP vs HTTPS)</string>
+    <string name="error_file_not_found">Video file not found</string>
+    <string name="error_decoding">Failed to process video (Codec Error)</string>
+    <string name="error_unsupported_format">Video format not supported</string>
+    <string name="error_remote">Server not responding</string>
+    <string name="error_unknown">Failed to load (%1$s)</string>
+
+    <string name="player_system_error">SYSTEM ERROR</string>
+    <string name="player_re_sync">PRESS CENTER TO RE-SYNC STAR-CHART</string>
+    <string name="player_signal_lost">SIGNAL MAY BE LOST IN THE VOID</string>
+
+    <!-- Exit Dialog -->
+    <string name="exit_title">EXIT UNIVERSE</string>
+    <string name="exit_msg">Are you sure you want to leave the cinematic universe?</string>
+    <string name="exit_btn_stay">STAY</string>
+    <string name="exit_btn_exit">EXIT</string>
+
+    <!-- Loading -->
+    <string name="loading_channels">Loading Channels…</string>
+
+    <!-- File Picker -->
+    <string name="file_picker_explorer">EXPLORER</string>
+    <string name="file_picker_parent_dir">Return to parent universe</string>
+    <string name="file_picker_system_dir">System Directory</string>
+    <string name="file_picker_m3u_file">M3U Playlist File • %1$d KB</string>
+    <string name="file_picker_no_files">No compatible star-charts found</string>
+
+    <!-- Components -->
+    <string name="content_desc_back">Back</string>
+    <string name="content_desc_drm">DRM Protected</string>
+
+    <string name="label_on">ON</string>
+    <string name="label_off">OFF</string>
+    <string name="label_system_default">System Default</string>
+</resources>

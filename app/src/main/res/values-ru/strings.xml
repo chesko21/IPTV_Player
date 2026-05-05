@@ -3,7 +3,7 @@
     <string name="app_name">StreamPro</string>
     <string name="settings_title">Настройки</string>
     <string name="group_player">Видеоплеер</string>
-    <string name="item_engine_title">Движок плеера</string>
+
     <string name="item_quality_title">Качество видео</string>
     <string name="item_hw_title">Аппаратное декодирование</string>
     <string name="item_buffer_title">Размер буфера</string>
@@ -18,7 +18,7 @@
     <string name="item_clear_cache">Очистить кэш</string>
 
     <string name="dialog_language_title">Выберите язык</string>
-    <string name="dialog_engine_title">Выберите движок</string>
+
     <string name="dialog_quality_title">Качество видео</string>
     <string name="dialog_buffer_title">Размер буфера</string>
     <string name="dialog_background_title">Фон</string>
@@ -30,7 +30,7 @@
     <string name="background_default">По умолчанию</string>
     <string name="background_color">Свой цвет</string>
     <string name="background_image">Свое фото</string>
-    <string name="item_engine_subtitle">Сейчас: %1$s</string>
+
     <string name="item_quality_subtitle">Максимум: %1$sp</string>
     <string name="item_quality_auto">Авто</string>
     <string name="item_hw_subtitle_on">Режим: Аппаратный (Высокая скорость)</string>

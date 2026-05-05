@@ -48,7 +48,7 @@ composeMaterial3 = "1.4.0"
 composeRuntime = "1.11.0"
 composeFoundation = "1.11.0"
 foundation = "1.11.0"
-libvlc = "3.7.0"
+
 ktor = "2.3.12"
 
 [libraries]
@@ -112,7 +112,7 @@ androidx-leanback = { group = "androidx.leanback", name = "leanback", version.re
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 androidx-tv-foundation = { group = "androidx.tv", name = "tv-foundation", version.ref = "tvFoundation" }
 androidx-tv-material = { group = "androidx.tv", name = "tv-material", version.ref = "tvMaterial" }
-libvlc-all = { group = "org.videolan.android", name = "libvlc-all", version.ref = "libvlc" }
+
 ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }
 ktor-server-netty = { group = "io.ktor", name = "ktor-server-netty", version.ref = "ktor" }
 ktor-server-content-negotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }

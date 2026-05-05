@@ -45,7 +45,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -115,6 +114,9 @@ fun HomeScreen(
     val backgroundImageUri by viewModel.backgroundImageUri.collectAsState()
 
     val context = LocalContext.current
+    val favGroup = stringResource(com.chesko.stream_pro.core.R.string.group_favorites)
+    val historyGroup = stringResource(com.chesko.stream_pro.core.R.string.group_recently_played)
+    
     var showExitDialog by remember { mutableStateOf(false) }
     var isGroupsExpanded by remember { mutableStateOf(false) }
     
@@ -184,12 +186,11 @@ fun HomeScreen(
                                 showExitDialog = false
                                 scope.launch {
                                     isShuttingDown = true
-                                    // Faster, punchier shutdown animation
                                     shutdownProgress.animateTo(
                                         targetValue = 1f,
-                                        animationSpec = tween(800, easing = LinearOutSlowInEasing)
+                                        animationSpec = tween(600, easing = FastOutSlowInEasing)
                                     )
-                                    delay(100)
+                                    delay(150)
                                     (context as? Activity)?.finish()
                                 }
                             },
@@ -489,9 +490,9 @@ fun HomeScreen(
                                         isShuttingDown = true
                                         shutdownProgress.animateTo(
                                             targetValue = 1f,
-                                            animationSpec = tween(4500, easing = LinearOutSlowInEasing)
+                                            animationSpec = tween(600, easing = FastOutSlowInEasing)
                                         )
-                                        delay(200)
+                                        delay(150)
                                         onLogout()
                                     }
                                 },
@@ -522,13 +523,9 @@ fun HomeScreen(
                 .graphicsLayer {
                     if (isShuttingDown) {
                         val p = shutdownProgress.value
-                        // 1. Digital Distortion Effect
-                        scaleX = 1f + (p * 0.1f)
-                        scaleY = (1f - p).coerceAtLeast(0.001f) // Squeeze vertically
-                        alpha = (1f - p * 1.5f).coerceIn(0f, 1f)
-                        
-                        // 2. Chromatic Aberration feel (offset)
-                        translationX = if (p > 0.5f) (java.util.Random().nextFloat() - 0.5f) * 20f else 0f
+                        alpha = 1f - p
+                        scaleX = 1f - (p * 0.05f)
+                        scaleY = 1f - (p * 0.05f)
                     }
                 }
         ) {
@@ -569,6 +566,7 @@ fun HomeScreen(
                                     EnhancedHeroCarousel(
                                         channels = randomCarousel,
                                         onPlayClick = {
+                                            viewModel.setSelectedGroup(null)
                                             viewModel.markAsPlayed(it)
                                             onSelectChannel(it)
                                         }
@@ -580,6 +578,7 @@ fun HomeScreen(
                                     EnhancedHeroCarousel(
                                         channels = filteredChannels.take(5),
                                         onPlayClick = {
+                                            viewModel.setSelectedGroup(null)
                                             viewModel.markAsPlayed(it)
                                             onSelectChannel(it)
                                         }
@@ -719,7 +718,10 @@ fun HomeScreen(
                             }
                         }
                     } else {
-                        val onChannelClick: (IptvChannel) -> Unit = { channel ->
+                        val onChannelClick: (IptvChannel, String?) -> Unit = { channel, groupName ->
+                            if (searchQuery.isEmpty()) {
+                                viewModel.setSelectedGroup(groupName)
+                            }
                             viewModel.markAsPlayed(channel)
                             onSelectChannel(channel)
                         }
@@ -730,8 +732,8 @@ fun HomeScreen(
                                     viewModel = viewModel,
                                     title = stringResource(R.string.row_favorite),
                                     channels = favoriteChannels,
-                                    onSeeAllClick = { viewModel.setSelectedGroup("Favorit") },
-                                    onChannelSelected = onChannelClick
+                                    onSeeAllClick = { viewModel.setSelectedGroup(favGroup) },
+                                    onChannelSelected = { onChannelClick(it, favGroup) }
                                 )
                             }
                         }
@@ -742,8 +744,8 @@ fun HomeScreen(
                                     viewModel = viewModel,
                                     title = stringResource(R.string.row_history),
                                     channels = recentlyPlayed,
-                                    onSeeAllClick = { viewModel.setSelectedGroup("Terakhir Ditonton") },
-                                    onChannelSelected = onChannelClick
+                                    onSeeAllClick = { viewModel.setSelectedGroup(historyGroup) },
+                                    onChannelSelected = { onChannelClick(it, historyGroup) }
                                 )
                             }
                         }
@@ -757,7 +759,7 @@ fun HomeScreen(
                                         title = group,
                                         channels = groupChannels,
                                         onSeeAllClick = { viewModel.setSelectedGroup(group) },
-                                        onChannelSelected = onChannelClick
+                                        onChannelSelected = { onChannelClick(it, group) }
                                     )
                                 }
                             }
@@ -907,76 +909,22 @@ fun HomeScreen(
                 modifier = Modifier.statusBarsPadding()
             )
 
-            // 1. UNIVERSAL SHUTDOWN ANIMATION OVERLAY (CINEMATIC SLEEPY EYE THEME)
+            // SIMPLE SHUTDOWN ANIMATION OVERLAY
             if (isShuttingDown) {
-                val progress = shutdownProgress.value
-                
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .zIndex(1000f)
+                        .background(Color.Black.copy(alpha = shutdownProgress.value))
+                        .zIndex(1000f),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // Top Eyelid
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(0.51f) // Overlap slightly in the middle
-                            .align(Alignment.TopCenter)
-                            .graphicsLayer {
-                                translationY = -size.height * (1f - progress)
-                            }
-                            .background(
-                                Brush.verticalGradient(
-                                    listOf(Color.Black, Color.Black, Color.Black.copy(alpha = 0.9f))
-                                )
-                            )
+                    Text(
+                        text = stringResource(R.string.departure_msg).uppercase(),
+                        color = Color.White.copy(alpha = (shutdownProgress.value * 2f).coerceIn(0f, 1f)),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Light,
+                        letterSpacing = 4.sp
                     )
-
-                    // Bottom Eyelid
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(0.51f)
-                            .align(Alignment.BottomCenter)
-                            .graphicsLayer {
-                                translationY = size.height * (1f - progress)
-                            }
-                            .background(
-                                Brush.verticalGradient(
-                                    listOf(Color.Black.copy(alpha = 0.9f), Color.Black, Color.Black)
-                                )
-                            )
-                    )
-
-                    // Closing Slit Glow (Garis cahaya tipis saat mata hampir menutup)
-                    if (progress > 0.7f && progress < 0.98f) {
-                        val slitAlpha = (1f - (progress - 0.7f) / 0.28f).coerceIn(0f, 1f)
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .fillMaxWidth()
-                                .height(2.dp)
-                                .background(Color.White.copy(alpha = slitAlpha * 0.3f))
-                                .blur(2.dp)
-                        )
-                    }
-
-                    // Goodbye Text (Tampil di celah mata yang menutup)
-                    if (progress < 0.9f) {
-                        Text(
-                            text = stringResource(R.string.departure_msg).uppercase(),
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .graphicsLayer {
-                                    alpha = (1f - progress * 1.1f).coerceIn(0f, 1f)
-                                    scaleX = 1f - (progress * 0.2f)
-                                },
-                            color = Color.White.copy(alpha = 0.8f),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Light,
-                            letterSpacing = 4.sp
-                        )
-                    }
                 }
             }
 
@@ -1036,7 +984,6 @@ fun EnhancedHeroCarousel(
         pageCount = { channels.size }
     )
 
-    val scope = rememberCoroutineScope()
     var isAutoScrollEnabled by remember { mutableStateOf(true) }
 
     // Auto-scroll

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="vlc_error_discontinuity">再生エラー（不連続性/サーバーの問題）</string>
     <string name="player_error_format">エラー: %1$s</string>
     <string name="exo_error_link_dead">リンク切れ (404)</string>
     <string name="exo_error_connection_failed">接続に失敗しました</string>
@@ -15,23 +14,23 @@
     <!-- MainViewModel Strings -->
     <string name="error_invalid_url">無効なM3U URLです。URLを確認して再試行してください。</string>
     <string name="error_connection_failed">接続失敗: %1$s</string>
-    <string name="error_no_internet">インターネット接続がありません</string>
-    <string name="error_host_not_found">読み込み失敗: ホストが見つかりません。接続またはURLを確認してください。</string>
+    <string name="error_no_internet">インターネット接続が利用できません</string>
+    <string name="error_host_not_found">読み込み失敗: ホストが見つかりません。</string>
     <string name="error_connection_refused">読み込み失敗: 接続が拒否されたか、サーバーがダウンしています。</string>
     <string name="error_socket_timeout">読み込み失敗: 接続タイムアウト。</string>
     <string name="error_load_playlist_failed">プレイリストの読み込みに失敗しました: %1$s</string>
-    <string name="error_save_parse_failed">ファイルの保存/解析に失敗しました: %1$s</string>
-    <string name="error_no_channels_found">プレイリストにチャンネルが見つかりませんでした。</string>
+    <string name="error_save_parse_failed">ファイルの保存または解析に失敗しました: %1$s</string>
+    <string name="error_no_channels_found">プレイリストにチャンネルが見つかりません。</string>
     <string name="error_backup_failed">バックアップ失敗: %1$s</string>
     <string name="error_restore_failed">復元失敗: %1$s</string>
-    <string name="error_invalid_backup_file">バックアップファイルが無効か空です</string>
+    <string name="error_invalid_backup_file">無効または空のバックアップファイルです</string>
     <string name="error_demo_load_failed">デモプレイリストの読み込みに失敗しました。接続を確認してください。</string>
-    <string name="error_demo_generic_failed">デモの読み込みに失敗しました: %1$s</string>
+    <string name="error_demo_generic_failed">デモの読み込み失敗: %1$s</string>
     <string name="error_save_photo_failed">写真の保存に失敗しました: %1$s</string>
 
-    <string name="success_backup">バックアップが完了しました</string>
-    <string name="success_restore">データを復元しました</string>
-    <string name="success_cache_cleared">キャッシュを消去しました</string>
+    <string name="success_backup">データを正常にバックアップしました</string>
+    <string name="success_restore">データを正常に復元しました</string>
+    <string name="success_cache_cleared">キャッシュを正常に消去しました</string>
 
     <string name="group_favorites">お気に入り</string>
     <string name="group_recently_played">最近見たチャンネル</string>
@@ -41,4 +40,9 @@
     <string name="default_user_email">user@streampro.com</string>
     <string name="default_member_since_date">2026年1月</string>
     <string name="member_since_format">yyyy年M月d日</string>
+
+    <string name="cast_notification_channel_name">キャスト状態</string>
+    <string name="cast_notification_channel_description">テレビへのキャスト状態を表示します</string>
+    <string name="cast_notification_title">テレビにキャスト中</string>
+    <string name="cast_notification_text">ビデオは別のデバイスで再生されています</string>
 </resources>

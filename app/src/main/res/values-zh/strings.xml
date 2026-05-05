@@ -3,7 +3,7 @@
     <string name="app_name">StreamPro</string>
     <string name="settings_title">设置</string>
     <string name="group_player">视频播放器</string>
-    <string name="item_engine_title">播放引擎</string>
+
     <string name="item_quality_title">视频质量</string>
     <string name="item_hw_title">硬件解码</string>
     <string name="item_buffer_title">缓冲大小</string>
@@ -18,7 +18,7 @@
     <string name="item_clear_cache">清除缓存</string>
 
     <string name="dialog_language_title">选择语言</string>
-    <string name="dialog_engine_title">选择引擎</string>
+
     <string name="dialog_quality_title">视频质量</string>
     <string name="dialog_buffer_title">缓冲大小</string>
     <string name="dialog_background_title">背景设置</string>
@@ -30,7 +30,7 @@
     <string name="background_default">默认</string>
     <string name="background_color">自定义颜色</string>
     <string name="background_image">自定义图片</string>
-    <string name="item_engine_subtitle">当前: %1$s</string>
+
     <string name="item_quality_subtitle">最高: %1$sp</string>
     <string name="item_quality_auto">自动</string>
     <string name="item_hw_subtitle_on">模式: 硬件解码 (高性能)</string>
@@ -183,11 +183,9 @@
     <string name="player_loading_stream">正在加载流媒体...</string>
     <string name="player_preparing">正在准备...</string>
     <string name="player_ended">播放已结束</string>
-    <string name="player_loading_vlc">正在加载视频 (VLC)...</string>
-    <string name="player_fallback_vlc">切换至 VLC...</string>
-    <string name="player_exo_fallback">Exo 失败，尝试 VLC...</string>
+
     <string name="player_error_load">无法加载媒体流</string>
-    <string name="player_error_vlc">VLC 错误: %1$s</string>
+
     <string name="player_on_air">直播中</string>
     <string name="player_next">下一节目: %1$s</string>
     <string name="player_connection_lost">连接断开</string>

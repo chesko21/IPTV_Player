@@ -27,7 +27,6 @@ import okhttp3.Request
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import com.chesko.stream_pro.core.utils.PlayerUtils
-import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
@@ -35,8 +34,13 @@ import androidx.media3.cast.CastPlayer
 import androidx.media3.cast.DefaultMediaItemConverter
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerNotificationManager
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.graphics.Bitmap
+import android.os.Build
+import androidx.core.app.NotificationCompat
 import com.google.android.gms.cast.framework.CastContext
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouteSelector
@@ -88,9 +92,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _maxVideoHeight = MutableStateFlow(prefs.getInt("max_video_height", 0)) // 0 means Auto
     val maxVideoHeight: StateFlow<Int> = _maxVideoHeight
 
-    private val _playerEngine = MutableStateFlow(prefs.getString("player_engine", "EXO") ?: "EXO")
-    val playerEngine: StateFlow<String> = _playerEngine
-
     private val _audioBoost = MutableStateFlow(prefs.getBoolean("audio_boost", false))
     val audioBoost: StateFlow<Boolean> = _audioBoost
 
@@ -137,6 +138,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _isCasting = MutableStateFlow(false)
     val isCasting: StateFlow<Boolean> = _isCasting
 
+    private val _lastCastPosition = MutableStateFlow(0L)
+    val lastCastPosition: StateFlow<Long> = _lastCastPosition
+
     private var mediaSession: MediaSession? = null
     private var notificationManager: PlayerNotificationManager? = null
 
@@ -145,7 +149,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val mediaRouter = MediaRouter.getInstance(application)
     private val selector = MediaRouteSelector.Builder()
-        .addControlCategory(CastMediaControlIntent.categoryForCast("CC1AD845"))
+        .addControlCategory(CastMediaControlIntent.categoryForCast(CastMediaControlIntent.DEFAULT_MEDIA_RECEIVER_APPLICATION_ID))
         .build()
 
     private val routeCallback = object : MediaRouter.Callback() {
@@ -162,72 +166,117 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val sessionManagerListener = object : com.google.android.gms.cast.framework.SessionManagerListener<com.google.android.gms.cast.framework.CastSession> {
         override fun onSessionStarted(session: com.google.android.gms.cast.framework.CastSession, sessionId: String) {
-            _isCasting.value = true
-            transferCurrentMediaToCast()
+            viewModelScope.launch(Dispatchers.Main) {
+                _isCasting.value = true
+                delay(600) 
+                transferCurrentMediaToCast()
+            }
         }
         override fun onSessionResumed(session: com.google.android.gms.cast.framework.CastSession, wasSuspended: Boolean) {
-            _isCasting.value = true
-            transferCurrentMediaToCast()
+            viewModelScope.launch(Dispatchers.Main) {
+                _isCasting.value = true
+                delay(600)
+                transferCurrentMediaToCast()
+            }
         }
-        override fun onSessionStarting(session: com.google.android.gms.cast.framework.CastSession) {}
+        override fun onSessionStarting(session: com.google.android.gms.cast.framework.CastSession) {
+            Log.d("MainViewModel", "Cast session starting...")
+        }
         override fun onSessionStartFailed(session: com.google.android.gms.cast.framework.CastSession, error: Int) {
+            Log.e("MainViewModel", "Cast session start failed: $error")
             _isCasting.value = false
         }
         override fun onSessionEnding(session: com.google.android.gms.cast.framework.CastSession) {
-            // Prepare to stop casting
+            Log.d("MainViewModel", "Cast session ending...")
         }
         override fun onSessionEnded(session: com.google.android.gms.cast.framework.CastSession, error: Int) {
-            _isCasting.value = false
+            Log.d("MainViewModel", "Cast session ended")
+            viewModelScope.launch(Dispatchers.Main) {
+                _lastCastPosition.value = _castPlayer.value?.currentPosition ?: 0L
+                _isCasting.value = false
+                notificationManager?.setPlayer(null)
+            }
         }
         override fun onSessionResuming(session: com.google.android.gms.cast.framework.CastSession, sessionId: String) {}
         override fun onSessionResumeFailed(session: com.google.android.gms.cast.framework.CastSession, error: Int) {
             _isCasting.value = false
         }
         override fun onSessionSuspended(session: com.google.android.gms.cast.framework.CastSession, reason: Int) {
-            _isCasting.value = false
+            viewModelScope.launch(Dispatchers.Main) {
+                _isCasting.value = false
+            }
         }
     }
 
-    private fun transferCurrentMediaToCast() {
+    fun transferCurrentMediaToCast(startPositionMs: Long = -1L) {
         val channel = _selectedChannel.value ?: return
         val player = _castPlayer.value ?: return
         
-        if (!player.isCastSessionAvailable) return
+        if (!player.isCastSessionAvailable) {
+            Log.w("MainViewModel", "Cast session not available, cannot transfer")
+            return
+        }
 
-        viewModelScope.launch {
+        // Check if already playing this item to avoid double-loading
+        val currentMediaId = try { player.currentMediaItem?.mediaId } catch(_: Exception) { null }
+        if (currentMediaId == channel.url && player.playbackState != Player.STATE_IDLE) {
+            Log.d("MainViewModel", "Already playing ${channel.name} on Cast, skipping transfer")
+            _isCasting.value = true
+            return
+        }
+
+        viewModelScope.launch(Dispatchers.Main) {
             try {
+                Log.d("MainViewModel", "Building MediaItem for Cast: ${channel.name}")
                 val mediaItem = PlayerUtils.buildMediaItem(channel)
-                // Clear existing queue and set new item
-                player.setMediaItem(mediaItem)
+                
+                player.setMediaItem(mediaItem, if (startPositionMs >= 0) startPositionMs else 0L)
+                
+                // Show notification instantly when media is set
+                setupNotification(player)
+
                 player.prepare()
-                player.play()
+                player.playWhenReady = true
+                
+                Log.d("MainViewModel", "Transferred ${channel.name} to Cast at position $startPositionMs")
                 _isCasting.value = true
             } catch (e: Exception) {
                 Log.e("MainViewModel", "Error transferring media to cast: ${e.message}")
-                _isCasting.value = false
+                _errorMessage.value = "Gagal mengirim ke TV: ${e.localizedMessage}"
             }
         }
     }
 
     private fun setupNotification(player: Player) {
         val context = getApplication<Application>()
+        
+        // Ensure high priority notification channel is created
+        createNotificationChannel()
+
+        if (notificationManager != null) {
+            notificationManager?.setPlayer(player)
+            return
+        }
+
         notificationManager = PlayerNotificationManager.Builder(context, 1001, "cast_channel")
             .setChannelNameResourceId(R.string.cast_notification_channel_name)
             .setChannelDescriptionResourceId(R.string.cast_notification_channel_description)
             .setSmallIconResourceId(R.drawable.app_icon_android)
             .setMediaDescriptionAdapter(object : PlayerNotificationManager.MediaDescriptionAdapter {
-                override fun getCurrentContentTitle(player: Player): CharSequence = 
-                    context.getString(R.string.cast_notification_title)
-                
-                override fun getCurrentContentText(player: Player): CharSequence = 
-                    context.getString(R.string.cast_notification_text)
-                
+                override fun getCurrentContentTitle(player: Player): CharSequence {
+                    return _selectedChannel.value?.name ?: context.getString(R.string.brand_name)
+                }
+
+                override fun getCurrentContentText(player: Player): CharSequence {
+                    return context.getString(R.string.cast_notification_title)
+                }
+
                 override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? = null
-                
+
                 override fun createCurrentContentIntent(player: Player): PendingIntent? {
                     val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
                     return PendingIntent.getActivity(
-                        context, 0, intent, 
+                        context, 0, intent,
                         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
                     )
                 }
@@ -239,18 +288,48 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             })
             .build().apply {
                 setPlayer(player)
+                // Link to MediaSession for modern Android Media Controls
+                @Suppress("DEPRECATION")
+                mediaSession?.let { session ->
+                    setMediaSessionToken(session.sessionCompatToken)
+                }
                 setUseNextAction(false)
                 setUsePreviousAction(false)
                 setUseStopAction(true)
+                // Set priority for older Android versions
+                setPriority(NotificationCompat.PRIORITY_MAX)
             }
+    }
+
+    private fun createNotificationChannel() {
+        val context = getApplication<Application>()
+        val name = context.getString(R.string.cast_notification_channel_name)
+        val descriptionText = context.getString(R.string.cast_notification_channel_description)
+        val importance = NotificationManager.IMPORTANCE_HIGH
+        val channel = NotificationChannel("cast_channel", name, importance).apply {
+            description = descriptionText
+            setShowBadge(true)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+        }
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
     }
 
     private fun updateRoutes() {
         _availableRoutes.value = mediaRouter.routes.filter { it.matchesSelector(selector) && !it.isDefault }
     }
 
+    fun retryDiscovery() {
+        viewModelScope.launch {
+            mediaRouter.removeCallback(routeCallback)
+            delay(100)
+            mediaRouter.addCallback(selector, routeCallback, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY)
+            updateRoutes()
+        }
+    }
+
     private fun initCastPlayer() {
-        if (_castPlayer.value != null) return // Already initialized
+        if (_castPlayer.value != null) return 
 
         viewModelScope.launch(Dispatchers.Main) {
             try {
@@ -264,20 +343,35 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     override fun onPlaybackStateChanged(state: Int) {
                         _isCasting.value = cp.isCastSessionAvailable
+                        if (state == Player.STATE_READY && cp.playWhenReady && !cp.isPlaying) {
+                            cp.play()
+                        }
                     }
-                    override fun onPositionDiscontinuity(
-                        oldPosition: Player.PositionInfo,
-                        newPosition: Player.PositionInfo,
-                        reason: Int
-                    ) {
-                        _isCasting.value = cp.isCastSessionAvailable
+                    override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                        Log.e("MainViewModel", "Cast Player Error: ${error.message}")
+                        if (_isCasting.value) {
+                            // Attempt auto-recovery for cast if disconnected
+                            viewModelScope.launch {
+                                delay(2000)
+                                if (_isCasting.value) transferCurrentMediaToCast()
+                            }
+                        }
                     }
-                    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                        _isCasting.value = cp.isCastSessionAvailable
+                })
+                
+                cp.setSessionAvailabilityListener(object : androidx.media3.cast.SessionAvailabilityListener {
+                    override fun onCastSessionAvailable() {
+                        Log.d("MainViewModel", "Cast Session Available")
+                        _isCasting.value = true
+                        transferCurrentMediaToCast()
+                    }
+                    override fun onCastSessionUnavailable() {
+                        Log.d("MainViewModel", "Cast Session Unavailable")
+                        _isCasting.value = false
                     }
                 })
 
-                // Set up MediaSession for notification and background controls
+                // Set up MediaSession for CastPlayer
                 val intent = getApplication<Application>().packageManager.getLaunchIntentForPackage(getApplication<Application>().packageName)
                 val pendingIntent = PendingIntent.getActivity(
                     getApplication(),
@@ -289,11 +383,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 mediaSession = MediaSession.Builder(getApplication(), cp)
                     .setSessionActivity(pendingIntent)
                     .build()
-                
+
                 // Initial state check
                 _isCasting.value = cp.isCastSessionAvailable
             } catch (e: Exception) {
-                android.util.Log.e("MainViewModel", "Cast init failed: ${e.message}")
+                Log.e("MainViewModel", "Cast init failed: ${e.message}")
             }
         }
     }
@@ -322,7 +416,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 .followRedirects(true)
                 .followSslRedirects(true)
                 .build()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return OkHttpClient.Builder().build()
         }
     }
@@ -465,7 +559,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     } catch (e: Exception) {}
                 }
                 repository.cleanupOldEpg()
-                prefs.edit().putLong("last_epg_update", currentTime).apply()
+                prefs.edit {
+                    putLong("last_epg_update", currentTime)
+                }
             }
         }
     }
@@ -704,12 +800,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun stopCasting() {
-        _castPlayer.value?.stop()
-        try {
-            CastContext.getSharedInstance(getApplication()).sessionManager.endCurrentSession(true)
-        } catch (e: Exception) {}
-        _isCasting.value = false
+    fun stopCasting(): Long {
+        val lastPos = _castPlayer.value?.currentPosition ?: 0L
+        _lastCastPosition.value = lastPos
+        viewModelScope.launch(Dispatchers.Main) {
+            try {
+                _castPlayer.value?.stop()
+                _castPlayer.value?.clearMediaItems()
+                val castContext = CastContext.getSharedInstance(getApplication())
+                castContext.sessionManager.endCurrentSession(true)
+                _isCasting.value = false
+                notificationManager?.setPlayer(null)
+                Log.d("MainViewModel", "Cast screen disconnected manually or via notification")
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Error stopping cast: ${e.message}")
+            }
+        }
+        return lastPos
     }
 
     fun markAsPlayed(channel: IptvChannel) {
@@ -761,6 +868,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setSelectedChannel(channel: IptvChannel?) {
         _selectedChannel.value = channel
+        if (channel != null && _isCasting.value) {
+            transferCurrentMediaToCast()
+        }
     }
 
     fun saveBackupToUri(uri: Uri) {
@@ -1011,7 +1121,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             regex.findAll(json).forEach { match ->
                 urls.add(match.groupValues[1])
             }
-            if (urls.isNotEmpty()) urls else null
+            urls.ifEmpty { null }
         } catch (e: Exception) {
             null
         }
@@ -1105,11 +1215,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         prefs.edit { putInt("max_video_height", height) }
     }
 
-    fun setPlayerEngine(engine: String) {
-        _playerEngine.value = engine
-        prefs.edit { putString("player_engine", engine) }
-    }
-
     fun setAudioBoost(enabled: Boolean) {
         _audioBoost.value = enabled
         prefs.edit { putBoolean("audio_boost", enabled) }
@@ -1151,6 +1256,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         try {
             CastContext.getSharedInstance(getApplication()).sessionManager.removeSessionManagerListener(sessionManagerListener, com.google.android.gms.cast.framework.CastSession::class.java)
         } catch (e: Exception) {}
+        notificationManager?.setPlayer(null)
         mediaSession?.release()
         _castPlayer.value?.release()
     }

@@ -14,15 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -41,6 +33,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.util.Log
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
@@ -48,12 +41,20 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.drm.DefaultDrmSessionManagerProvider
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.extractor.DefaultExtractorsFactory
+import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
+import androidx.media3.extractor.ts.TsExtractor
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.chesko.stream_pro.core.R
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.utils.PlayerUtils
 import kotlinx.coroutines.delay
+
+import androidx.media3.exoplayer.hls.HlsMediaSource
+import androidx.media3.exoplayer.hls.DefaultHlsExtractorFactory
+import androidx.media3.exoplayer.dash.DashMediaSource
+import androidx.media3.exoplayer.dash.DefaultDashChunkSource
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -68,8 +69,7 @@ fun VideoPlayer(
     maxVideoHeight: Int = 0,
     onPlayerInit: ((ExoPlayer?) -> Unit)? = null,
     onSuccess: (() -> Unit)? = null,
-    onError: ((String) -> Unit)? = null,
-    onEngineSwitch: ((String) -> Unit)? = null
+    onError: ((String) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -77,7 +77,6 @@ fun VideoPlayer(
     val currentOnPlayerInit by rememberUpdatedState(onPlayerInit)
     val currentOnSuccess by rememberUpdatedState(onSuccess)
     val currentOnError by rememberUpdatedState(onError)
-    val currentOnEngineSwitch by rememberUpdatedState(onEngineSwitch)
 
     var retryCount by remember { mutableIntStateOf(0) }
     var loudnessEnhancer by remember { mutableStateOf<LoudnessEnhancer?>(null) }
@@ -87,32 +86,27 @@ fun VideoPlayer(
             .setBufferDurationsMs(
                 bufferSize * 1000,
                 (bufferSize * 2).coerceAtLeast(30) * 1000,
-                2500,
-                5000
+                1000,
+                2000
             )
             .setPrioritizeTimeOverSizeThresholds(true)
             .build()
 
         val trackSelector = DefaultTrackSelector(context).apply {
-            val parametersBuilder = buildUponParameters()
-                .setAllowVideoMixedMimeTypeAdaptiveness(true)
-                .setForceLowestBitrate(false)
-                .setExceedRendererCapabilitiesIfNecessary(true)
-
-            if (maxVideoHeight > 0) {
-                parametersBuilder.setMaxVideoSize(Int.MAX_VALUE, maxVideoHeight)
-            }
-
-            setParameters(parametersBuilder)
+            setParameters(
+                buildUponParameters()
+                    .setAllowVideoMixedMimeTypeAdaptiveness(true)
+                    .setExceedRendererCapabilitiesIfNecessary(true)
+                    .apply {
+                        if (maxVideoHeight > 0) {
+                            setMaxVideoSize(Int.MAX_VALUE, maxVideoHeight)
+                        }
+                    }
+            )
         }
 
         val renderersFactory = androidx.media3.exoplayer.DefaultRenderersFactory(context).apply {
-            setExtensionRendererMode(
-                if (hwAcceleration)
-                    androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
-                else
-                    androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
-            )
+            setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
             setEnableDecoderFallback(true)
         }
 
@@ -136,7 +130,7 @@ fun VideoPlayer(
                                 loudnessEnhancer = enhancer
                             }
                         } catch (e: Exception) {
-                            e.printStackTrace()
+                            Log.e("ExoVideoPlayer", "LoudnessEnhancer error", e)
                         }
                     }
 
@@ -148,27 +142,27 @@ fun VideoPlayer(
                     }
 
                     override fun onPlayerError(error: PlaybackException) {
-                        if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
-                            seekToDefaultPosition()
-                            prepare()
-                            return
-                        }
+                        Log.e("ExoVideoPlayer", "Player Error: ${error.errorCodeName}", error)
+                        
+                        val isNetworkError = error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
+                                           error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS ||
+                                           error.errorCode == PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED ||
+                                           error.errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED
 
-                        if (retryCount < 3) {
+                        if (isNetworkError && retryCount < 5) {
                             retryCount++
+                            seekToDefaultPosition()
                             prepare()
                             play()
                             return
                         }
 
                         val detailedMessage = when (error.errorCode) {
+                            PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED -> "Manifest Error (Tautan mungkin memerlukan VPN atau Header khusus)"
                             PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> context.getString(R.string.exo_error_link_dead)
                             PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> context.getString(R.string.exo_error_connection_failed)
-                            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> context.getString(R.string.exo_error_timeout)
-                            PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED -> context.getString(R.string.exo_error_ssl)
-                            PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND -> context.getString(R.string.exo_error_file_not_found)
-                            PlaybackException.ERROR_CODE_DECODING_FAILED -> context.getString(R.string.exo_error_decode_failed)
-                            PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED -> context.getString(R.string.exo_error_unsupported)
+                            PlaybackException.ERROR_CODE_DECODING_FAILED -> "Decoding Failed (Masalah Codec atau DRM)"
+                            PlaybackException.ERROR_CODE_DRM_LICENSE_ACQUISITION_FAILED -> "DRM License Failed (Kunci ClearKey/Widevine tidak valid)"
                             else -> context.getString(R.string.exo_error_generic, error.errorCodeName)
                         }
                         currentOnError?.invoke(detailedMessage)
@@ -180,7 +174,7 @@ fun VideoPlayer(
     DisposableEffect(exoPlayer, lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_PAUSE -> exoPlayer.pause()
+                Lifecycle.Event.ON_PAUSE -> if (!exoPlayer.isCurrentMediaItemLive) exoPlayer.pause()
                 Lifecycle.Event.ON_RESUME -> exoPlayer.play()
                 else -> {}
             }
@@ -238,17 +232,41 @@ fun VideoPlayer(
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()
             .setAllowCrossProtocolRedirects(true)
             .setDefaultRequestProperties(allHeaders)
+            .setConnectTimeoutMs(20000)
+            .setReadTimeoutMs(20000)
 
         val dataSourceFactory = DefaultDataSource.Factory(context, httpDataSourceFactory)
 
         val drmSessionManagerProvider = DefaultDrmSessionManagerProvider()
         drmSessionManagerProvider.setDrmHttpDataSourceFactory(dataSourceFactory)
 
+        // HLS Specific Optimization with non-idr frames allowed
+        val hlsMediaSourceFactory = HlsMediaSource.Factory(dataSourceFactory)
+            .setExtractorFactory(DefaultHlsExtractorFactory(DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES, true))
+            .setAllowChunklessPreparation(true)
+            .setDrmSessionManagerProvider(drmSessionManagerProvider)
+
+        val dashMediaSourceFactory = DashMediaSource.Factory(
+            DefaultDashChunkSource.Factory(dataSourceFactory),
+            dataSourceFactory
+        ).setDrmSessionManagerProvider(drmSessionManagerProvider)
+
         val mediaSourceFactory = DefaultMediaSourceFactory(context)
             .setDataSourceFactory(dataSourceFactory)
             .setDrmSessionManagerProvider(drmSessionManagerProvider)
 
-        val mediaSource = mediaSourceFactory.createMediaSource(mediaItem)
+        val urlLower = channel.url.lowercase()
+        val mediaSource = when {
+            urlLower.contains(".m3u8") || urlLower.contains("format=m3u8") -> {
+                hlsMediaSourceFactory.createMediaSource(mediaItem)
+            }
+            urlLower.contains(".mpd") || urlLower.contains("format=mpd") -> {
+                dashMediaSourceFactory.createMediaSource(mediaItem)
+            }
+            else -> {
+                mediaSourceFactory.createMediaSource(mediaItem)
+            }
+        }
 
         exoPlayer.setMediaSource(mediaSource)
         exoPlayer.prepare()

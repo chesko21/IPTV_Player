@@ -3,24 +3,23 @@
     <string name="app_name">StreamPro</string>
     <string name="settings_title">الإعدادات</string>
     <string name="group_player">مشغل الفيديو</string>
-    <string name="item_engine_title">محرك التشغيل</string>
+
     <string name="item_quality_title">جودة الفيديو</string>
-    <string name="item_hw_title">فك تشفير الأجهزة</string>
-    <string name="item_buffer_title">حجم التخزين المؤقت</string>
+    <string name="item_hw_title">مفكك تشفير الأجهزة</string>
+    <string name="item_buffer_title">حجم ذاكرة التخزين المؤقت</string>
 
     <string name="group_display">العرض</string>
     <string name="item_dark_mode">الوضع الداكن</string>
     <string name="item_language">لغة التطبيق</string>
-    <string name="item_accent_color">لون المظهر</string>
+    <string name="item_accent_color">لون التمييز</string>
     <string name="item_background">الخلفية</string>
 
     <string name="group_data">البيانات والتخزين</string>
     <string name="item_clear_cache">مسح ذاكرة التخزين المؤقت</string>
 
     <string name="dialog_language_title">اختر اللغة</string>
-    <string name="dialog_engine_title">اختر المحرك</string>
     <string name="dialog_quality_title">جودة الفيديو</string>
-    <string name="dialog_buffer_title">حجم التخزين المؤقت</string>
+    <string name="dialog_buffer_title">حجم ذاكرة التخزين المؤقت</string>
     <string name="dialog_background_title">الخلفية</string>
 
     <string name="btn_close">إغلاق</string>
@@ -30,20 +29,20 @@
     <string name="background_default">افتراضي</string>
     <string name="background_color">لون مخصص</string>
     <string name="background_image">صورة مخصصة</string>
-    <string name="item_engine_subtitle">حالياً: %1$s</string>
+
     <string name="item_quality_subtitle">الحد الأقصى: %1$sp</string>
-    <string name="item_quality_auto">تلقائي</string>
-    <string name="item_hw_subtitle_on">الوضع: الأجهزة (أداء عالٍ)</string>
-    <string name="item_hw_subtitle_off">الوضع: البرامج (أكثر استقراراً)</string>
-    <string name="item_buffer_subtitle">التخزين المؤقت الحالي: %1$ss</string>
-    <string name="item_dark_mode_subtitle">تفعيل المظهر الداكن الدائم</string>
-    <string name="item_language_subtitle">حالياً: %1$s</string>
+    <string name="item_quality_auto">تلقائي (Auto)</string>
+    <string name="item_hw_subtitle_on">الوضع: أجهزة (أداء عالي)</string>
+    <string name="item_hw_subtitle_off">الوضع: برمجيات (أكثر استقراراً)</string>
+    <string name="item_buffer_subtitle">حجم التخزين المؤقت الحالي: %1$ss</string>
+    <string name="item_dark_mode_subtitle">تفعيل السمة الداكنة الدائمة</string>
+    <string name="item_language_subtitle">الحالي: %1$s</string>
     <string name="item_accent_subtitle">اختر لون هوية التطبيق</string>
     <string name="item_cache_subtitle">تنظيف بيانات التطبيق المؤقتة</string>
-    <string name="success_cache_cleared">تم مسح ذاكرة التخزين المؤقت بنجاح!</string>
-    <string name="unit_seconds">%1$d ثانية</string>
+    <string name="success_cache_cleared">تم مسح ذاكرة التخزين المؤقت للتطبيق بنجاح!</string>
+    <string name="unit_seconds">%1$d ثواني</string>
 
-    <string name="dialog_color_desc">تخصيص مظهر التطبيق</string>
+    <string name="dialog_color_desc">تخصيص سمة التطبيق</string>
     <string name="dialog_color_custom">لون مخصص</string>
 
     <!-- Brand -->
@@ -64,7 +63,7 @@
     <string name="exit_confirm_title">تأكيد الخروج</string>
     <string name="exit_confirm_msg">هل أنت متأكد أنك تريد الخروج؟</string>
     <string name="btn_exit">خروج</string>
-    <string name="premium_badge">مميز</string>
+    <string name="premium_badge">ممتاز</string>
     <string name="drawer_group_main">الرئيسية</string>
     <string name="drawer_group_settings">الإعدادات</string>
     <string name="drawer_group_support">الدعم</string>
@@ -72,88 +71,93 @@
     <string name="menu_settings">الإعدادات</string>
     <string name="menu_sync">مزامنة</string>
     <string name="menu_backup">نسخ احتياطي</string>
-    <string name="menu_help">المساعدة</string>
+    <string name="menu_help">مساعدة</string>
     <string name="menu_about">حول</string>
     <string name="menu_logout">تسجيل الخروج</string>
-    <string name="carousel_rec">توصيات</string>
+    <string name="carousel_rec">موصى به</string>
     <string name="carousel_watch_now">شاهد الآن</string>
     <string name="group_all">الكل</string>
     <string name="search_results">نتائج البحث</string>
     <string name="search_not_found_title">عذراً! القناة غير موجودة</string>
     <string name="search_not_found_msg">جرب كلمة رئيسية أخرى أو تحقق من اتصالك</string>
     <string name="row_favorite">المفضلة</string>
-    <string name="row_history">شوهد مؤخراً</string>
+    <string name="row_history">آخر ما تمت مشاهدته</string>
     <string name="row_see_all">عرض الكل (%1$d)</string>
     <string name="other_groups">مجموعات أخرى</string>
     <string name="see_less">عرض أقل</string>
     <string name="see_all">عرض الكل</string>
-    <string name="search_placeholder">ابحث عن قناة أو مجموعة...</string>
+    <string name="search_placeholder">بحث عن قناة أو مجموعة...</string>
     <string name="no_program_info">لا توجد معلومات عن البرنامج</string>
 
     <!-- Login Screen -->
     <string name="tab_remote_url">رابط عن بعد</string>
     <string name="tab_local_file">ملف محلي</string>
     <string name="tab_restore">استعادة XML</string>
-    <string name="login_secure_msg">اتصال آمن ومشفر</string>
-    <string name="dialog_explore_demo">استكشف التجربة</string>
+    <string name="login_secure_msg">اتصال آمن ومشفّر</string>
+    <string name="dialog_explore_demo">استكشاف العرض التوضيحي</string>
     <string name="demo_playlist_label">قائمة تشغيل تجريبية %1$d</string>
     <string name="demo_playlist_name">قائمة تشغيل عالمية %1$d</string>
-    <string name="m3u_endpoint_label">رابط قائمة تشغيل M3U</string>
-    <string name="url_placeholder">https://provider.com/playlist.m3u</string>
+    <string name="m3u_endpoint_label">نقطة نهاية قائمة تشغيل M3U</string>
+    <string name="url_placeholder">https://your-provider.com/playlist.m3u</string>
     <string name="btn_connect">اتصال</string>
-    <string name="btn_demo">تجربة</string>
+    <string name="btn_demo">تجريبي</string>
     <string name="local_repo_label">المستودع المحلي</string>
     <string name="local_repo_msg">استيراد ملفات .m3u أو .m3u8 من ذاكرة جهازك</string>
     <string name="btn_browse_files">تصفح الملفات</string>
     <string name="restore_label">استعادة من النسخة الاحتياطية</string>
-    <string name="restore_msg">استعادة القنوات والمفضلات والإعدادات من ملف نسخة احتياطية XML</string>
+    <string name="restore_msg">استعادة قنواتك ومفضلاتك وإعداداتك من ملف نسخة احتياطية XML</string>
     <string name="btn_restore_xml">استعادة الآن</string>
     <string name="invalid_url_protocol">بروتوكول الرابط غير صالح</string>
+
+    <string name="login_preset_demos">روابط تجريبية مسبقة الضبط</string>
+    <string name="login_server_label">خادم %1$d</string>
+    <string name="login_url_placeholder_example">https://example.com/playlist.m3u</string>
+    <string name="login_url_hint">انقر لإدخال العنوان</string>
 
     <!-- Help Screen -->
     <string name="help_center_title">مركز المساعدة</string>
     <string name="faq_title">الأسئلة الشائعة</string>
     <string name="faq_subtitle">ابحث عن إجابات لمشاكلك أدناه</string>
-    <string name="help_more_title">هل ما زلت بحاجة للمساعدة؟</string>
-    <string name="help_more_msg">اتصل بفريق الدعم عبر البريد الإلكتروني على https://chesko-25.vercel.app لمزيد من المساعدة.</string>
+    <string name="help_more_title">هل لا تزال بحاجة للمساعدة؟</string>
+    <string name="help_more_msg">اتصل بفريق الدعم لدينا عبر البريد الإلكتروني على https://chesko-25.vercel.app لمزيد من المساعدة.</string>
 
     <string name="faq_q1">كيف يمكنني إضافة قائمة تشغيل؟</string>
-    <string name="faq_a1">يمكنك إضافة قائمة تشغيل بالضغط على زر "إضافة" في شاشة تسجيل الدخول، ثم أدخل رابط M3U صالح أو اختر ملفاً من ذاكرة جهازك.</string>
+    <string name="faq_a1">يمكنك إضافة قائمة تشغيل بالضغط على زر \'إضافة\' في شاشة تسجيل الدخول، ثم أدخل رابط M3U صالح أو اختر ملفاً من ذاكرة جهازك.</string>
     <string name="faq_q2">لماذا لا تعمل القناة؟</string>
-    <string name="faq_a2">تأكد من استقرار اتصال الإنترنت الخاص بك. قد تتطلب بعض القنوات VPN أو لديها قيود إقليمية. إذا استمرت المشكلة، اتصل بمزود قائمة التشغيل الخاص بك.</string>
-    <string name="faq_q3">كيف يمكنني رؤية دليل التلفزيون (EPG)؟</string>
-    <string name="faq_a3">افتح قائمة الدرج (أيقونة الأسطر الثلاثة أعلى اليسار) ثم اختر "دليل التلفزيون". سيتم تنزيل EPG تلقائياً إذا كان مصدر قائمة التشغيل يوفره.</string>
+    <string name="faq_a2">تأكد من استقرار اتصالك بالإنترنت. قد تتطلب بعض القنوات VPN أو لديها قيود إقليمية. إذا استمرت المشكلة، فاتصل بمزود قائمة التشغيل الخاص بك.</string>
+    <string name="faq_q3">كيف يمكنني عرض جدول التلفزيون (EPG)؟</string>
+    <string name="faq_a3">افتح قائمة الدرج (أيقونة الأسطر الثلاثة في الزاوية العلوية اليسرى) ثم اختر \'دليل التلفزيون\'. سيتم تنزيل EPG تلقائياً إذا كان مصدر قائمة التشغيل يوفره.</string>
     <string name="faq_q4">كيف يمكنني الإضافة إلى المفضلة؟</string>
-    <string name="faq_a4">أثناء تشغيل الفيديو، اضغط على أيقونة "النجمة" في عناصر تحكم المشغل. أو يمكنك الضغط مطولاً على عنصر القناة في القائمة الرئيسية.</string>
+    <string name="faq_a4">أثناء تشغيل الفيديو، اضغط على أيقونة \'النجمة\' في عناصر تحكم المشغل. أو يمكنك الضغط لفترة طويلة على قناة في القائمة الرئيسية.</string>
     <string name="faq_q5">التطبيق يبدو بطيئاً، ماذا أفعل؟</string>
     <string name="faq_a5">يمكنك محاولة مسح ذاكرة التخزين المؤقت في إعدادات أندرويد، أو تقليل عدد قوائم التشغيل النشطة إذا كانت كثيرة جداً.</string>
 
     <!-- Profile Screen -->
     <string name="profile_title">ملفي الشخصي</string>
-    <string name="edit_name">تعديل الاسم</string>
-    <string name="edit_email">تعديل البريد الإلكتروني</string>
+    <string name="edit_name">تغيير الاسم</string>
+    <string name="edit_email">تغيير البريد الإلكتروني</string>
     <string name="label_name">الاسم</string>
     <string name="label_email">البريد الإلكتروني</string>
     <string name="premium_member">عضو مميز</string>
-    <string name="stat_favorite">المفضلة</string>
-    <string name="stat_playlist">قائمة التشغيل</string>
+    <string name="stat_favorite">المفضلات</string>
+    <string name="stat_playlist">قائمة تشغيل</string>
     <string name="stat_expired">منتهي الصلاحية</string>
     <string name="stat_expired_never">للأبد</string>
     <string name="account_info">معلومات الحساب</string>
     <string name="label_device_id">معرف الجهاز</string>
     <string name="label_member_since">عضو منذ</string>
     <string name="btn_logout_account">تسجيل الخروج من الحساب</string>
-    <string name="msg_device_id_copied">تم نسخ معرف الجهاز!</string>
+    <string name="msg_device_id_copied">تم نسخ معرف الجهاز بنجاح!</string>
 
     <!-- SplashScreen -->
     <string name="splash_universe_subtitle">استكشف الكون الرقمي</string>
-    <string name="splash_initializing">بدء تهيئة النظام</string>
-    <string name="splash_designed_by">صمم بواسطة CHESKO</string>
+    <string name="splash_initializing">تهيئة النظام</string>
+    <string name="splash_designed_by">تصميم CHESKO</string>
 
     <!-- About Screen -->
     <string name="about_title">حول التطبيق</string>
     <string name="about_version">الإصدار %1$s (مستقر)</string>
-    <string name="about_description">Stream Pro هو مشغل IPTV حديث مصمم لتوفير أفضل تجربة مشاهدة مع واجهة نظيفة وأداء عالٍ.</string>
+    <string name="about_description">Stream Pro هو مشغل IPTV حديث مصمم لتوفير أفضل تجربة مشاهدة مع واجهة نظيفة وأداء عالي.</string>
     <string name="about_label_developer">المطور</string>
     <string name="about_label_dev_team">فريق تطوير Chesko</string>
     <string name="about_label_license">الترخيص</string>
@@ -166,13 +170,13 @@
     <string name="about_footer_rights">© %1$d Stream Pro IPTV. جميع الحقوق محفوظة.</string>
 
     <!-- EPG Screen -->
-    <string name="epg_title">دليل التلفزيون</string>
-    <string name="epg_search_placeholder">ابحث عن قناة...</string>
-    <string name="epg_no_program">لا يوجد جدول بث متاح</string>
+    <string name="epg_title">جدول التلفزيون</string>
+    <string name="epg_search_placeholder">بحث عن قناة...</string>
+    <string name="epg_no_program">لا يتوفر جدول بث</string>
 
     <!-- Network Notif -->
-    <string name="net_lost">انقطع اتصال الإنترنت</string>
-    <string name="net_restored">تم استعادة اتصال الإنترنت</string>
+    <string name="net_lost">انقطع الاتصال بالإنترنت</string>
+    <string name="net_restored">تم استعادة الاتصال بالإنترنت</string>
 
     <!-- Player Screen -->
     <string name="player_loading_default">جاري الاتصال...</string>
@@ -180,12 +184,8 @@
     <string name="player_loading_stream">جاري تحميل البث...</string>
     <string name="player_preparing">جاري التحضير...</string>
     <string name="player_ended">انتهى البث</string>
-    <string name="player_loading_vlc">جاري تحميل الفيديو (VLC)...</string>
-    <string name="player_fallback_vlc">التحول إلى VLC...</string>
-    <string name="player_exo_fallback">فشل Exo، جاري تجربة VLC...</string>
-    <string name="player_error_load">فشل تحميل البث</string>
-    <string name="player_error_vlc">خطأ VLC: %1$s</string>
-    <string name="player_on_air">بث مباشر</string>
+    <string name="player_error_load">فشل في تحميل البث</string>
+    <string name="player_on_air">على الهواء</string>
     <string name="player_next">التالي: %1$s</string>
     <string name="player_connection_lost">فقد الاتصال</string>
     <string name="player_link_dead">لا توجد إشارة / الرابط معطل</string>
@@ -193,16 +193,18 @@
     <string name="player_menu_audio">خيارات الصوت</string>
     <string name="player_menu_subtitle">الترجمة / CC</string>
     <string name="player_menu_quality">جودة الفيديو</string>
-    <string name="player_boost">تعزيز</string>
+    <string name="player_boost">Boost</string>
     <string name="player_mute">كتم</string>
-    <string name="player_no_subtitle">بدون ترجمة</string>
+    <string name="player_no_subtitle">لا توجد ترجمة</string>
     <string name="player_disable">تعطيل</string>
     <string name="player_auto">تلقائي</string>
     <string name="player_default">افتراضي</string>
     <string name="player_debug_title">معلومات التصحيح</string>
     <string name="player_channels_title">القنوات</string>
     <string name="player_audio_delay">تأخير الصوت</string>
-    <string name="player_casting_active">جاري التشغيل على التلفزيون</string>
-    <string name="player_casting_title">بث إلى الجهاز</string>
+    <string name="player_casting_active">يعرض على التلفزيون</string>
+    <string name="player_casting_title">إرسال إلى الجهاز</string>
+    <string name="player_cast_to">اتصال بالجهاز</string>
+    <string name="btn_stop_casting">إيقاف الإرسال</string>
     <string name="loading_message">استكشاف الكون</string>
 </resources>

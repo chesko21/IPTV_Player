@@ -3,13 +3,12 @@
 
                                                                            
 
-StreamPro is a high-performance, modern IPTV player designed for Android Mobile and Android TV. It features a unique **Hybrid Engine** that automatically selects the best playback technology based on the stream protocol, ensuring maximum compatibility and stability.
+StreamPro is a high-performance, modern IPTV player designed for Android Mobile and Android TV. It utilizes advanced playback technology to ensure maximum compatibility and stability for various stream protocols.
 
 ## 🚀 Key Features
 
-*   **Hybrid Player Engine**: 
+*   **Advanced Player Engine**: 
     *   **ExoPlayer (Media3)**: Optimized for HLS (.m3u8), DASH (.mpd), and DRM-protected content (Widevine/ClearKey).
-    *   **LibVLC**: Robust handling for older or specialized protocols like RTMP, RTSP, UDP, and MPEG-TS.
 *   **Universal Compatibility**: Support for M3U and M3U8 playlists via Remote URL or Local File import.
 *   **EPG Support**: Full XMLTV integration with a beautiful "Panduan TV" interface to track your favorite shows.
 *   **Modern UI/UX**: Built entirely with **Jetpack Compose**, featuring a sleek "Universe" dark theme and fluid animations.
@@ -26,7 +25,7 @@ StreamPro is a high-performance, modern IPTV player designed for Android Mobile 
 
 *   **Language**: Kotlin
 *   **UI Framework**: Jetpack Compose (Material 3)
-*   **Playback**: Media3 (ExoPlayer), LibVLC
+*   **Playback**: Media3 (ExoPlayer)
 *   **Database**: Room (Offline caching for channels and EPG)
 *   **Networking**: OkHttp, Retrofit
 *   **Serialization**: Moshi

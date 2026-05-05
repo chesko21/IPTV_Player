@@ -100,7 +100,6 @@ fun SettingsScreen(
     onBack: () -> Unit
 ) {
     val maxVideoHeight by viewModel.maxVideoHeight.collectAsState()
-    val playerEngine by viewModel.playerEngine.collectAsState()
     val hwAcceleration by viewModel.hwAcceleration.collectAsState()
     val bufferSize by viewModel.bufferSize.collectAsState()
     val darkMode by viewModel.darkMode.collectAsState()
@@ -115,7 +114,6 @@ fun SettingsScreen(
     var showBackgroundDialog by remember { mutableStateOf(false) }
     var showBufferDialog by remember { mutableStateOf(false) }
     var showQualityDialog by remember { mutableStateOf(false) }
-    var showEngineDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
     var isBackInvoked by remember { mutableStateOf(false) }
 
@@ -189,15 +187,6 @@ fun SettingsScreen(
                         title = stringResource(R.string.group_player),
                         accentColor = accentColor
                     ) {
-                        SettingsItem(
-                            icon = Icons.Default.SettingsSuggest,
-                            title = stringResource(R.string.item_engine_title),
-                            subtitle = stringResource(
-                                R.string.item_engine_subtitle,
-                                if (playerEngine == "EXO") "ExoPlayer (Default)" else "VLC Player"
-                            ),
-                            onClick = { showEngineDialog = true }
-                        )
                         SettingsItem(
                             icon = Icons.Default.HighQuality,
                             title = stringResource(R.string.item_quality_title),
@@ -402,17 +391,6 @@ fun SettingsScreen(
             }
         )
     }
-
-    if (showEngineDialog) {
-        EnginePickerDialog(
-            currentEngine = playerEngine,
-            onDismiss = { showEngineDialog = false },
-            onEngineSelected = {
-                viewModel.setPlayerEngine(it)
-                showEngineDialog = false
-            }
-        )
-    }
 }
 
 @Composable
@@ -570,83 +548,6 @@ fun LanguagePickerDialog(
                                     text = label,
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = if (code == currentLanguage) FontWeight.Bold else FontWeight.Normal
-                                )
-                            }
-                        }
-                    }
-                }
-
-                TextButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Text(stringResource(R.string.btn_close), fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun EnginePickerDialog(
-    currentEngine: String,
-    onDismiss: () -> Unit,
-    onEngineSelected: (String) -> Unit
-) {
-    val engines = listOf(
-        "EXO" to "ExoPlayer (Google)",
-        "VLC" to "VLC Player (LibVLC)"
-    )
-
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            modifier = Modifier
-                .width(220.dp)
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            tonalElevation = 6.dp
-        ) {
-            Column(
-                modifier = Modifier.padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Text(
-                    stringResource(R.string.dialog_engine_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Black,
-                    modifier = Modifier.padding(bottom = 2.dp)
-                )
-
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    engines.forEach { (engine, label) ->
-                        Surface(
-                            onClick = { onEngineSelected(engine) },
-                            shape = RoundedCornerShape(10.dp),
-                            color = if (engine == currentEngine)
-                                MaterialTheme.colorScheme.primaryContainer
-                            else
-                                Color.Transparent,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(vertical = 6.dp, horizontal = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                RadioButton(
-                                    selected = engine == currentEngine,
-                                    onClick = { onEngineSelected(engine) },
-                                    colors = RadioButtonDefaults.colors(
-                                        selectedColor = MaterialTheme.colorScheme.primary
-                                    ),
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = label,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = if (engine == currentEngine) FontWeight.Bold else FontWeight.Normal
                                 )
                             }
                         }

@@ -3,7 +3,7 @@
     <string name="app_name">StreamPro</string>
     <string name="settings_title">Ajustes</string>
     <string name="group_player">Reproductor de Vídeo</string>
-    <string name="item_engine_title">Motor del Reproductor</string>
+
     <string name="item_quality_title">Calidad de Vídeo</string>
     <string name="item_hw_title">Decodificador por Hardware</string>
     <string name="item_buffer_title">Tamaño de Búfer</string>
@@ -18,7 +18,7 @@
     <string name="item_clear_cache">Borrar Caché</string>
 
     <string name="dialog_language_title">Seleccionar Idioma</string>
-    <string name="dialog_engine_title">Seleccionar Motor</string>
+
     <string name="dialog_quality_title">Calidad de Vídeo</string>
     <string name="dialog_buffer_title">Tamaño de Búfer</string>
     <string name="dialog_background_title">Fondo</string>
@@ -30,7 +30,7 @@
     <string name="background_default">Predeterminado</string>
     <string name="background_color">Color Personalizado</string>
     <string name="background_image">Imagen Personalizada</string>
-    <string name="item_engine_subtitle">Actual: %1$s</string>
+
     <string name="item_quality_subtitle">Máximo: %1$sp</string>
     <string name="item_quality_auto">Automático</string>
     <string name="item_hw_subtitle_on">Modo: Hardware (Alto Rendimiento)</string>
@@ -173,7 +173,7 @@
     <string name="player_loading_stream">Cargando Streaming…</string>
     <string name="player_preparing">Preparando…</string>
     <string name="player_ended">Emisión Finalizada</string>
-    <string name="player_loading_vlc">Cargando Vídeo (VLC)…</string>
+
     <string name="player_error_load">Error al cargar streaming</string>
     <string name="player_on_air">EN EMISIÓN</string>
     <string name="player_next">PRÓXIMO: %1$s</string>

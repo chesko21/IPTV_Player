@@ -13,7 +13,7 @@ StreamPro is a media player. We **do not provide any content**. All M3U playlist
 We store the following data locally on your device:
 *   Imported channel lists and groups.
 *   Electronic Program Guide (EPG) data.
-*   App settings (Language, Accent Color, Player Engine).
+*   App settings (Language, Accent Color, Playback Settings).
 *   Your "Favorites" and "Recently Played" history.
 
 ### c. Device Information
@@ -28,7 +28,6 @@ The information collected is used solely to:
 ## 3. Third-Party Services
 StreamPro uses third-party libraries for playback:
 *   **Media3 (ExoPlayer)**: Developed by Google.
-*   **LibVLC**: Developed by VideoLAN.
 These libraries may collect technical data (such as IP addresses) required to fetch the media streams provided by your IPTV provider. Please refer to your IPTV provider's privacy policy for more details on their data handling.
 
 ## 4. Permissions

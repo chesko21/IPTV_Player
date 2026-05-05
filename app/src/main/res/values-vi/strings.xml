@@ -3,7 +3,7 @@
     <string name="app_name">StreamPro</string>
     <string name="settings_title">Cài đặt</string>
     <string name="group_player">Trình phát video</string>
-    <string name="item_engine_title">Công cụ phát</string>
+
     <string name="item_quality_title">Chất lượng video</string>
     <string name="item_hw_title">Giải mã phần cứng</string>
     <string name="item_buffer_title">Kích thước bộ đệm</string>
@@ -18,7 +18,7 @@
     <string name="item_clear_cache">Xóa bộ nhớ đệm</string>
 
     <string name="dialog_language_title">Chọn ngôn ngữ</string>
-    <string name="dialog_engine_title">Chọn công cụ</string>
+
     <string name="dialog_quality_title">Chất lượng video</string>
     <string name="dialog_buffer_title">Kích thước bộ đệm</string>
     <string name="dialog_background_title">Hình nền</string>
@@ -30,7 +30,7 @@
     <string name="background_default">Mặc định</string>
     <string name="background_color">Màu tùy chỉnh</string>
     <string name="background_image">Ảnh tùy chỉnh</string>
-    <string name="item_engine_subtitle">Hiện tại: %1$s</string>
+
     <string name="item_quality_subtitle">Tối đa: %1$sp</string>
     <string name="item_quality_auto">Tự động</string>
     <string name="item_hw_subtitle_on">Chế độ: Phần cứng (Hiệu suất cao)</string>
@@ -180,11 +180,9 @@
     <string name="player_loading_stream">Đang tải luồng...</string>
     <string name="player_preparing">Đang chuẩn bị...</string>
     <string name="player_ended">Kết thúc phát sóng</string>
-    <string name="player_loading_vlc">Đang tải video (VLC)...</string>
-    <string name="player_fallback_vlc">Chuyển sang VLC...</string>
-    <string name="player_exo_fallback">Exo thất bại, đang thử VLC...</string>
+
     <string name="player_error_load">Tải luồng thất bại</string>
-    <string name="player_error_vlc">Lỗi VLC: %1$s</string>
+
     <string name="player_on_air">ĐANG PHÁT SÓNG</string>
     <string name="player_next">TIẾP THEO: %1$s</string>
     <string name="player_connection_lost">Mất kết nối</string>

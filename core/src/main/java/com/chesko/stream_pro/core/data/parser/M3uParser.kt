@@ -40,19 +40,7 @@ object M3uParser {
 
                 trimmedLine.startsWith("#EXTINF:") -> {
                     // 1. Tangani jika ada tag lain yang menempel di baris yang sama (inline tags)
-                    var infPart = trimmedLine
-                    if (trimmedLine.contains("#EXTVLCOPT:")) {
-                        val parts = trimmedLine.split("#EXTVLCOPT:", limit = 2)
-                        infPart = parts[0]
-                        processVlcOpt("#EXTVLCOPT:" + parts[1]) { k, v ->
-                            when (k) {
-                                "http-user-agent", "user-agent" -> currentUserAgent = v
-                                "http-referrer", "referer", "referrer" -> currentReferrer = v
-                                "http-cookie", "cookie" -> currentCookie = v
-                                else -> currentDrmConfig = appendConfig(currentDrmConfig, "$k=$v")
-                            }
-                        }
-                    }
+                    val infPart = trimmedLine
 
                     // 2. Ekstraksi atribut standard
                     currentLogo = findValue(infPart, LOGO_PATTERN) ?: currentLogo
@@ -73,17 +61,6 @@ object M3uParser {
 
                 trimmedLine.startsWith("#EXTGRP:") -> {
                     currentGroup = trimmedLine.substringAfter(":").trim()
-                }
-
-                trimmedLine.startsWith("#EXTVLCOPT:") -> {
-                    processVlcOpt(trimmedLine) { key, value ->
-                        when (key) {
-                            "http-user-agent", "user-agent" -> currentUserAgent = value
-                            "http-referrer", "referer", "referrer" -> currentReferrer = value
-                            "http-cookie", "cookie" -> currentCookie = value
-                            else -> currentDrmConfig = appendConfig(currentDrmConfig, "$key=$value")
-                        }
-                    }
                 }
 
                 trimmedLine.startsWith("#KODIPROP:") -> {
@@ -154,11 +131,6 @@ object M3uParser {
             }
         }
         return channels
-    }
-
-    private fun processVlcOpt(line: String, onParsed: (String, String) -> Unit) {
-        val opt = line.substringAfter(":").trim()
-        parseKeyValuePair(opt, onParsed)
     }
 
     private fun parseKeyValuePair(input: String, onParsed: (String, String) -> Unit) {

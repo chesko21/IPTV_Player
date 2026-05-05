@@ -8,34 +8,34 @@
     <string name="settings_quality_title">Kualitas Video</string>
     <string name="settings_quality_subtitle">Target Saat Ini: %1$s</string>
     <string name="settings_quality_auto">Otomatis</string>
-    <string name="settings_hw_title">Akselerasi Hardware</string>
+    <string name="settings_hw_title">Akselerasi Perangkat Keras</string>
     <string name="settings_hw_subtitle">Optimalkan performa pemutaran untuk perangkat Anda</string>
-    <string name="settings_buffer_title">Ukuran Buffer Bintang</string>
+    <string name="settings_buffer_title">Ukuran Buffer</string>
     <string name="settings_buffer_subtitle">Buffer latensi saat ini: %1$ss</string>
 
-    <string name="settings_group_management">MANAJEMEN BAGAN BINTANG</string>
+    <string name="settings_group_management">MANAJEMEN PLAYLIST</string>
     <string name="settings_reload_title">Muat Ulang Playlist</string>
-    <string name="settings_reload_subtitle">Sinkronisasi ulang bagan bintang dari server master</string>
+    <string name="settings_reload_subtitle">Sinkronisasi ulang data dari server utama</string>
     <string name="settings_reload_success">Playlist berhasil disinkronkan</string>
     <string name="settings_cache_title">Hapus Cache Ruang</string>
     <string name="settings_cache_subtitle">Bersihkan data sementara dan debu bintang</string>
-    <string name="settings_cache_success">Cache dibersihkan</string>
+    <string name="settings_cache_success">Cache telah dibersihkan</string>
 
     <string name="settings_group_logs">LOG APLIKASI</string>
     <string name="settings_about_title">Tentang Semesta</string>
-    <string name="settings_about_subtitle">Versi %1$s - Premium Cinematic Edition</string>
+    <string name="settings_about_subtitle">Versi %1$s - Edisi Sinematik Premium</string>
 
     <string name="settings_group_exit">KELUAR STASIUN</string>
-    <string name="settings_logout_title">Logout &amp; Putuskan Koneksi</string>
-    <string name="settings_logout_subtitle">Hapus semua bagan dan keluar ke terminal</string>
+    <string name="settings_logout_title">Logout &amp; Putus Koneksi</string>
+    <string name="settings_logout_subtitle">Hapus semua data dan keluar ke terminal</string>
 
     <string name="settings_group_display">TAMPILAN &amp; BAHASA</string>
     <string name="settings_language_title">Bahasa Semesta</string>
-    <string name="settings_language_subtitle">Saat ini: %1$s</string>
-    <string name="language_en">INGGRIS (ENGLISH)</string>
+    <string name="settings_language_subtitle">Saat Ini: %1$s</string>
+    <string name="language_en">INGGRIS</string>
     <string name="language_in">BAHASA INDONESIA</string>
-    <string name="language_ms">BAHASA MELAYU (MALAY)</string>
-    <string name="language_ar">ARAB (ARABIC)</string>
+    <string name="language_ms">BAHASA MELAYU</string>
+    <string name="language_ar">ARAB</string>
 
     <!-- Dialogs -->
     <string name="dialog_buffer_title">PILIH UKURAN BUFFER</string>
@@ -43,7 +43,7 @@
     <string name="dialog_language_title">PILIH BAHASA</string>
     <string name="dialog_about_title">TENTANG SEMESTA</string>
     <string name="dialog_unit_seconds">DETIK</string>
-    <string name="dialog_auto_adaptive">OTOMATIS-ADAPTIF</string>
+    <string name="dialog_auto_adaptive">AUTO-ADAPTIF</string>
     <string name="dialog_resolution_p">RESOLUSI %1$dP</string>
     <string name="dialog_dismiss">TUTUP</string>
 
@@ -52,17 +52,17 @@
     <string name="branding_design">DESAIN OLEH CHESKO</string>
     <string name="branding_developed">DIKEMBANGKAN OLEH CHESKO</string>
     <string name="branding_description">Didesain untuk pengalaman sinematik performa tinggi di Android TV.</string>
-    <string name="branding_premium">PREMIUM EDITION</string>
+    <string name="branding_premium">EDISI PREMIUM</string>
     <string name="branding_premium_iptv">IPTV PREMIUM</string>
 
     <!-- Login -->
-    <string name="login_tab_url">M3U URL</string>
+    <string name="login_tab_url">URL M3U</string>
     <string name="login_tab_file">FILE LOKAL</string>
     <string name="login_source_config">KONFIGURASI SUMBER</string>
     <string name="login_preset_demos">PRESET URL DEMO</string>
     <string name="login_server_label">SERVER %1$d</string>
     <string name="login_url_placeholder">URL Playlist M3U</string>
-    <string name="login_url_placeholder_example">https://example.com/playlist.m3u</string>
+    <string name="login_url_placeholder_example">https://contoh.com/playlist.m3u</string>
     <string name="login_url_hint">Klik untuk memasukkan alamat</string>
     <string name="login_target_url">URL Target</string>
     <string name="login_btn_login">LOGIN</string>
@@ -72,21 +72,21 @@
     <string name="login_file_hint">Telusuri penyimpanan internal</string>
     <string name="login_file_selected">File Terpilih</string>
     <string name="login_btn_connect_file">HUBUNGKAN FILE</string>
-    <string name="login_no_file">Belum ada file dipilih</string>
+    <string name="login_no_file">Tidak ada file terpilih</string>
 
     <!-- Home -->
     <string name="home_explore">Jelajahi Aliran TV</string>
-    <string name="home_no_charts">Tidak ada bagan bintang yang ditemukan di sektor ini</string>
+    <string name="home_no_charts">Tidak ada data ditemukan di sektor ini</string>
     <string name="home_all_channels">SEMUA Saluran</string>
 
     <!-- Search -->
     <string name="search_discover">TEMUKAN</string>
     <string name="search_universe">PENCARIAN SEMESTA</string>
     <string name="search_placeholder">Cari bintang, planet, atau saluran&#8230;</string>
-    <string name="search_no_results">Tidak ada bagan bintang yang ditemukan di sektor ini</string>
+    <string name="search_no_results">Tidak ada data ditemukan di sektor ini</string>
 
     <!-- Player -->
-    <string name="player_syncing">MENYINKRONKAN SINYAL…</string>
+    <string name="player_syncing">SINKRONISASI SINYAL…</string>
     <string name="player_back">KEMBALI</string>
     <string name="player_menu">MENU</string>
     <string name="player_prev">Sebelumnya</string>
@@ -95,15 +95,15 @@
     <string name="player_pause">Jeda</string>
     <string name="player_play">Putar</string>
     <string name="player_forward">Maju 10d</string>
-    <string name="player_next">Selanjutnya</string>
-    <string name="player_now_streaming">SEDANG DIPUTAR</string>
+    <string name="player_next">Berikutnya</string>
+    <string name="player_now_streaming">SEDANG TAYANG</string>
     <string name="player_current_program">PROGRAM SAAT INI</string>
     <string name="player_no_program">TIDAK ADA INFORMASI PROGRAM DITEMUKAN</string>
     <string name="player_coming_up">BERIKUTNYA</string>
     <string name="player_sidebar_quality">KUALITAS VIDEO</string>
-    <string name="player_sidebar_audio">PILIHAN AUDIO</string>
+    <string name="player_sidebar_audio">OPSI AUDIO</string>
     <string name="player_sidebar_channels">DAFTAR SALURAN</string>
-    <string name="player_sidebar_favorite_add">Tambah Favorit</string>
+    <string name="player_sidebar_favorite_add">Tambah ke Favorit</string>
     <string name="player_sidebar_favorite_remove">Hapus Favorit</string>
     <string name="player_sidebar_audio_boost">Audio Boost: %1$s</string>
     <string name="player_sidebar_audio_tracks">TREK AUDIO</string>
@@ -121,30 +121,30 @@
     <string name="nav_settings">PENGATURAN</string>
 
     <!-- Network -->
-    <string name="net_lost">Koneksi Internet Terputus. Silakan periksa jaringan Anda.</string>
-    <string name="net_restored">Koneksi Internet Kembali Terhubung.</string>
+    <string name="net_lost">Koneksi internet terputus. Periksa jaringan Anda.</string>
+    <string name="net_restored">Koneksi internet telah tersambung kembali.</string>
 
     <!-- Player Errors -->
     <string name="error_video_stuck">Video macet, silakan muat ulang</string>
     <string name="error_404">Saluran tidak ditemukan (404)</string>
     <string name="error_403">Akses ditolak oleh server (403)</string>
     <string name="error_401">Token akses kadaluarsa (401)</string>
-    <string name="error_504">Server Timeout (504) - Server sedang sibuk</string>
-    <string name="error_server_issue">Masalah pada Server (%1$d)</string>
+    <string name="error_504">Server Timeout (504)</string>
+    <string name="error_server_issue">Masalah Server (%1$d)</string>
     <string name="error_load_failed">Gagal memuat: Kode %1$d</string>
-    <string name="error_http_connection">Masalah koneksi server (HTTP Error)</string>
+    <string name="error_http_connection">Masalah koneksi server (Error HTTP)</string>
     <string name="error_network_lost">Koneksi internet terputus</string>
     <string name="error_timeout">Waktu koneksi habis (Timeout)</string>
     <string name="error_protocol">Kesalahan protokol (HTTP vs HTTPS)</string>
     <string name="error_file_not_found">File video tidak ditemukan</string>
-    <string name="error_decoding">Gagal memproses video (Codec Error)</string>
+    <string name="error_decoding">Gagal memproses video (Error Codec)</string>
     <string name="error_unsupported_format">Format video tidak didukung</string>
     <string name="error_remote">Server tidak merespon</string>
     <string name="error_unknown">Gagal memuat (%1$s)</string>
 
     <string name="player_system_error">KESALAHAN SISTEM</string>
     <string name="player_re_sync">TEKAN TENGAH UNTUK SINKRONISASI ULANG</string>
-    <string name="player_signal_lost">SINYAL MUNGKIN HILANG DI RUANG HAMPA</string>
+    <string name="player_signal_lost">SINYAL MUNGKIN HILANG DALAM KEHAMPAAN</string>
 
     <!-- Exit Dialog -->
     <string name="exit_title">KELUAR SEMESTA</string>
@@ -157,16 +157,16 @@
 
     <!-- File Picker -->
     <string name="file_picker_explorer">PENJELAJAH</string>
-    <string name="file_picker_parent_dir">Kembali ke semesta induk</string>
+    <string name="file_picker_parent_dir">Kembali ke direktori induk</string>
     <string name="file_picker_system_dir">Direktori Sistem</string>
     <string name="file_picker_m3u_file">File Playlist M3U • %1$d KB</string>
-    <string name="file_picker_no_files">Tidak ada bagan bintang yang ditemukan</string>
+    <string name="file_picker_no_files">Tidak ada file yang kompatibel ditemukan</string>
 
     <!-- Components -->
     <string name="content_desc_back">Kembali</string>
-    <string name="content_desc_drm">Dilindungi DRM</string>
+    <string name="content_desc_drm">Terproteksi DRM</string>
 
-    <string name="label_on">NYALA (ON)</string>
-    <string name="label_off">MATI (OFF)</string>
-    <string name="label_system_default">Bawaan Sistem</string>
+    <string name="label_on">AKTIF</string>
+    <string name="label_off">MATI</string>
+    <string name="label_system_default">Default Sistem</string>
 </resources>

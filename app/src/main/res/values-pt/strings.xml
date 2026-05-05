@@ -3,9 +3,9 @@
     <string name="app_name">StreamPro</string>
     <string name="settings_title">Configurações</string>
     <string name="group_player">Reprodutor de Vídeo</string>
-    <string name="item_engine_title">Motor de Reprodução</string>
+
     <string name="item_quality_title">Qualidade de Vídeo</string>
-    <string name="item_hw_title">Decodificação de Hardware</string>
+    <string name="item_hw_title">Decodificador de Hardware</string>
     <string name="item_buffer_title">Tamanho do Buffer</string>
 
     <string name="group_display">Exibição</string>
@@ -18,7 +18,7 @@
     <string name="item_clear_cache">Limpar Cache</string>
 
     <string name="dialog_language_title">Selecionar Idioma</string>
-    <string name="dialog_engine_title">Selecionar Motor</string>
+
     <string name="dialog_quality_title">Qualidade de Vídeo</string>
     <string name="dialog_buffer_title">Tamanho do Buffer</string>
     <string name="dialog_background_title">Plano de Fundo</string>
@@ -30,16 +30,16 @@
     <string name="background_default">Padrão</string>
     <string name="background_color">Cor Personalizada</string>
     <string name="background_image">Imagem Personalizada</string>
-    <string name="item_engine_subtitle">Atual: %1$s</string>
+
     <string name="item_quality_subtitle">Máximo: %1$sp</string>
     <string name="item_quality_auto">Automático</string>
     <string name="item_hw_subtitle_on">Modo: Hardware (Alto Desempenho)</string>
     <string name="item_hw_subtitle_off">Modo: Software (Mais Estável)</string>
     <string name="item_buffer_subtitle">Buffer atual: %1$ss</string>
     <string name="item_dark_mode_subtitle">Ativar tema escuro permanente</string>
-    <string name="item_language_subtitle">Atual: %1$s</string>
-    <string name="item_accent_subtitle">Escolher cor de identidade</string>
-    <string name="item_cache_subtitle">Limpar dados temporários</string>
+    <string name="item_language_subtitle">Atualmente: %1$s</string>
+    <string name="item_accent_subtitle">Selecionar cor de identidade do app</string>
+    <string name="item_cache_subtitle">Limpar dados temporários do aplicativo</string>
     <string name="success_cache_cleared">Cache do aplicativo limpo com sucesso!</string>
     <string name="unit_seconds">%1$d Segundos</string>
 
@@ -53,10 +53,10 @@
     <string name="departure_msg">SAINDO DO UNIVERSO</string>
 
     <!-- Content Descriptions -->
-    <string name="content_desc_search">Buscar</string>
+    <string name="content_desc_search">Pesquisar</string>
     <string name="content_desc_refresh">Atualizar</string>
     <string name="content_desc_menu">Menu</string>
-    <string name="content_desc_close_search">Fechar Busca</string>
+    <string name="content_desc_close_search">Fechar Pesquisa</string>
     <string name="content_desc_scroll_top">Voltar ao topo</string>
     <string name="content_desc_drm">DRM</string>
 
@@ -75,20 +75,20 @@
     <string name="menu_help">Ajuda</string>
     <string name="menu_about">Sobre</string>
     <string name="menu_logout">Sair</string>
-    <string name="carousel_rec">RECOMENDAÇÕES</string>
+    <string name="carousel_rec">RECOMENDAÇÃO</string>
     <string name="carousel_watch_now">ASSISTIR AGORA</string>
     <string name="group_all">Tudo</string>
-    <string name="search_results">Resultados da Busca</string>
-    <string name="search_not_found_title">Opa! Canal não encontrado</string>
+    <string name="search_results">Resultados da Pesquisa</string>
+    <string name="search_not_found_title">Ops! Canal não encontrado</string>
     <string name="search_not_found_msg">Tente outra palavra-chave ou verifique sua conexão</string>
     <string name="row_favorite">Favoritos</string>
-    <string name="row_history">Vistos Recentemente</string>
+    <string name="row_history">Assistido Recentemente</string>
     <string name="row_see_all">VER TUDO (%1$d)</string>
     <string name="other_groups">OUTROS GRUPOS</string>
     <string name="see_less">VER MENOS</string>
     <string name="see_all">VER TUDO</string>
-    <string name="search_placeholder">Buscar canal ou grupo…</string>
-    <string name="no_program_info">Sem info de programa</string>
+    <string name="search_placeholder">Pesquisar canal ou grupo...</string>
+    <string name="no_program_info">Sem informações do programa</string>
 
     <!-- Login Screen -->
     <string name="tab_remote_url">URL REMOTA</string>
@@ -96,17 +96,17 @@
     <string name="tab_restore">RESTAURAR XML</string>
     <string name="login_secure_msg">CONEXÃO SEGURA CRIPTOGRAFADA</string>
     <string name="dialog_explore_demo">EXPLORAR DEMO</string>
-    <string name="demo_playlist_label">Lista Demo %1$d</string>
-    <string name="demo_playlist_name">Lista Universal %1$d</string>
-    <string name="m3u_endpoint_label">PONTO DE ACESSO M3U</string>
+    <string name="demo_playlist_label">Playlist de Demonstração %1$d</string>
+    <string name="demo_playlist_name">Playlist Universal %1$d</string>
+    <string name="m3u_endpoint_label">ENDPOINT DA PLAYLIST M3U</string>
     <string name="url_placeholder">https://seu-provedor.com/playlist.m3u</string>
     <string name="btn_connect">CONECTAR</string>
     <string name="btn_demo">DEMO</string>
     <string name="local_repo_label">REPOSITÓRIO LOCAL</string>
-    <string name="local_repo_msg">Importar arquivos .m3u ou .m3u8 do seu dispositivo</string>
+    <string name="local_repo_msg">Importar arquivos .m3u ou .m3u8 do armazenamento do seu dispositivo</string>
     <string name="btn_browse_files">PROCURAR ARQUIVOS</string>
     <string name="restore_label">RESTAURAR DO BACKUP</string>
-    <string name="restore_msg">Restaure seus canais, favoritos e configurações de um arquivo XML</string>
+    <string name="restore_msg">Restaure seus canais, favoritos e configurações de um arquivo de backup XML</string>
     <string name="btn_restore_xml">RESTAURAR AGORA</string>
     <string name="invalid_url_protocol">Protocolo de URL inválido</string>
 
@@ -114,8 +114,15 @@
     <string name="help_center_title">Centro de Ajuda</string>
     <string name="faq_title">Perguntas Frequentes</string>
     <string name="faq_subtitle">Encontre respostas para seus problemas abaixo</string>
-    <string name="help_more_title">Ainda precisa de ajuda?</string>
-    <string name="help_more_msg">Contate nossa equipe via e-mail em https://chesko-25.vercel.app para mais assistência.</string>
+    <string name="help_more_title">Ainda Precisa de Ajuda?</string>
+    <string name="help_more_msg">Entre em contato com nossa equipe de suporte via e-mail em https://chesko-25.vercel.app para mais assistência.</string>
+
+    <string name="faq_q1">Como adicionar uma playlist?</string>
+    <string name="faq_a1">Você pode adicionar uma playlist pressionando o botão \'Adicionar\' na tela de login, depois insira uma URL M3U válida ou selecione um arquivo do seu dispositivo.</string>
+    <string name="faq_q2">Por que o canal não pode ser reproduzido?</string>
+    <string name="faq_a2">Certifique-se de que sua conexão com a internet esteja estável. Alguns canais podem exigir uma VPN ou ter restrições regionais.</string>
+    <string name="faq_q3">Como ver o guia de TV (EPG)?</string>
+    <string name="faq_a3">Abra o Menu Lateral e selecione \'Guia de TV\'. O EPG será baixado automaticamente se a fonte da playlist o fornecer.</string>
 
     <!-- Profile Screen -->
     <string name="profile_title">Meu Perfil</string>
@@ -124,50 +131,55 @@
     <string name="label_name">Nome</string>
     <string name="label_email">Email</string>
     <string name="premium_member">MEMBRO PREMIUM</string>
-    <string name="stat_favorite">Favoritos</string>
-    <string name="stat_playlist">Listas</string>
+    <string name="stat_favorite">Favorito</string>
+    <string name="stat_playlist">Playlist</string>
     <string name="stat_expired">Expira</string>
-    <string name="stat_expired_never">Nunca</string>
+    <string name="stat_expired_never">Para sempre</string>
     <string name="account_info">Informações da Conta</string>
     <string name="label_device_id">ID do Dispositivo</string>
     <string name="label_member_since">Membro desde</string>
     <string name="btn_logout_account">Sair da Conta</string>
-    <string name="msg_device_id_copied">ID do dispositivo copiado!</string>
+    <string name="msg_device_id_copied">ID do Dispositivo copiado!</string>
 
     <!-- SplashScreen -->
     <string name="splash_universe_subtitle">EXPLORE O UNIVERSO DIGITAL</string>
-    <string name="splash_initializing">INICIALIZANDO SISTEMA</string>
+    <string name="splash_initializing">INICIALIZANDO O SISTEMA</string>
     <string name="splash_designed_by">DESIGN POR CHESKO</string>
 
     <!-- About Screen -->
     <string name="about_title">Sobre o App</string>
     <string name="about_version">Versão %1$s (Estável)</string>
-    <string name="about_description">Stream Pro é um reprodutor IPTV moderno projetado para oferecer a melhor experiência visual.</string>
+    <string name="about_description">Stream Pro é um reprodutor IPTV moderno projetado para fornecer a melhor experiência de visualização com uma interface limpa.</string>
     <string name="about_label_developer">Desenvolvedor</string>
     <string name="about_label_dev_team">Equipe Chesko</string>
     <string name="about_label_license">Licença</string>
     <string name="about_label_license_val">Assinatura Premium</string>
-    <string name="about_label_website">Website</string>
+    <string name="about_label_website">Site</string>
+    <string name="about_support_dev">Apoiar Desenvolvedor</string>
     <string name="about_footer_rights">© %1$d Stream Pro IPTV. Todos os direitos reservados.</string>
 
     <!-- EPG Screen -->
     <string name="epg_title">GUIA DE TV</string>
-    <string name="epg_search_placeholder">Buscar canal…</string>
-    <string name="epg_no_program">Sem programação disponível</string>
+    <string name="epg_search_placeholder">Pesquisar canal...</string>
+    <string name="epg_no_program">Nenhuma programação disponível</string>
+
+    <!-- Network Notif -->
+    <string name="net_lost">Conexão com a internet perdida</string>
+    <string name="net_restored">Conexão com a internet restaurada</string>
 
     <!-- Player Screen -->
-    <string name="player_loading_default">Conectando…</string>
-    <string name="player_loading_video">Carregando Vídeo…</string>
-    <string name="player_loading_stream">Carregando Stream…</string>
-    <string name="player_preparing">Preparando…</string>
+    <string name="player_loading_default">Conectando...</string>
+    <string name="player_loading_video">Carregando Vídeo...</string>
+    <string name="player_loading_stream">Carregando Transmissão...</string>
+    <string name="player_preparing">Preparando...</string>
     <string name="player_ended">Transmissão Encerrada</string>
-    <string name="player_loading_vlc">Carregando Vídeo (VLC)…</string>
-    <string name="player_error_load">Falha ao carregar stream</string>
+
+    <string name="player_error_load">Falha ao Carregar Transmissão</string>
     <string name="player_on_air">NO AR</string>
     <string name="player_next">PRÓXIMO: %1$s</string>
     <string name="player_connection_lost">Conexão Perdida</string>
-    <string name="player_link_dead">SEM SINAL / LINK FORA</string>
-    <string name="player_stopped">O vídeo parou.</string>
+    <string name="player_link_dead">SEM SINAL / LINK MORTO</string>
+    <string name="player_stopped">O vídeo parou de ser reproduzido.</string>
     <string name="player_menu_audio">OPÇÕES DE ÁUDIO</string>
     <string name="player_menu_subtitle">LEGENDAS / CC</string>
     <string name="player_menu_quality">QUALIDADE DE VÍDEO</string>
@@ -175,9 +187,9 @@
     <string name="player_mute">Mudo</string>
     <string name="player_no_subtitle">Sem Legendas</string>
     <string name="player_disable">Desativar</string>
-    <string name="player_auto">Auto</string>
+    <string name="player_auto">Automático</string>
     <string name="player_default">Padrão</string>
-    <string name="player_debug_title">Informações de Debug</string>
+    <string name="player_debug_title">Info de Depuração</string>
     <string name="player_channels_title">CANAIS</string>
     <string name="player_audio_delay">Atraso de Áudio</string>
     <string name="player_casting_active">Reproduzindo na TV</string>

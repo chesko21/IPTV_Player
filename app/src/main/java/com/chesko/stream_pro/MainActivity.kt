@@ -100,6 +100,15 @@ class MainActivity : FragmentActivity() {
         super.attachBaseContext(LocaleHelper.applyLocale(newBase, lang))
     }
 
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        // Saat tombol HOME ditekan, kita anggap cast terhenti sesuai permintaan
+        val viewModel: com.chesko.stream_pro.core.ui.MainViewModel = androidx.lifecycle.ViewModelProvider(this)[com.chesko.stream_pro.core.ui.MainViewModel::class.java]
+        if (viewModel.isCasting.value) {
+            viewModel.stopCasting()
+        }
+    }
+
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
