@@ -64,6 +64,7 @@
     <string name="exit_confirm_msg">هل أنت متأكد أنك تريد الخروج؟</string>
     <string name="btn_exit">خروج</string>
     <string name="premium_badge">ممتاز</string>
+    <string name="drawer_group_playlists">قوائم التشغيل النشطة</string>
     <string name="drawer_group_main">الرئيسية</string>
     <string name="drawer_group_settings">الإعدادات</string>
     <string name="drawer_group_support">الدعم</string>
@@ -207,4 +208,27 @@
     <string name="player_cast_to">اتصال بالجهاز</string>
     <string name="btn_stop_casting">إيقاف الإرسال</string>
     <string name="loading_message">استكشاف الكون</string>
+    <string name="msg_switching_server">جاري تبديل الخادم...</string>
+
+    <!-- New Strings -->
+    <string name="msg_photo_updated">تم تحديث صورة الملف الشخصي بنجاح!</string>
+    <string name="msg_name_updated">تم تحديث الاسم بنجاح!</string>
+    <string name="msg_email_updated">تم تحديث البريد الإلكتروني بنجاح!</string>
+    <string name="hint_enter_name">أدخل اسمك</string>
+    <string name="hint_enter_email">your@email.com</string>
+    <string name="dialog_update_name">تحديث اسمك</string>
+    <string name="dialog_update_email">تحديث عنوان بريدك الإلكتروني</string>
+
+    <string name="lang_in">الإندونيسية</string>
+    <string name="lang_en">الإنجليزية</string>
+    <string name="lang_ms">الملايوية</string>
+    <string name="lang_ar">العربية</string>
+    <string name="lang_zh">الصينية</string>
+    <string name="lang_th">التايلاندية</string>
+    <string name="lang_vi">الفيتنامية</string>
+    <string name="lang_es">الإسبانية</string>
+    <string name="lang_fr">الفرنسية</string>
+    <string name="lang_pt">البرتغالية</string>
+    <string name="lang_ru">الروسية</string>
+    <string name="lang_ja">اليابانية</string>
 </resources>

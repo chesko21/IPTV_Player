@@ -207,4 +207,27 @@
     <string name="player_cast_to">Hubungkan ke Perangkat</string>
     <string name="btn_stop_casting">Hentikan Casting</string>
     <string name="loading_message">MENJELAJAHI SEMESTA</string>
+    <string name="msg_switching_server">MENGALIHKAN SERVER...</string>
+
+    <!-- New Strings -->
+    <string name="msg_photo_updated">Foto profil berhasil diperbarui!</string>
+    <string name="msg_name_updated">Nama berhasil diperbarui!</string>
+    <string name="msg_email_updated">Email berhasil diperbarui!</string>
+    <string name="hint_enter_name">Masukkan nama Anda</string>
+    <string name="hint_enter_email">email@anda.com</string>
+    <string name="dialog_update_name">Perbarui nama Anda</string>
+    <string name="dialog_update_email">Perbarui alamat email Anda</string>
+
+    <string name="lang_in">Indonesia</string>
+    <string name="lang_en">Inggris</string>
+    <string name="lang_ms">Melayu</string>
+    <string name="lang_ar">Arab</string>
+    <string name="lang_zh">Mandarin</string>
+    <string name="lang_th">Thailand</string>
+    <string name="lang_vi">Vietnam</string>
+    <string name="lang_es">Spanyol</string>
+    <string name="lang_fr">Prancis</string>
+    <string name="lang_pt">Portugis</string>
+    <string name="lang_ru">Rusia</string>
+    <string name="lang_ja">Jepang</string>
 </resources>

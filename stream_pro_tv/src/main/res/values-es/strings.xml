@@ -36,6 +36,14 @@
     <string name="language_in">BAHASA INDONESIA</string>
     <string name="language_ms">BAHASA MELAYU</string>
     <string name="language_ar">ÁRABE</string>
+    <string name="language_es">ESPAÑOL</string>
+    <string name="language_fr">FRANCÉS</string>
+    <string name="language_pt">PORTUGUÉS</string>
+    <string name="language_ru">RUSO</string>
+    <string name="language_ja">JAPONÉS</string>
+    <string name="language_zh">CHINO</string>
+    <string name="language_th">TAILANDÉS</string>
+    <string name="language_vi">VIETNAMITA</string>
 
     <!-- Dialogs -->
     <string name="dialog_buffer_title">SELECCIONAR TAMAÑO DE BÚFER</string>

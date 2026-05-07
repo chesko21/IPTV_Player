@@ -227,18 +227,18 @@ fun SettingsScreen(
                             accentColor = accentColor
                         )
                         val langLabel = when (appLanguage) {
-                            "in" -> "Indonesia"
-                            "ms" -> "Malay"
-                            "ar" -> "Arabic"
-                            "zh" -> "Chinese"
-                            "th" -> "Thai"
-                            "vi" -> "Vietnamese"
-                            "es" -> "Spanish"
-                            "fr" -> "French"
-                            "pt" -> "Portuguese"
-                            "ru" -> "Russian"
-                            "ja" -> "Japanese"
-                            else -> "English"
+                            "in" -> stringResource(R.string.lang_in)
+                            "ms" -> stringResource(R.string.lang_ms)
+                            "ar" -> stringResource(R.string.lang_ar)
+                            "zh" -> stringResource(R.string.lang_zh)
+                            "th" -> stringResource(R.string.lang_th)
+                            "vi" -> stringResource(R.string.lang_vi)
+                            "es" -> stringResource(R.string.lang_es)
+                            "fr" -> stringResource(R.string.lang_fr)
+                            "pt" -> stringResource(R.string.lang_pt)
+                            "ru" -> stringResource(R.string.lang_ru)
+                            "ja" -> stringResource(R.string.lang_ja)
+                            else -> stringResource(R.string.lang_en)
                         }
                         SettingsItem(
                             icon = Icons.Default.Language,

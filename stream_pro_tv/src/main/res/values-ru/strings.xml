@@ -1,0 +1,180 @@
+<resources>
+    <string name="app_name">StreamPro TV</string>
+
+    <!-- Settings -->
+    <string name="settings_config_label">КОНФИГУРАЦИЯ</string>
+    <string name="settings_title">НАСТРОЙКИ ВСЕЛЕННОЙ</string>
+    <string name="settings_group_engine">КИНЕМАТОГРАФИЧЕСКИЙ ДВИЖОК</string>
+    <string name="settings_quality_title">Качество видео</string>
+    <string name="settings_quality_subtitle">Текущая цель: %1$s</string>
+    <string name="settings_quality_auto">Авто</string>
+    <string name="settings_hw_title">Аппаратное ускорение</string>
+    <string name="settings_hw_subtitle">Оптимизируйте производительность воспроизведения для вашего устройства</string>
+    <string name="settings_buffer_title">Размер звездного буфера</string>
+    <string name="settings_buffer_subtitle">Текущий буфер задержки: %1$ss</string>
+
+    <string name="settings_group_management">УПРАВЛЕНИЕ ЗВЕЗДНЫМИ КАРТАМИ</string>
+    <string name="settings_reload_title">Перезагрузить плейлист</string>
+    <string name="settings_reload_subtitle">Повторная синхронизация карт с главного сервера</string>
+    <string name="settings_reload_success">Плейлист успешно синхронизирован</string>
+    <string name="settings_cache_title">Очистить кэш пространства</string>
+    <string name="settings_cache_subtitle">Очистить временные данные и звездную пыль</string>
+    <string name="settings_cache_success">Кэш очищен</string>
+
+    <string name="settings_group_logs">ЛОГИ ПРИЛОЖЕНИЯ</string>
+    <string name="settings_about_title">О Вселенной</string>
+    <string name="settings_about_subtitle">Версия %1$s - Премиальное кинематографическое издание</string>
+
+    <string name="settings_group_exit">ВЫХОД СО СТАНЦИИ</string>
+    <string name="settings_logout_title">Выход и отключение</string>
+    <string name="settings_logout_subtitle">Стереть все карты и выйти в терминал</string>
+
+    <string name="settings_group_display">ЭКРАН И ЯЗЫК</string>
+    <string name="settings_language_title">Язык Вселенной</string>
+    <string name="settings_language_subtitle">Сейчас: %1$s</string>
+    <string name="language_en">АНГЛИЙСКИЙ</string>
+    <string name="language_in">ИНДОНЕЗИЙСКИЙ</string>
+    <string name="language_ms">МАЛАЙСКИЙ</string>
+    <string name="language_ar">АРАБСКИЙ</string>
+    <string name="language_es">ИСПАНСКИЙ</string>
+    <string name="language_fr">ФРАНЦУЗСКИЙ</string>
+    <string name="language_pt">ПОРТУГАЛЬСКИЙ</string>
+    <string name="language_ru">РУССКИЙ</string>
+    <string name="language_ja">ЯПОНСКИЙ</string>
+    <string name="language_zh">КИТАЙСКИЙ</string>
+    <string name="language_th">ТАЙСКИЙ</string>
+    <string name="language_vi">ВЬЕТНАМСКИЙ</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_buffer_title">ВЫБЕРИТЕ РАЗМЕР БУФЕРА</string>
+    <string name="dialog_quality_title">ЦЕЛЬ ВИДЕО</string>
+    <string name="dialog_language_title">ВЫБЕРИТЕ ЯЗЫК</string>
+    <string name="dialog_about_title">О ВСЕЛЕННОЙ</string>
+    <string name="dialog_unit_seconds">СЕКУНД</string>
+    <string name="dialog_auto_adaptive">АВТО-АДАПТИВНЫЙ</string>
+    <string name="dialog_resolution_p">РАЗРЕШЕНИЕ %1$dP</string>
+    <string name="dialog_dismiss">ЗАКРЫТЬ</string>
+
+    <!-- Branding -->
+    <string name="branding_explore">ИССЛЕДУЙТЕ КИНЕМАТОГРАФИЧЕСКУЮ ВСЕЛЕННУЮ</string>
+    <string name="branding_design">ДИЗАЙН CHESKO</string>
+    <string name="branding_developed">РАЗРАБОТАНО CHESKO</string>
+    <string name="branding_description">Разработано для высокопроизводительного кинематографического опыта на Android TV.</string>
+    <string name="branding_premium">ПРЕМИУМ ИЗДАНИЕ</string>
+    <string name="branding_premium_iptv">ПРЕМИУМ IPTV</string>
+
+    <!-- Login -->
+    <string name="login_tab_url">URL M3U</string>
+    <string name="login_tab_file">ЛОКАЛЬНЫЙ ФАЙЛ</string>
+    <string name="login_source_config">КОНФИГУРАЦИЯ ИСТОЧНИКА</string>
+    <string name="login_preset_demos">ПРЕДУСТАНОВЛЕННЫЕ ДЕМО URL</string>
+    <string name="login_server_label">СЕРВЕР %1$d</string>
+    <string name="login_url_placeholder">URL плейлиста M3U</string>
+    <string name="login_url_placeholder_example">https://example.com/playlist.m3u</string>
+    <string name="login_url_hint">Нажмите, чтобы ввести адрес</string>
+    <string name="login_target_url">Целевой URL</string>
+    <string name="login_btn_login">ВХОД</string>
+    <string name="login_btn_demo">ДЕМО</string>
+    <string name="login_file_config">КОНФИГУРАЦИЯ ФАЙЛА</string>
+    <string name="login_file_placeholder">Выберите локальный файл M3U</string>
+    <string name="login_file_hint">Просмотр внутреннего хранилища</string>
+    <string name="login_file_selected">Выбранный файл</string>
+    <string name="login_btn_connect_file">ПОДКЛЮЧИТЬ ФАЙЛ</string>
+    <string name="login_no_file">Файл не выбран</string>
+
+    <!-- Home -->
+    <string name="home_explore">Исследуйте ТВ-поток</string>
+    <string name="home_no_charts">В этом секторе не обнаружено звездных карт</string>
+    <string name="home_all_channels">ВСЕ каналы</string>
+
+    <!-- Search -->
+    <string name="search_discover">ОТКРЫТИЯ</string>
+    <string name="search_universe">ПОИСК ПО ВСЕЛЕННОЙ</string>
+    <string name="search_placeholder">Ищите звезды, планеты или каналы&#8230;</string>
+    <string name="search_no_results">В этом секторе звездных карт не найдено</string>
+
+    <!-- Player -->
+    <string name="player_syncing">СИНХРОНИЗАЦИЯ СИГНАЛА…</string>
+    <string name="player_back">НАЗАД</string>
+    <string name="player_menu">МЕНЮ</string>
+    <string name="player_prev">Назад</string>
+    <string name="player_rewind">Назад на 10с</string>
+    <string name="player_reload">Перезагрузить</string>
+    <string name="player_pause">Пауза</string>
+    <string name="player_play">Играть</string>
+    <string name="player_forward">Вперед на 10с</string>
+    <string name="player_next">Вперед</string>
+    <string name="player_now_streaming">СЕЙЧАС В ЭФИРЕ</string>
+    <string name="player_current_program">ТЕКУЩАЯ ПРОГРАММА</string>
+    <string name="player_no_program">ИНФОРМАЦИЯ О ПРОГРАММЕ НЕ НАЙДЕНА</string>
+    <string name="player_coming_up">ДАЛЕЕ</string>
+    <string name="player_sidebar_quality">КАЧЕСТВО ВИДЕО</string>
+    <string name="player_sidebar_audio">ОПЦИИ АУДИО</string>
+    <string name="player_sidebar_channels">СПИСОК КАНАЛОВ</string>
+    <string name="player_sidebar_favorite_add">Добавить в избранное</string>
+    <string name="player_sidebar_favorite_remove">Удалить из избранного</string>
+    <string name="player_sidebar_audio_boost">Усиление звука: %1$s</string>
+    <string name="player_sidebar_audio_tracks">АУДИОДОРОЖКИ</string>
+    <string name="player_sidebar_auto">Автоматически</string>
+    <string name="player_sidebar_audio_label">АУДИО</string>
+    <string name="player_sidebar_quality_label">Качество %1$d</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">ГЛАВНАЯ</string>
+    <string name="nav_search">ПОИСК</string>
+    <string name="nav_live">ТВ ЭФИР</string>
+    <string name="nav_movies">ФИЛЬМЫ</string>
+    <string name="nav_sports">СПОРТ</string>
+    <string name="nav_favorites">ИЗБРАННОЕ</string>
+    <string name="nav_settings">НАСТРОЙКИ</string>
+
+    <!-- Network -->
+    <string name="net_lost">Подключение к интернету потеряно. Пожалуйста, проверьте сеть.</string>
+    <string name="net_restored">Подключение к интернету восстановлено.</string>
+
+    <!-- Player Errors -->
+    <string name="error_video_stuck">Видео зависло, пожалуйста, перезагрузите</string>
+    <string name="error_404">Канал не найден (404)</string>
+    <string name="error_403">Доступ запрещен сервером (403)</string>
+    <string name="error_401">Токен доступа истек (401)</string>
+    <string name="error_504">Тайм-аут сервера (504)</string>
+    <string name="error_server_issue">Проблема сервера (%1$d)</string>
+    <string name="error_load_failed">Ошибка загрузки: Код %1$d</string>
+    <string name="error_http_connection">Проблема с подключением к серверу (HTTP Error)</string>
+    <string name="error_network_lost">Интернет-соединение потеряно</string>
+    <string name="error_timeout">Время ожидания соединения истекло (Timeout)</string>
+    <string name="error_protocol">Ошибка протокола (HTTP vs HTTPS)</string>
+    <string name="error_file_not_found">Видеофайл не найден</string>
+    <string name="error_decoding">Не удалось обработать видео (Codec Error)</string>
+    <string name="error_unsupported_format">Формат видео не поддерживается</string>
+    <string name="error_remote">Сервер не отвечает</string>
+    <string name="error_unknown">Не удалось загрузить (%1$s)</string>
+
+    <string name="player_system_error">СИСТЕМНАЯ ОШИБКА</string>
+    <string name="player_re_sync">НАЖМИТЕ ЦЕНТР ДЛЯ СИНХРОНИЗАЦИИ ЗВЕЗДНОЙ КАРТЫ</string>
+    <string name="player_signal_lost">СИГНАЛ МОЖЕТ БЫТЬ ПОТЕРЯН В ПУСТОТЕ</string>
+
+    <!-- Exit Dialog -->
+    <string name="exit_title">ВЫХОД ИЗ ВСЕЛЕННОЙ</string>
+    <string name="exit_msg">Вы уверены, что хотите покинуть кинематографическую вселенную?</string>
+    <string name="exit_btn_stay">ОСТАТЬСЯ</string>
+    <string name="exit_btn_exit">ВЫЙТИ</string>
+
+    <!-- Loading -->
+    <string name="loading_channels">Загрузка каналов…</string>
+
+    <!-- File Picker -->
+    <string name="file_picker_explorer">ПРОВОДНИК</string>
+    <string name="file_picker_parent_dir">Вернуться в родительскую вселенную</string>
+    <string name="file_picker_system_dir">Системный каталог</string>
+    <string name="file_picker_m3u_file">Файл плейлиста M3U • %1$d КБ</string>
+    <string name="file_picker_no_files">Совместимых звездных карт не найдено</string>
+
+    <!-- Components -->
+    <string name="content_desc_back">Назад</string>
+    <string name="content_desc_drm">Защищено DRM</string>
+
+    <string name="label_on">ВКЛ</string>
+    <string name="label_off">ВЫКЛ</string>
+    <string name="label_system_default">Системный по умолчанию</string>
+</resources>

@@ -64,6 +64,7 @@
     <string name="exit_confirm_msg">Are you sure you want to exit?</string>
     <string name="btn_exit">EXIT</string>
     <string name="premium_badge">PREMIUM</string>
+    <string name="drawer_group_playlists">ACTIVE PLAYLISTS</string>
     <string name="drawer_group_main">MAIN</string>
     <string name="drawer_group_settings">SETTINGS</string>
     <string name="drawer_group_support">SUPPORT</string>
@@ -207,4 +208,27 @@
     <string name="player_cast_to">Connect to Device</string>
     <string name="btn_stop_casting">Stop Casting</string>
     <string name="loading_message">EXPLORING UNIVERSE</string>
+    <string name="msg_switching_server">SWITCHING SERVER...</string>
+
+    <!-- New Strings -->
+    <string name="msg_photo_updated">Profile photo updated successfully!</string>
+    <string name="msg_name_updated">Name updated successfully!</string>
+    <string name="msg_email_updated">Email updated successfully!</string>
+    <string name="hint_enter_name">Enter your name</string>
+    <string name="hint_enter_email">your@email.com</string>
+    <string name="dialog_update_name">Update your name</string>
+    <string name="dialog_update_email">Update your email address</string>
+
+    <string name="lang_in">Indonesian</string>
+    <string name="lang_en">English</string>
+    <string name="lang_ms">Malay</string>
+    <string name="lang_ar">Arabic</string>
+    <string name="lang_zh">Chinese</string>
+    <string name="lang_th">Thai</string>
+    <string name="lang_vi">Vietnamese</string>
+    <string name="lang_es">Spanish</string>
+    <string name="lang_fr">French</string>
+    <string name="lang_pt">Portuguese</string>
+    <string name="lang_ru">Russian</string>
+    <string name="lang_ja">Japanese</string>
 </resources>

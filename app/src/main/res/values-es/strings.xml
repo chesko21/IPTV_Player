@@ -65,6 +65,7 @@
     <string name="exit_confirm_msg">¿Estás seguro de que quieres salir?</string>
     <string name="btn_exit">SALIR</string>
     <string name="premium_badge">PREMIUM</string>
+    <string name="drawer_group_playlists">LISTAS DE REPRODUCCIÓN ACTIVAS</string>
     <string name="drawer_group_main">PRINCIPAL</string>
     <string name="drawer_group_settings">AJUSTES</string>
     <string name="drawer_group_support">SOPORTE</string>
@@ -110,6 +111,11 @@
     <string name="btn_restore_xml">RESTAURAR AHORA</string>
     <string name="invalid_url_protocol">Protocolo de URL no válido</string>
 
+    <string name="login_preset_demos">URLS DEMO PREDEFINIDAS</string>
+    <string name="login_server_label">SERVIDOR %1$d</string>
+    <string name="login_url_placeholder_example">https://ejemplo.com/playlist.m3u</string>
+    <string name="login_url_hint">Clic para ingresar dirección</string>
+
     <!-- Help Screen -->
     <string name="help_center_title">Centro de Ayuda</string>
     <string name="faq_title">Preguntas Frecuentes</string>
@@ -123,6 +129,10 @@
     <string name="faq_a2">Asegúrate de que tu conexión sea estable. Algunos canales requieren VPN o tienen restricciones regionales.</string>
     <string name="faq_q3">¿Cómo ver la guía de TV (EPG)?</string>
     <string name="faq_a3">Abre el menú lateral y selecciona \'Guía de TV\'. El EPG se descargará automáticamente si la fuente lo permite.</string>
+    <string name="faq_q4">¿Cómo añadir a Favoritos?</string>
+    <string name="faq_a4">Al reproducir un vídeo, presiona el icono de \'Estrella\' en los controles del reproductor. O puedes mantener presionado el canal en la lista de inicio.</string>
+    <string name="faq_q5">La aplicación se siente lenta, ¿qué hacer?</string>
+    <string name="faq_a5">Puedes intentar borrar el caché en los Ajustes de Android, o reducir el número de listas activas si hay demasiadas.</string>
 
     <!-- Profile Screen -->
     <string name="profile_title">Mi Perfil</string>
@@ -195,4 +205,26 @@
     <string name="player_casting_active">Reproduciendo en TV</string>
     <string name="player_casting_title">Transmitir a dispositivo</string>
     <string name="loading_message">EXPLORANDO EL UNIVERSO</string>
+
+    <!-- New Strings -->
+    <string name="msg_photo_updated">¡Foto de perfil actualizada con éxito!</string>
+    <string name="msg_name_updated">¡Nombre actualizado con éxito!</string>
+    <string name="msg_email_updated">¡Email actualizado con éxito!</string>
+    <string name="hint_enter_name">Ingresa tu nombre</string>
+    <string name="hint_enter_email">tu@email.com</string>
+    <string name="dialog_update_name">Actualiza tu nombre</string>
+    <string name="dialog_update_email">Actualiza tu dirección de email</string>
+
+    <string name="lang_in">Indonesio</string>
+    <string name="lang_en">Inglés</string>
+    <string name="lang_ms">Malayo</string>
+    <string name="lang_ar">Árabe</string>
+    <string name="lang_zh">Chino</string>
+    <string name="lang_th">Tailandés</string>
+    <string name="lang_vi">Vietnamita</string>
+    <string name="lang_es">Español</string>
+    <string name="lang_fr">Francés</string>
+    <string name="lang_pt">Portugués</string>
+    <string name="lang_ru">Ruso</string>
+    <string name="lang_ja">Japonés</string>
 </resources>

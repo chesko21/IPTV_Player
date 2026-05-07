@@ -195,4 +195,26 @@
     <string name="player_casting_active">Reproduzindo na TV</string>
     <string name="player_casting_title">Transmitir para dispositivo</string>
     <string name="loading_message">EXPLORANDO O UNIVERSO</string>
+
+    <!-- New Strings -->
+    <string name="msg_photo_updated">Foto de perfil atualizada com sucesso!</string>
+    <string name="msg_name_updated">Nome atualizado com sucesso!</string>
+    <string name="msg_email_updated">Email atualizado com sucesso!</string>
+    <string name="hint_enter_name">Digite seu nome</string>
+    <string name="hint_enter_email">seu@email.com</string>
+    <string name="dialog_update_name">Atualize seu nome</string>
+    <string name="dialog_update_email">Atualize seu endereço de email</string>
+
+    <string name="lang_in">Indonésio</string>
+    <string name="lang_en">Inglês</string>
+    <string name="lang_ms">Malaio</string>
+    <string name="lang_ar">Árabe</string>
+    <string name="lang_zh">Chinês</string>
+    <string name="lang_th">Tailandês</string>
+    <string name="lang_vi">Vietnamita</string>
+    <string name="lang_es">Espanhol</string>
+    <string name="lang_fr">Francês</string>
+    <string name="lang_pt">Português</string>
+    <string name="lang_ru">Russo</string>
+    <string name="lang_ja">Japonês</string>
 </resources>

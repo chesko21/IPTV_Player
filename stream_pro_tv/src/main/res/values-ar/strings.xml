@@ -36,6 +36,14 @@
     <string name="language_in">الإندونيسية</string>
     <string name="language_ms">الملايوية</string>
     <string name="language_ar">العربية</string>
+    <string name="language_es">الإسبانية</string>
+    <string name="language_fr">الفرنسية</string>
+    <string name="language_pt">البرتغالية</string>
+    <string name="language_ru">الروسية</string>
+    <string name="language_ja">اليابانية</string>
+    <string name="language_zh">الصينية</string>
+    <string name="language_th">التايلاندية</string>
+    <string name="language_vi">الفيتنامية</string>
 
     <!-- Dialogs -->
     <string name="dialog_buffer_title">اختر حجم التخزين المؤقت</string>

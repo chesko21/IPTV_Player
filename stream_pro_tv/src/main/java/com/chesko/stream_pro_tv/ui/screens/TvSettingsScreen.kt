@@ -159,6 +159,14 @@ fun TvSettingsScreen(
                         "in" -> stringResource(R.string.language_in)
                         "ms" -> stringResource(R.string.language_ms)
                         "ar" -> stringResource(R.string.language_ar)
+                        "es" -> stringResource(R.string.language_es)
+                        "fr" -> stringResource(R.string.language_fr)
+                        "pt" -> stringResource(R.string.language_pt)
+                        "ru" -> stringResource(R.string.language_ru)
+                        "ja" -> stringResource(R.string.language_ja)
+                        "zh" -> stringResource(R.string.language_zh)
+                        "th" -> stringResource(R.string.language_th)
+                        "vi" -> stringResource(R.string.language_vi)
                         else -> stringResource(R.string.label_system_default)
                     }
                     TvSettingsActionItem(
@@ -310,7 +318,15 @@ fun TvSettingsScreen(
                     "en" to stringResource(R.string.language_en),
                     "in" to stringResource(R.string.language_in),
                     "ms" to stringResource(R.string.language_ms),
-                    "ar" to stringResource(R.string.language_ar)
+                    "ar" to stringResource(R.string.language_ar),
+                    "es" to stringResource(R.string.language_es),
+                    "fr" to stringResource(R.string.language_fr),
+                    "pt" to stringResource(R.string.language_pt),
+                    "ru" to stringResource(R.string.language_ru),
+                    "ja" to stringResource(R.string.language_ja),
+                    "zh" to stringResource(R.string.language_zh),
+                    "th" to stringResource(R.string.language_th),
+                    "vi" to stringResource(R.string.language_vi)
                 )
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     languages.forEach { (code, label) ->

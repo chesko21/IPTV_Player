@@ -1,0 +1,180 @@
+<resources>
+    <string name="app_name">StreamPro TV</string>
+
+    <!-- Settings -->
+    <string name="settings_config_label">設定</string>
+    <string name="settings_title">宇宙の設定</string>
+    <string name="settings_group_engine">シネマティックエンジン</string>
+    <string name="settings_quality_title">ビデオ品質</string>
+    <string name="settings_quality_subtitle">現在のターゲット: %1$s</string>
+    <string name="settings_quality_auto">自動</string>
+    <string name="settings_hw_title">ハードウェアアクセラレーション</string>
+    <string name="settings_hw_subtitle">お使いのデバイスに合わせて再生パフォーマンスを最適化します</string>
+    <string name="settings_buffer_title">スターバッファサイズ</string>
+    <string name="settings_buffer_subtitle">現在の遅延バッファ: %1$s秒</string>
+
+    <string name="settings_group_management">星図の管理</string>
+    <string name="settings_reload_title">プレイリストを再読み込み</string>
+    <string name="settings_reload_subtitle">マスターサーバーから星図を再同期します</string>
+    <string name="settings_reload_success">プレイリストが正常に同期されました</string>
+    <string name="settings_cache_title">スペースキャッシュを消去</string>
+    <string name="settings_cache_subtitle">一時的なデータと星屑をクリーンアップします</string>
+    <string name="settings_cache_success">キャッシュが消去されました</string>
+
+    <string name="settings_group_logs">アプリケーションログ</string>
+    <string name="settings_about_title">この宇宙について</string>
+    <string name="settings_about_subtitle">バージョン %1$s - プレミアムシネマティックエディション</string>
+
+    <string name="settings_group_exit">ステーション出口</string>
+    <string name="settings_logout_title">ログアウトと切断</string>
+    <string name="settings_logout_subtitle">すべての図を消去してターミナルに戻ります</string>
+
+    <string name="settings_group_display">表示と言語</string>
+    <string name="settings_language_title">宇宙の言語</string>
+    <string name="settings_language_subtitle">現在: %1$s</string>
+    <string name="language_en">英語</string>
+    <string name="language_in">インドネシア語</string>
+    <string name="language_ms">マレー語</string>
+    <string name="language_ar">アラビア語</string>
+    <string name="language_es">スペイン語</string>
+    <string name="language_fr">フランス語</string>
+    <string name="language_pt">ポルトガル語</string>
+    <string name="language_ru">ロシア語</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_zh">中国語</string>
+    <string name="language_th">タイ語</string>
+    <string name="language_vi">ベトナム語</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_buffer_title">バッファサイズを選択</string>
+    <string name="dialog_quality_title">ビデオターゲット</string>
+    <string name="dialog_language_title">言語を選択</string>
+    <string name="dialog_about_title">この宇宙について</string>
+    <string name="dialog_unit_seconds">秒</string>
+    <string name="dialog_auto_adaptive">自動アダプティブ</string>
+    <string name="dialog_resolution_p">%1$dp 解像度</string>
+    <string name="dialog_dismiss">閉じる</string>
+
+    <!-- Branding -->
+    <string name="branding_explore">シネマティックユニバースを探索</string>
+    <string name="branding_design">DESIGN By CHESKO</string>
+    <string name="branding_developed">DEVELOPED BY CHESKO</string>
+    <string name="branding_description">Android TVで高性能なシネマティック体験を実現するために設計されました。</string>
+    <string name="branding_premium">プレミアムエディション</string>
+    <string name="branding_premium_iptv">プレミアムIPTV</string>
+
+    <!-- Login -->
+    <string name="login_tab_url">M3U URL</string>
+    <string name="login_tab_file">ローカルファイル</string>
+    <string name="login_source_config">ソース設定</string>
+    <string name="login_preset_demos">デモURLプリセット</string>
+    <string name="login_server_label">サーバー %1$d</string>
+    <string name="login_url_placeholder">プレイリストM3U URL</string>
+    <string name="login_url_placeholder_example">https://example.com/playlist.m3u</string>
+    <string name="login_url_hint">クリックしてアドレスを入力</string>
+    <string name="login_target_url">ターゲットURL</string>
+    <string name="login_btn_login">ログイン</string>
+    <string name="login_btn_demo">デモ</string>
+    <string name="login_file_config">ファイル設定</string>
+    <string name="login_file_placeholder">ローカルM3Uファイルを選択</string>
+    <string name="login_file_hint">内部ストレージをブラウズ</string>
+    <string name="login_file_selected">選択されたファイル</string>
+    <string name="login_btn_connect_file">ファイルを接続</string>
+    <string name="login_no_file">ファイルが選択されていません</string>
+
+    <!-- Home -->
+    <string name="home_explore">TVストリームを探索</string>
+    <string name="home_no_charts">このセクターで発見された星図はありません</string>
+    <string name="home_all_channels">すべてのチャンネル</string>
+
+    <!-- Search -->
+    <string name="search_discover">発見</string>
+    <string name="search_universe">ユニバース検索</string>
+    <string name="search_placeholder">星、惑星、またはチャンネルを検索&#8230;</string>
+    <string name="search_no_results">このセクターで星図は見つかりませんでした</string>
+
+    <!-- Player -->
+    <string name="player_syncing">信号を同期中…</string>
+    <string name="player_back">戻る</string>
+    <string name="player_menu">メニュー</string>
+    <string name="player_prev">前へ</string>
+    <string name="player_rewind">10秒戻る</string>
+    <string name="player_reload">再読み込み</string>
+    <string name="player_pause">一時停止</string>
+    <string name="player_play">再生</string>
+    <string name="player_forward">10秒進む</string>
+    <string name="player_next">次へ</string>
+    <string name="player_now_streaming">現在ストリーミング中</string>
+    <string name="player_current_program">現在の番組</string>
+    <string name="player_no_program">番組情報が見つかりません</string>
+    <string name="player_coming_up">次の番組</string>
+    <string name="player_sidebar_quality">ビデオ品質</string>
+    <string name="player_sidebar_audio">オーディオオプション</string>
+    <string name="player_sidebar_channels">チャンネルリスト</string>
+    <string name="player_sidebar_favorite_add">お気に入りに追加</string>
+    <string name="player_sidebar_favorite_remove">お気に入りから削除</string>
+    <string name="player_sidebar_audio_boost">オーディオブースト: %1$s</string>
+    <string name="player_sidebar_audio_tracks">オーディオトラック</string>
+    <string name="player_sidebar_auto">自動</string>
+    <string name="player_sidebar_audio_label">オーディオ</string>
+    <string name="player_sidebar_quality_label">品質 %1$d</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">ホーム</string>
+    <string name="nav_search">検索</string>
+    <string name="nav_live">ライブTV</string>
+    <string name="nav_movies">映画</string>
+    <string name="nav_sports">スポーツ</string>
+    <string name="nav_favorites">お気に入り</string>
+    <string name="nav_settings">設定</string>
+
+    <!-- Network -->
+    <string name="net_lost">インターネット接続が切断されました。ネットワークを確認してください。</string>
+    <string name="net_restored">インターネット接続が復旧しました。</string>
+
+    <!-- Player Errors -->
+    <string name="error_video_stuck">ビデオが停止しました。再読み込みしてください</string>
+    <string name="error_404">チャンネルが見つかりません (404)</string>
+    <string name="error_403">サーバーによってアクセスが拒否されました (403)</string>
+    <string name="error_401">アクセストークンが期限切れです (401)</string>
+    <string name="error_504">サーバータイムアウト (504)</string>
+    <string name="error_server_issue">サーバーの問題 (%1$d)</string>
+    <string name="error_load_failed">読み込み失敗: コード %1$d</string>
+    <string name="error_http_connection">サーバー接続の問題 (HTTPエラー)</string>
+    <string name="error_network_lost">インターネット接続が失われました</string>
+    <string name="error_timeout">接続がタイムアウトしました (Timeout)</string>
+    <string name="error_protocol">プロトコルエラー (HTTP vs HTTPS)</string>
+    <string name="error_file_not_found">ビデオファイルが見つかりません</string>
+    <string name="error_decoding">ビデオの処理に失敗しました (コーデックエラー)</string>
+    <string name="error_unsupported_format">サポートされていないビデオ形式です</string>
+    <string name="error_remote">サーバーが応答しません</string>
+    <string name="error_unknown">読み込みに失敗しました (%1$s)</string>
+
+    <string name="player_system_error">システムエラー</string>
+    <string name="player_re_sync">中央を押して星図を再同期</string>
+    <string name="player_signal_lost">信号が虚空に消えた可能性があります</string>
+
+    <!-- Exit Dialog -->
+    <string name="exit_title">宇宙を出る</string>
+    <string name="exit_msg">シネマティックユニバースを離れますか？</string>
+    <string name="exit_btn_stay">留まる</string>
+    <string name="exit_btn_exit">出る</string>
+
+    <!-- Loading -->
+    <string name="loading_channels">チャンネルを読み込み中…</string>
+
+    <!-- File Picker -->
+    <string name="file_picker_explorer">エクスプローラー</string>
+    <string name="file_picker_parent_dir">親宇宙に戻る</string>
+    <string name="file_picker_system_dir">システムディレクトリ</string>
+    <string name="file_picker_m3u_file">M3Uプレイリストファイル • %1$d KB</string>
+    <string name="file_picker_no_files">互換性のある星図が見つかりません</string>
+
+    <!-- Components -->
+    <string name="content_desc_back">戻る</string>
+    <string name="content_desc_drm">DRM保護済み</string>
+
+    <string name="label_on">オン</string>
+    <string name="label_off">オフ</string>
+    <string name="label_system_default">システムデフォルト</string>
+</resources>

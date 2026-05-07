@@ -62,6 +62,7 @@
     <string name="exit_confirm_msg">アプリを終了しますか？</string>
     <string name="btn_exit">終了</string>
     <string name="premium_badge">プレミアム</string>
+    <string name="drawer_group_playlists">アクティブなプレイリスト</string>
     <string name="drawer_group_main">メイン</string>
     <string name="drawer_group_settings">設定</string>
     <string name="drawer_group_support">サポート</string>
@@ -120,6 +121,10 @@
     <string name="faq_a2">インターネット接続を確認してください。一部のチャンネルはVPNが必要な場合があります。</string>
     <string name="faq_q3">番組ガイド（EPG）を見るには？</string>
     <string name="faq_a3">サイドメニューから「番組ガイド」を選択してください。対応している場合は自動で読み込まれます。</string>
+    <string name="faq_q4">お気に入りに追加するには？</string>
+    <string name="faq_a4">ビデオの再生中に、プレイヤーコントロールの「星」アイコンを押してください。または、ホームリストのチャンネル項目を長押しすることでも追加できます。</string>
+    <string name="faq_q5">アプリの動作が重い場合は？</string>
+    <string name="faq_a5">Androidの設定でキャッシュを消去するか、有効なプレイリストが多すぎる場合はその数を減らしてみてください。</string>
 
     <!-- Profile Screen -->
     <string name="profile_title">マイプロフィール</string>
@@ -192,4 +197,32 @@
     <string name="player_casting_active">テレビで再生中</string>
     <string name="player_casting_title">デバイスにキャスト</string>
     <string name="loading_message">宇宙を探索中</string>
+
+    <string name="login_preset_demos">デモURLプリセット</string>
+    <string name="login_server_label">サーバー %1$d</string>
+    <string name="login_url_placeholder_example">https://example.com/playlist.m3u</string>
+    <string name="login_url_hint">クリックしてアドレスを入力</string>
+    <string name="msg_switching_server">サーバーを切り替えています...</string>
+
+    <!-- New Strings -->
+    <string name="msg_photo_updated">プロフィール写真が更新されました！</string>
+    <string name="msg_name_updated">名前が更新されました！</string>
+    <string name="msg_email_updated">メールアドレスが更新されました！</string>
+    <string name="hint_enter_name">名前を入力してください</string>
+    <string name="hint_enter_email">email@example.com</string>
+    <string name="dialog_update_name">名前の更新</string>
+    <string name="dialog_update_email">メールアドレスの更新</string>
+
+    <string name="lang_in">インドネシア語</string>
+    <string name="lang_en">英語</string>
+    <string name="lang_ms">マレー語</string>
+    <string name="lang_ar">アラビア語</string>
+    <string name="lang_zh">中国語</string>
+    <string name="lang_th">タイ語</string>
+    <string name="lang_vi">ベトナム語</string>
+    <string name="lang_es">スペイン語</string>
+    <string name="lang_fr">フランス語</string>
+    <string name="lang_pt">ポルトガル語</string>
+    <string name="lang_ru">ロシア語</string>
+    <string name="lang_ja">日本語</string>
 </resources>

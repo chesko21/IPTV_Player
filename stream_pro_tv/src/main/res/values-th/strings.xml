@@ -1,0 +1,180 @@
+<resources>
+    <string name="app_name">StreamPro TV</string>
+
+    <!-- Settings -->
+    <string name="settings_config_label">การกำหนดค่า</string>
+    <string name="settings_title">การตั้งค่าจักรวาล</string>
+    <string name="settings_group_engine">เอนจินภาพยนตร์</string>
+    <string name="settings_quality_title">คุณภาพวิดีโอ</string>
+    <string name="settings_quality_subtitle">เป้าหมายปัจจุบัน: %1$s</string>
+    <string name="settings_quality_auto">อัตโนมัติ</string>
+    <string name="settings_hw_title">การเร่งความเร็วด้วยฮาร์ดแวร์</string>
+    <string name="settings_hw_subtitle">เพิ่มประสิทธิภาพการเล่นสำหรับอุปกรณ์ของคุณ</string>
+    <string name="settings_buffer_title">ขนาดบัฟเฟอร์สตาร์</string>
+    <string name="settings_buffer_subtitle">บัฟเฟอร์ปัจจุบัน: %1$ss</string>
+
+    <string name="settings_group_management">การจัดการแผนที่ดาว</string>
+    <string name="settings_reload_title">โหลดเพลย์ลิสต์ใหม่</string>
+    <string name="settings_reload_subtitle">ซิงค์แผนที่ดาวใหม่จากเซิร์ฟเวอร์หลัก</string>
+    <string name="settings_reload_success">ซิงค์เพลย์ลิสต์สำเร็จแล้ว</string>
+    <string name="settings_cache_title">ล้างแคชอวกาศ</string>
+    <string name="settings_cache_subtitle">ล้างข้อมูลชั่วคราวและฝุ่นดาว</string>
+    <string name="settings_cache_success">ล้างแคชแล้ว</string>
+
+    <string name="settings_group_logs">บันทึกแอปพลิเคชัน</string>
+    <string name="settings_about_title">เกี่ยวกับจักรวาล</string>
+    <string name="settings_about_subtitle">เวอร์ชัน %1$s - รุ่นภาพยนตร์พรีเมียม</string>
+
+    <string name="settings_group_exit">ทางออกสถานี</string>
+    <string name="settings_logout_title">ออกจากระบบและตัดการเชื่อมต่อ</string>
+    <string name="settings_logout_subtitle">ล้างแผนที่ทั้งหมดและกลับไปยังเทอร์มินัล</string>
+
+    <string name="settings_group_display">การแสดงผลและภาษา</string>
+    <string name="settings_language_title">ภาษาของจักรวาล</string>
+    <string name="settings_language_subtitle">ปัจจุบัน: %1$s</string>
+    <string name="language_en">อังกฤษ</string>
+    <string name="language_in">อินโดนีเซีย</string>
+    <string name="language_ms">มลายู</string>
+    <string name="language_ar">อาหรับ</string>
+    <string name="language_es">สเปน</string>
+    <string name="language_fr">ฝรั่งเศส</string>
+    <string name="language_pt">โปรตุเกส</string>
+    <string name="language_ru">รัสเซีย</string>
+    <string name="language_ja">ญี่ปุ่น</string>
+    <string name="language_zh">จีน</string>
+    <string name="language_th">ไทย</string>
+    <string name="language_vi">เวียดนาม</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_buffer_title">เลือกขนาดบัฟเฟอร์</string>
+    <string name="dialog_quality_title">เป้าหมายวิดีโอ</string>
+    <string name="dialog_language_title">เลือกภาษา</string>
+    <string name="dialog_about_title">เกี่ยวกับจักรวาล</string>
+    <string name="dialog_unit_seconds">วินาที</string>
+    <string name="dialog_auto_adaptive">ปรับอัตโนมัติ</string>
+    <string name="dialog_resolution_p">ความละเอียด %1$dP</string>
+    <string name="dialog_dismiss">ปิด</string>
+
+    <!-- Branding -->
+    <string name="branding_explore">สำรวจจักรวาลภาพยนตร์</string>
+    <string name="branding_design">ออกแบบโดย CHESKO</string>
+    <string name="branding_developed">พัฒนาโดย CHESKO</string>
+    <string name="branding_description">ออกแบบมาเพื่อประสบการณ์ภาพยนตร์ประสิทธิภาพสูงบน Android TV</string>
+    <string name="branding_premium">รุ่นพรีเมียม</string>
+    <string name="branding_premium_iptv">IPTV พรีเมียม</string>
+
+    <!-- Login -->
+    <string name="login_tab_url">URL M3U</string>
+    <string name="login_tab_file">ไฟล์ในเครื่อง</string>
+    <string name="login_source_config">การกำหนดค่าแหล่งที่มา</string>
+    <string name="login_preset_demos">รายการ URL เดโม</string>
+    <string name="login_server_label">เซิร์ฟเวอร์ %1$d</string>
+    <string name="login_url_placeholder">URL เพลย์ลิสต์ M3U</string>
+    <string name="login_url_placeholder_example">https://example.com/playlist.m3u</string>
+    <string name="login_url_hint">คลิกเพื่อป้อนที่อยู่</string>
+    <string name="login_target_url">URL เป้าหมาย</string>
+    <string name="login_btn_login">เข้าสู่ระบบ</string>
+    <string name="login_btn_demo">เดโม</string>
+    <string name="login_file_config">การกำหนดค่าไฟล์</string>
+    <string name="login_file_placeholder">เลือกไฟล์ M3U ในเครื่อง</string>
+    <string name="login_file_hint">เรียกดูหน่วยความจำภายใน</string>
+    <string name="login_file_selected">ไฟล์ที่เลือก</string>
+    <string name="login_btn_connect_file">เชื่อมต่อไฟล์</string>
+    <string name="login_no_file">ไม่ได้เลือกไฟล์</string>
+
+    <!-- Home -->
+    <string name="home_explore">สำรวจสตรีมทีวี</string>
+    <string name="home_no_charts">ไม่พบแผนที่ดาวในเซกเตอร์นี้</string>
+    <string name="home_all_channels">ทุกช่องรายการ</string>
+
+    <!-- Search -->
+    <string name="search_discover">ค้นพบ</string>
+    <string name="search_universe">การค้นหาจักรวาล</string>
+    <string name="search_placeholder">ค้นหาดวงดาว ดาวเคราะห์ หรือช่องรายการ&#8230;</string>
+    <string name="search_no_results">ไม่พบแผนที่ดาวในเซกเตอร์นี้</string>
+
+    <!-- Player -->
+    <string name="player_syncing">กำลังซิงค์สัญญาณ…</string>
+    <string name="player_back">กลับ</string>
+    <string name="player_menu">เมนู</string>
+    <string name="player_prev">ก่อนหน้า</string>
+    <string name="player_rewind">ย้อนกลับ 10 วิ</string>
+    <string name="player_reload">โหลดใหม่</string>
+    <string name="player_pause">หยุด</string>
+    <string name="player_play">เล่น</string>
+    <string name="player_forward">ไปข้างหน้า 10 วิ</string>
+    <string name="player_next">ถัดไป</string>
+    <string name="player_now_streaming">กำลังสตรีม</string>
+    <string name="player_current_program">รายการปัจจุบัน</string>
+    <string name="player_no_program">ไม่พบข้อมูลรายการ</string>
+    <string name="player_coming_up">ถัดไป</string>
+    <string name="player_sidebar_quality">คุณภาพวิดีโอ</string>
+    <string name="player_sidebar_audio">ตัวเลือกเสียง</string>
+    <string name="player_sidebar_channels">รายการช่อง</string>
+    <string name="player_sidebar_favorite_add">เพิ่มในรายการโปรด</string>
+    <string name="player_sidebar_favorite_remove">ลบออกจากรายการโปรด</string>
+    <string name="player_sidebar_audio_boost">เร่งเสียง: %1$s</string>
+    <string name="player_sidebar_audio_tracks">แทร็กเสียง</string>
+    <string name="player_sidebar_auto">อัตโนมัติ</string>
+    <string name="player_sidebar_audio_label">เสียง</string>
+    <string name="player_sidebar_quality_label">คุณภาพ %1$d</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">หน้าหลัก</string>
+    <string name="nav_search">ค้นหา</string>
+    <string name="nav_live">ทีวีสด</string>
+    <string name="nav_movies">ภาพยนตร์</string>
+    <string name="nav_sports">กีฬา</string>
+    <string name="nav_favorites">รายการโปรด</string>
+    <string name="nav_settings">ตั้งค่า</string>
+
+    <!-- Network -->
+    <string name="net_lost">การเชื่อมต่ออินเทอร์เน็ตขาดหาย โปรดตรวจสอบเครือข่ายของคุณ</string>
+    <string name="net_restored">เชื่อมต่ออินเทอร์เน็ตแล้ว</string>
+
+    <!-- Player Errors -->
+    <string name="error_video_stuck">วิดีโอติดขัด โปรดโหลดใหม่</string>
+    <string name="error_404">ไม่พบช่องรายการ (404)</string>
+    <string name="error_403">การเข้าถึงถูกปฏิเสธโดยเซิร์ฟเวอร์ (403)</string>
+    <string name="error_401">โทเค็นการเข้าถึงหมดอายุ (401)</string>
+    <string name="error_504">เซิร์ฟเวอร์หมดเวลา (504)</string>
+    <string name="error_server_issue">ปัญหาเซิร์ฟเวอร์ (%1$d)</string>
+    <string name="error_load_failed">โหลดไม่สำเร็จ: รหัส %1$d</string>
+    <string name="error_http_connection">ปัญหาการเชื่อมต่อเซิร์ฟเวอร์ (HTTP Error)</string>
+    <string name="error_network_lost">การเชื่อมต่ออินเทอร์เน็ตขาดหาย</string>
+    <string name="error_timeout">การเชื่อมต่อหมดเวลา (Timeout)</string>
+    <string name="error_protocol">ข้อผิดพลาดโปรโตคอล (HTTP vs HTTPS)</string>
+    <string name="error_file_not_found">ไม่พบไฟล์วิดีโอ</string>
+    <string name="error_decoding">การประมวลผลวิดีโอล้มเหลว (Codec Error)</string>
+    <string name="error_unsupported_format">ไม่รองรับรูปแบบวิดีโอ</string>
+    <string name="error_remote">เซิร์ฟเวอร์ไม่ตอบสนอง</string>
+    <string name="error_unknown">โหลดไม่สำเร็จ (%1$s)</string>
+
+    <string name="player_system_error">ข้อผิดพลาดของระบบ</string>
+    <string name="player_re_sync">กดตรงกลางเพื่อซิงค์แผนที่ดาวใหม่</string>
+    <string name="player_signal_lost">สัญญาณอาจหายไปในความว่างเปล่า</string>
+
+    <!-- Exit Dialog -->
+    <string name="exit_title">ออกจากจักรวาล</string>
+    <string name="exit_msg">คุณแน่ใจหรือไม่ว่าต้องการออกจากจักรวาลภาพยนตร์?</string>
+    <string name="exit_btn_stay">อยู่ต่อ</string>
+    <string name="exit_btn_exit">ออก</string>
+
+    <!-- Loading -->
+    <string name="loading_channels">กำลังโหลดช่องรายการ…</string>
+
+    <!-- File Picker -->
+    <string name="file_picker_explorer">ตัวสำรวจ</string>
+    <string name="file_picker_parent_dir">กลับไปยังจักรวาลหลัก</string>
+    <string name="file_picker_system_dir">ไดเรกทอรีระบบ</string>
+    <string name="file_picker_m3u_file">ไฟล์เพลย์ลิสต์ M3U • %1$d KB</string>
+    <string name="file_picker_no_files">ไม่พบแผนที่ดาวที่เข้ากันได้</string>
+
+    <!-- Components -->
+    <string name="content_desc_back">กลับ</string>
+    <string name="content_desc_drm">ได้รับการป้องกันด้วย DRM</string>
+
+    <string name="label_on">เปิด</string>
+    <string name="label_off">ปิด</string>
+    <string name="label_system_default">ค่าเริ่มต้นระบบ</string>
+</resources>

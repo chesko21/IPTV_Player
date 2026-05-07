@@ -74,6 +74,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _selectedPlaylistId = MutableStateFlow<Int?>(null)
     val selectedPlaylistId: StateFlow<Int?> = _selectedPlaylistId
 
+    private val _categoryFilter = MutableStateFlow<String?>(null)
+    val categoryFilter: StateFlow<String?> = _categoryFilter
+
     private val _selectedChannel = MutableStateFlow<IptvChannel?>(null)
     val selectedChannel: StateFlow<IptvChannel?> = _selectedChannel
 
@@ -110,7 +113,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _backgroundImageUri = MutableStateFlow(prefs.getString("background_image_uri", null))
     val backgroundImageUri: StateFlow<String?> = _backgroundImageUri
 
-    private val _appLanguage = MutableStateFlow(prefs.getString("app_language", "in") ?: "in")
+    private val _appLanguage = MutableStateFlow(prefs.getString("app_language", "en") ?: "en")
     val appLanguage: StateFlow<String> = _appLanguage
 
     private val _userName = MutableStateFlow(prefs.getString("user_name", application.getString(R.string.default_user_name)) ?: application.getString(R.string.default_user_name))
@@ -401,6 +404,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         repository = ChannelRepository(channelDao, epgDao, playlistDao)
 
         _lastUrl.value = prefs.getString("last_m3u_url", "") ?: ""
+        
+        // RESTORE: Ambil ID playlist terakhir yang dipilih
+        val savedPlaylistId = prefs.getInt("last_selected_playlist_id", -1)
+        _selectedPlaylistId.value = if (savedPlaylistId != -1) savedPlaylistId else null
 
         checkAndClearCache()
 
@@ -506,7 +513,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _selectedGroup,
         _selectedPlaylistId,
         favoriteChannels,
-        recentlyPlayed
+        recentlyPlayed,
+        _categoryFilter
     ) { array ->
         @Suppress("UNCHECKED_CAST")
         val channels = array[0] as List<IptvChannel>
@@ -517,11 +525,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val favorites = array[4] as List<IptvChannel>
         @Suppress("UNCHECKED_CAST")
         val history = array[5] as List<IptvChannel>
+        val category = array[6] as String?
 
-        val baseList = when (group) {
+        var baseList = when (group) {
             getApplication<Application>().getString(R.string.group_favorites) -> favorites
             getApplication<Application>().getString(R.string.group_recently_played) -> history
             else -> if (playlistId != null) channels.filter { it.playlistId == playlistId } else channels
+        }
+
+        // Apply Category Filter
+        if (category != null) {
+            baseList = baseList.filter { ch ->
+                val g = ch.group?.lowercase() ?: ""
+                when (category.lowercase()) {
+                    "live" -> g.contains("live") || g.contains("tv") || g.contains("stream") || (!g.contains("movie") && !g.contains("series"))
+                    "movies" -> g.contains("movie") || g.contains("film") || g.contains("cinema")
+                    "sport" -> g.contains("sport") || g.contains("bola") || g.contains("arena")
+                    else -> true
+                }
+            }
         }
 
         baseList.filter { channel ->
@@ -630,7 +652,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 // AKTIFKAN FILTER: Set playlist yang baru dimuat sebagai playlist aktif
-                _selectedPlaylistId.value = playlist?.id
+                val pId = playlist?.id
+                _selectedPlaylistId.value = pId
+                prefs.edit { putInt("last_selected_playlist_id", pId ?: -1) }
+                
                 _selectedGroup.value = null // Reset filter grup agar tidak bentrok
 
                 val m3uContent = when {
@@ -814,8 +839,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _selectedGroup.value = group
     }
 
+    fun setCategoryFilter(category: String?) {
+        _categoryFilter.value = category
+    }
+
     fun setSelectedPlaylistId(id: Int?) {
         _selectedPlaylistId.value = id
+        prefs.edit { putInt("last_selected_playlist_id", id ?: -1) }
+        
         if (id != null) {
             viewModelScope.launch {
                 val playlist = allPlaylists.value.find { it.id == id }
@@ -1113,10 +1144,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             repository.clearEpg()
             repository.clearRecentlyPlayed()
             _lastUrl.value = ""
+            _selectedPlaylistId.value = null
             prefs.edit {
                 remove("last_m3u_url")
                 remove("last_m3u_update")
                 remove("last_epg_update")
+                remove("last_selected_playlist_id")
             }
             _isLoading.value = false
         }

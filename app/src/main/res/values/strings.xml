@@ -92,14 +92,14 @@
     <string name="no_program_info">Tidak ada info program</string>
 
     <!-- Login Screen -->
-    <string name="tab_remote_url">REMOTE URL</string>
-    <string name="tab_local_file">LOCAL FILE</string>
-    <string name="tab_restore">RESTORE XML</string>
+    <string name="tab_remote_url">URL REMOTE</string>
+    <string name="tab_local_file">FILE LOKAL</string>
+    <string name="tab_restore">PULIHKAN XML</string>
     <string name="login_secure_msg">KONEKSI AMAN TERENKRIPSI</string>
     <string name="dialog_explore_demo">JELAJAHI DEMO</string>
     <string name="demo_playlist_label">Playlist Demo %1$d</string>
-    <string name="demo_playlist_name">Universal Playlist %1$d</string>
-    <string name="m3u_endpoint_label">M3U PLAYLIST ENDPOINT</string>
+    <string name="demo_playlist_name">Playlist Universal %1$d</string>
+    <string name="m3u_endpoint_label">ENDPOINT PLAYLIST M3U</string>
     <string name="url_placeholder">https://provider-anda.com/playlist.m3u</string>
     <string name="btn_connect">HUBUNGKAN</string>
     <string name="btn_demo">DEMO</string>
@@ -209,4 +209,27 @@
     <string name="player_cast_to">Hubungkan ke Perangkat</string>
     <string name="btn_stop_casting">Hentikan Casting</string>
     <string name="loading_message">MENJELAJAHI SEMESTA</string>
+    <string name="msg_switching_server">MENGALIHKAN SERVER...</string>
+
+    <!-- New Strings -->
+    <string name="msg_photo_updated">Foto profil berhasil diperbarui!</string>
+    <string name="msg_name_updated">Nama berhasil diperbarui!</string>
+    <string name="msg_email_updated">Email berhasil diperbarui!</string>
+    <string name="hint_enter_name">Masukkan nama Anda</string>
+    <string name="hint_enter_email">email@anda.com</string>
+    <string name="dialog_update_name">Perbarui nama Anda</string>
+    <string name="dialog_update_email">Perbarui alamat email Anda</string>
+
+    <string name="lang_in">Indonesia</string>
+    <string name="lang_en">Inggris</string>
+    <string name="lang_ms">Melayu</string>
+    <string name="lang_ar">Arab</string>
+    <string name="lang_zh">Mandarin</string>
+    <string name="lang_th">Thailand</string>
+    <string name="lang_vi">Vietnam</string>
+    <string name="lang_es">Spanyol</string>
+    <string name="lang_fr">Prancis</string>
+    <string name="lang_pt">Portugis</string>
+    <string name="lang_ru">Rusia</string>
+    <string name="lang_ja">Jepang</string>
 </resources>

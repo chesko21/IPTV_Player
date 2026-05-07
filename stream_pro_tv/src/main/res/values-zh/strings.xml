@@ -1,0 +1,180 @@
+<resources>
+    <string name="app_name">StreamPro TV</string>
+
+    <!-- Settings -->
+    <string name="settings_config_label">配置</string>
+    <string name="settings_title">宇宙设置</string>
+    <string name="settings_group_engine">电影引擎</string>
+    <string name="settings_quality_title">视频质量</string>
+    <string name="settings_quality_subtitle">当前目标: %1$s</string>
+    <string name="settings_quality_auto">自动</string>
+    <string name="settings_hw_title">硬件加速</string>
+    <string name="settings_hw_subtitle">为您的设备优化播放性能</string>
+    <string name="settings_buffer_title">星际缓存大小</string>
+    <string name="settings_buffer_subtitle">当前延迟缓存: %1$ss</string>
+
+    <string name="settings_group_management">星图管理</string>
+    <string name="settings_reload_title">重新加载播放列表</string>
+    <string name="settings_reload_subtitle">从主服务器重新同步星图</string>
+    <string name="settings_reload_success">播放列表同步成功</string>
+    <string name="settings_cache_title">清除空间缓存</string>
+    <string name="settings_cache_subtitle">清除临时数据和星尘</string>
+    <string name="settings_cache_success">缓存已清除</string>
+
+    <string name="settings_group_logs">应用日志</string>
+    <string name="settings_about_title">关于宇宙</string>
+    <string name="settings_about_subtitle">版本 %1$s - 高级电影版</string>
+
+    <string name="settings_group_exit">退出站点</string>
+    <string name="settings_logout_title">注销并断开连接</string>
+    <string name="settings_logout_subtitle">清除所有星图并退出到终端</string>
+
+    <string name="settings_group_display">显示与语言</string>
+    <string name="settings_language_title">宇宙语言</string>
+    <string name="settings_language_subtitle">当前: %1$s</string>
+    <string name="language_en">英语</string>
+    <string name="language_in">印度尼西亚语</string>
+    <string name="language_ms">马来语</string>
+    <string name="language_ar">阿拉伯语</string>
+    <string name="language_es">西班牙语</string>
+    <string name="language_fr">法语</string>
+    <string name="language_pt">葡萄牙语</string>
+    <string name="language_ru">俄语</string>
+    <string name="language_ja">日语</string>
+    <string name="language_zh">中文</string>
+    <string name="language_th">泰语</string>
+    <string name="language_vi">越南语</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_buffer_title">选择缓存大小</string>
+    <string name="dialog_quality_title">视频目标</string>
+    <string name="dialog_language_title">选择语言</string>
+    <string name="dialog_about_title">关于宇宙</string>
+    <string name="dialog_unit_seconds">秒</string>
+    <string name="dialog_auto_adaptive">自动适应</string>
+    <string name="dialog_resolution_p">%1$dP 分辨率</string>
+    <string name="dialog_dismiss">关闭</string>
+
+    <!-- Branding -->
+    <string name="branding_explore">探索电影宇宙</string>
+    <string name="branding_design">由 CHESKO 设计</string>
+    <string name="branding_developed">由 CHESKO 开发</string>
+    <string name="branding_description">专为 Android TV 上的高性能电影体验而设计。</string>
+    <string name="branding_premium">高级版</string>
+    <string name="branding_premium_iptv">高级 IPTV</string>
+
+    <!-- Login -->
+    <string name="login_tab_url">M3U URL</string>
+    <string name="login_tab_file">本地文件</string>
+    <string name="login_source_config">源配置</string>
+    <string name="login_preset_demos">预设演示 URL</string>
+    <string name="login_server_label">服务器 %1$d</string>
+    <string name="login_url_placeholder">播放列表 M3U URL</string>
+    <string name="login_url_placeholder_example">https://example.com/playlist.m3u</string>
+    <string name="login_url_hint">点击输入地址</string>
+    <string name="login_target_url">目标 URL</string>
+    <string name="login_btn_login">登录</string>
+    <string name="login_btn_demo">演示</string>
+    <string name="login_file_config">文件配置</string>
+    <string name="login_file_placeholder">选择本地 M3U 文件</string>
+    <string name="login_file_hint">浏览内部存储</string>
+    <string name="login_file_selected">已选文件</string>
+    <string name="login_btn_connect_file">连接文件</string>
+    <string name="login_no_file">未选择文件</string>
+
+    <!-- Home -->
+    <string name="home_explore">探索电视流</string>
+    <string name="home_no_charts">该区域未发现星图</string>
+    <string name="home_all_channels">所有频道</string>
+
+    <!-- Search -->
+    <string name="search_discover">发现</string>
+    <string name="search_universe">宇宙搜索</string>
+    <string name="search_placeholder">搜索星系、行星或频道&#8230;</string>
+    <string name="search_no_results">该区域未发现星图</string>
+
+    <!-- Player -->
+    <string name="player_syncing">同步信号中…</string>
+    <string name="player_back">返回</string>
+    <string name="player_menu">菜单</string>
+    <string name="player_prev">上一个</string>
+    <string name="player_rewind">后退 10s</string>
+    <string name="player_reload">重新加载</string>
+    <string name="player_pause">暂停</string>
+    <string name="player_play">播放</string>
+    <string name="player_forward">前进 10s</string>
+    <string name="player_next">下一个</string>
+    <string name="player_now_streaming">正在播放</string>
+    <string name="player_current_program">当前节目</string>
+    <string name="player_no_program">未发现节目信息</string>
+    <string name="player_coming_up">即将播放</string>
+    <string name="player_sidebar_quality">视频质量</string>
+    <string name="player_sidebar_audio">音频选项</string>
+    <string name="player_sidebar_channels">频道列表</string>
+    <string name="player_sidebar_favorite_add">添加到收藏</string>
+    <string name="player_sidebar_favorite_remove">取消收藏</string>
+    <string name="player_sidebar_audio_boost">音频增强: %1$s</string>
+    <string name="player_sidebar_audio_tracks">音频轨道</string>
+    <string name="player_sidebar_auto">自动</string>
+    <string name="player_sidebar_audio_label">音频</string>
+    <string name="player_sidebar_quality_label">%1$d 质量</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">首页</string>
+    <string name="nav_search">搜索</string>
+    <string name="nav_live">直播电视</string>
+    <string name="nav_movies">电影</string>
+    <string name="nav_sports">体育</string>
+    <string name="nav_favorites">收藏</string>
+    <string name="nav_settings">设置</string>
+
+    <!-- Network -->
+    <string name="net_lost">网络连接已断开。请检查您的网络。</string>
+    <string name="net_restored">网络连接已恢复。</string>
+
+    <!-- Player Errors -->
+    <string name="error_video_stuck">视频卡顿，请重新加载</string>
+    <string name="error_404">未找到频道 (404)</string>
+    <string name="error_403">服务器拒绝访问 (403)</string>
+    <string name="error_401">访问令牌已过期 (401)</string>
+    <string name="error_504">服务器超时 (504)</string>
+    <string name="error_server_issue">服务器问题 (%1$d)</string>
+    <string name="error_load_failed">加载失败: 代码 %1$d</string>
+    <string name="error_http_connection">服务器连接问题 (HTTP 错误)</string>
+    <string name="error_network_lost">网络连接丢失</string>
+    <string name="error_timeout">连接超时 (Timeout)</string>
+    <string name="error_protocol">协议错误 (HTTP vs HTTPS)</string>
+    <string name="error_file_not_found">找不到视频文件</string>
+    <string name="error_decoding">处理视频失败 (解码器错误)</string>
+    <string name="error_unsupported_format">不支持的视频格式</string>
+    <string name="error_remote">服务器无响应</string>
+    <string name="error_unknown">加载失败 (%1$s)</string>
+
+    <string name="player_system_error">系统错误</string>
+    <string name="player_re_sync">按中间键重新同步星图</string>
+    <string name="player_signal_lost">信号可能在虚空中丢失</string>
+
+    <!-- Exit Dialog -->
+    <string name="exit_title">退出宇宙</string>
+    <string name="exit_msg">确定要离开电影宇宙吗？</string>
+    <string name="exit_btn_stay">留在宇宙</string>
+    <string name="exit_btn_exit">退出</string>
+
+    <!-- Loading -->
+    <string name="loading_channels">正在加载频道…</string>
+
+    <!-- File Picker -->
+    <string name="file_picker_explorer">文件浏览器</string>
+    <string name="file_picker_parent_dir">返回上级宇宙</string>
+    <string name="file_picker_system_dir">系统目录</string>
+    <string name="file_picker_m3u_file">M3U 播放列表文件 • %1$d KB</string>
+    <string name="file_picker_no_files">未发现兼容的星图</string>
+
+    <!-- Components -->
+    <string name="content_desc_back">返回</string>
+    <string name="content_desc_drm">受 DRM 保护</string>
+
+    <string name="label_on">开启</string>
+    <string name="label_off">关闭</string>
+    <string name="label_system_default">系统默认</string>
+</resources>

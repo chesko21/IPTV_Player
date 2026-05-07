@@ -1,0 +1,180 @@
+<resources>
+    <string name="app_name">StreamPro TV</string>
+
+    <!-- Settings -->
+    <string name="settings_config_label">CONFIGURATION</string>
+    <string name="settings_title">PARAMÈTRES DE L\'UNIVERS</string>
+    <string name="settings_group_engine">MOTEUR CINÉMATIQUE</string>
+    <string name="settings_quality_title">Qualité Vidéo</string>
+    <string name="settings_quality_subtitle">Cible Actuelle : %1$s</string>
+    <string name="settings_quality_auto">Auto</string>
+    <string name="settings_hw_title">Accélération Matérielle</string>
+    <string name="settings_hw_subtitle">Optimisez les performances de lecture pour votre appareil</string>
+    <string name="settings_buffer_title">Taille du Tampon Stellaire</string>
+    <string name="settings_buffer_subtitle">Tampon de latence actuel : %1$ss</string>
+
+    <string name="settings_group_management">GESTION DES CARTES STELLAIRES</string>
+    <string name="settings_reload_title">Recharger la Playlist</string>
+    <string name="settings_reload_subtitle">Re-synchroniser les cartes depuis le serveur maître</string>
+    <string name="settings_reload_success">Playlist synchronisée avec succès</string>
+    <string name="settings_cache_title">Effacer le Cache de l\'Espace</string>
+    <string name="settings_cache_subtitle">Nettoyer les données temporaires et la poussière d\'étoile</string>
+    <string name="settings_cache_success">Cache effacé</string>
+
+    <string name="settings_group_logs">LOGS DE L\'APPLICATION</string>
+    <string name="settings_about_title">À Propos de l\'Univers</string>
+    <string name="settings_about_subtitle">Version %1$s - Édition Cinématique Premium</string>
+
+    <string name="settings_group_exit">SORTIE DE STATION</string>
+    <string name="settings_logout_title">Déconnexion &amp; Rupture</string>
+    <string name="settings_logout_subtitle">Effacer toutes les cartes et quitter vers le terminal</string>
+
+    <string name="settings_group_display">AFFICHAGE &amp; LANGUE</string>
+    <string name="settings_language_title">Langue de l\'Univers</string>
+    <string name="settings_language_subtitle">Actuelle : %1$s</string>
+    <string name="language_en">ANGLAIS</string>
+    <string name="language_in">BAHASA INDONESIA</string>
+    <string name="language_ms">BAHASA MELAYU</string>
+    <string name="language_ar">ARABE</string>
+    <string name="language_es">ESPAGNOL</string>
+    <string name="language_fr">FRANÇAIS</string>
+    <string name="language_pt">PORTUGAIS</string>
+    <string name="language_ru">RUSSE</string>
+    <string name="language_ja">JAPONAIS</string>
+    <string name="language_zh">CHINOIS</string>
+    <string name="language_th">THAÏLANDAIS</string>
+    <string name="language_vi">VIETNAMIEN</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_buffer_title">CHOISIR LA TAILLE DU TAMPON</string>
+    <string name="dialog_quality_title">CIBLE VIDÉO</string>
+    <string name="dialog_language_title">CHOISIR LA LANGUE</string>
+    <string name="dialog_about_title">À PROPOS DE L\'UNIVERS</string>
+    <string name="dialog_unit_seconds">SECONDES</string>
+    <string name="dialog_auto_adaptive">AUTO-ADAPTATIF</string>
+    <string name="dialog_resolution_p">RÉSOLUTION %1$dP</string>
+    <string name="dialog_dismiss">FERMER</string>
+
+    <!-- Branding -->
+    <string name="branding_explore">EXPLORER L\'UNIVERS CINÉMATIQUE</string>
+    <string name="branding_design">DESIGN PAR CHESKO</string>
+    <string name="branding_developed">DÉVELOPPÉ PAR CHESKO</string>
+    <string name="branding_description">Conçu pour des expériences cinématiques haute performance sur Android TV.</string>
+    <string name="branding_premium">ÉDITION PREMIUM</string>
+    <string name="branding_premium_iptv">IPTV PREMIUM</string>
+
+    <!-- Login -->
+    <string name="login_tab_url">URL M3U</string>
+    <string name="login_tab_file">FICHIER LOCAL</string>
+    <string name="login_source_config">CONFIGURATION DE LA SOURCE</string>
+    <string name="login_preset_demos">URLS DE DÉMO PRÉDÉFINIES</string>
+    <string name="login_server_label">SERVEUR %1$d</string>
+    <string name="login_url_placeholder">URL de la Playlist M3U</string>
+    <string name="login_url_placeholder_example">https://exemple.com/playlist.m3u</string>
+    <string name="login_url_hint">Cliquez pour saisir l\'adresse</string>
+    <string name="login_target_url">URL Cible</string>
+    <string name="login_btn_login">CONNEXION</string>
+    <string name="login_btn_demo">DÉMO</string>
+    <string name="login_file_config">CONFIGURATION DU FICHIER</string>
+    <string name="login_file_placeholder">Sélectionner un Fichier M3U Local</string>
+    <string name="login_file_hint">Parcourir le stockage interne</string>
+    <string name="login_file_selected">Fichier Sélectionné</string>
+    <string name="login_btn_connect_file">CONNECTER LE FICHIER</string>
+    <string name="login_no_file">Aucun fichier sélectionné</string>
+
+    <!-- Home -->
+    <string name="home_explore">Explorer le Flux TV</string>
+    <string name="home_no_charts">Aucune carte stellaire découverte dans ce secteur</string>
+    <string name="home_all_channels">TOUTES les chaînes</string>
+
+    <!-- Search -->
+    <string name="search_discover">DÉCOUVRIR</string>
+    <string name="search_universe">RECHERCHE UNIVERSELLE</string>
+    <string name="search_placeholder">Rechercher des étoiles, planètes ou chaînes&#8230;</string>
+    <string name="search_no_results">Aucune carte stellaire trouvée dans ce secteur</string>
+
+    <!-- Player -->
+    <string name="player_syncing">SYNCHRONISATION DU SIGNAL…</string>
+    <string name="player_back">RETOUR</string>
+    <string name="player_menu">MENU</string>
+    <string name="player_prev">Précédent</string>
+    <string name="player_rewind">Reculer 10s</string>
+    <string name="player_reload">Recharger</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_play">Lire</string>
+    <string name="player_forward">Avancer 10s</string>
+    <string name="player_next">Suivant</string>
+    <string name="player_now_streaming">EN DIFFUSION</string>
+    <string name="player_current_program">PROGRAMME ACTUEL</string>
+    <string name="player_no_program">AUCUNE INFORMATION DE PROGRAMME DÉCOUVERTE</string>
+    <string name="player_coming_up">À SUIVRE</string>
+    <string name="player_sidebar_quality">QUALITÉ VIDÉO</string>
+    <string name="player_sidebar_audio">OPTIONS AUDIO</string>
+    <string name="player_sidebar_channels">LISTE DES CHAÎNES</string>
+    <string name="player_sidebar_favorite_add">Ajouter aux Favoris</string>
+    <string name="player_sidebar_favorite_remove">Supprimer Favori</string>
+    <string name="player_sidebar_audio_boost">Audio Boost : %1$s</string>
+    <string name="player_sidebar_audio_tracks">PISTES AUDIO</string>
+    <string name="player_sidebar_auto">Automatique</string>
+    <string name="player_sidebar_audio_label">AUDIO</string>
+    <string name="player_sidebar_quality_label">Qualité %1$d</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">ACCUEIL</string>
+    <string name="nav_search">RECHERCHE</string>
+    <string name="nav_live">TV EN DIRECT</string>
+    <string name="nav_movies">FILMS</string>
+    <string name="nav_sports">SPORTS</string>
+    <string name="nav_favorites">FAVORIS</string>
+    <string name="nav_settings">PARAMÈTRES</string>
+
+    <!-- Network -->
+    <string name="net_lost">Connexion internet perdue. Veuillez vérifier votre réseau.</string>
+    <string name="net_restored">Connexion internet restaurée.</string>
+
+    <!-- Player Errors -->
+    <string name="error_video_stuck">Vidéo bloquée, veuillez recharger</string>
+    <string name="error_404">Chaîne non trouvée (404)</string>
+    <string name="error_403">Accès refusé par le serveur (403)</string>
+    <string name="error_401">Jeton d\'accès expiré (401)</string>
+    <string name="error_504">Délai d\'attente du serveur (504)</string>
+    <string name="error_server_issue">Problème de serveur (%1$d)</string>
+    <string name="error_load_failed">Échec du chargement : Code %1$d</string>
+    <string name="error_http_connection">Problème de connexion au serveur (Erreur HTTP)</string>
+    <string name="error_network_lost">Connexion internet perdue</string>
+    <string name="error_timeout">Délai d\'attente dépassé (Timeout)</string>
+    <string name="error_protocol">Erreur de protocole (HTTP vs HTTPS)</string>
+    <string name="error_file_not_found">Fichier vidéo non trouvé</string>
+    <string name="error_decoding">Échec du traitement vidéo (Erreur Codec)</string>
+    <string name="error_unsupported_format">Format vidéo non supporté</string>
+    <string name="error_remote">Le serveur ne répond pas</string>
+    <string name="error_unknown">Échec du chargement (%1$s)</string>
+
+    <string name="player_system_error">ERREUR SYSTÈME</string>
+    <string name="player_re_sync">APPUYEZ AU CENTRE POUR RE-SYNCHRONISER LA CARTE STELLAIRE</string>
+    <string name="player_signal_lost">LE SIGNAL POURRAIT ÊTRE PERDU DANS LE VIDE</string>
+
+    <!-- Exit Dialog -->
+    <string name="exit_title">QUITTER L\'UNIVERS</string>
+    <string name="exit_msg">Êtes-vous sûr de vouloir quitter l\'univers cinématique ?</string>
+    <string name="exit_btn_stay">RESTER</string>
+    <string name="exit_btn_exit">QUITTER</string>
+
+    <!-- Loading -->
+    <string name="loading_channels">Chargement des Chaînes…</string>
+
+    <!-- File Picker -->
+    <string name="file_picker_explorer">EXPLORATEUR</string>
+    <string name="file_picker_parent_dir">Retourner à l\'univers parent</string>
+    <string name="file_picker_system_dir">Répertoire Système</string>
+    <string name="file_picker_m3u_file">Fichier Playlist M3U • %1$d Ko</string>
+    <string name="file_picker_no_files">Aucune carte stellaire compatible trouvée</string>
+
+    <!-- Components -->
+    <string name="content_desc_back">Retour</string>
+    <string name="content_desc_drm">Protégé par DRM</string>
+
+    <string name="label_on">ACTIF</string>
+    <string name="label_off">INACTIF</string>
+    <string name="label_system_default">Défaut Système</string>
+</resources>

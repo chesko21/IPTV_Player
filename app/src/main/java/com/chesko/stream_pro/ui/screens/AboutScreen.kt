@@ -266,21 +266,13 @@ fun DonationSection() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // DANA Logo
-                    Box(
+                    Image(
+                        painter = painterResource(id = R.drawable.dana),
+                        contentDescription = null,
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF118EEA)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "D",
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Black,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                    )
                     
                     Spacer(modifier = Modifier.width(12.dp))
 

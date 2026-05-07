@@ -80,7 +80,7 @@ fun ProfileScreen(
             refreshTrigger++
             scope.launch {
                 snackbarHostState.showSnackbar(
-                    "Profile photo updated successfully!",
+                    context.getString(R.string.msg_photo_updated),
                     duration = SnackbarDuration.Short
                 )
             }
@@ -103,13 +103,13 @@ fun ProfileScreen(
                     tempName = ""
                     scope.launch {
                         snackbarHostState.showSnackbar(
-                            "Name updated successfully!",
+                            context.getString(R.string.msg_name_updated),
                             duration = SnackbarDuration.Short
                         )
                     }
                 }
             },
-            placeholder = "Enter your name",
+            placeholder = stringResource(R.string.hint_enter_name),
             icon = Icons.Default.Person,
             accentColor = MaterialTheme.colorScheme.primary
         )
@@ -131,13 +131,13 @@ fun ProfileScreen(
                     tempEmail = ""
                     scope.launch {
                         snackbarHostState.showSnackbar(
-                            "Email updated successfully!",
+                            context.getString(R.string.msg_email_updated),
                             duration = SnackbarDuration.Short
                         )
                     }
                 }
             },
-            placeholder = "your@email.com",
+            placeholder = stringResource(R.string.hint_enter_email),
             icon = Icons.Default.Email,
             accentColor = MaterialTheme.colorScheme.primary,
             isEmail = true
@@ -565,7 +565,7 @@ fun AnimatedEditDialog(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            "Update your ${if (isEmail) "email address" else "name"}",
+                            stringResource(if (isEmail) R.string.dialog_update_email else R.string.dialog_update_name),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center

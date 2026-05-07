@@ -64,6 +64,7 @@
     <string name="exit_confirm_msg">Adakah anda pasti ingin keluar?</string>
     <string name="btn_exit">KELUAR</string>
     <string name="premium_badge">PREMIUM</string>
+    <string name="drawer_group_playlists">SENARAI MAIN AKTIF</string>
     <string name="drawer_group_main">UTAMA</string>
     <string name="drawer_group_settings">TETAPAN</string>
     <string name="drawer_group_support">SOKONGAN</string>
@@ -207,4 +208,27 @@
     <string name="player_cast_to">Sambung ke Peranti</string>
     <string name="btn_stop_casting">Hentikan Casting</string>
     <string name="loading_message">MENEROKAI ALAM SEMESTA</string>
+    <string name="msg_switching_server">MENUKAR PELAYAN...</string>
+
+    <!-- New Strings -->
+    <string name="msg_photo_updated">Foto profil berjaya dikemas kini!</string>
+    <string name="msg_name_updated">Nama berjaya dikemas kini!</string>
+    <string name="msg_email_updated">E-mel berjaya dikemas kini!</string>
+    <string name="hint_enter_name">Masukkan nama anda</string>
+    <string name="hint_enter_email">e-mel@anda.com</string>
+    <string name="dialog_update_name">Kemas kini nama anda</string>
+    <string name="dialog_update_email">Kemas kini alamat e-mel anda</string>
+
+    <string name="lang_in">Indonesia</string>
+    <string name="lang_en">Inggeris</string>
+    <string name="lang_ms">Melayu</string>
+    <string name="lang_ar">Arab</string>
+    <string name="lang_zh">Cina</string>
+    <string name="lang_th">Thai</string>
+    <string name="lang_vi">Vietnam</string>
+    <string name="lang_es">Sepanyol</string>
+    <string name="lang_fr">Perancis</string>
+    <string name="lang_pt">Portugis</string>
+    <string name="lang_ru">Rusia</string>
+    <string name="lang_ja">Jepun</string>
 </resources>
