@@ -33,7 +33,8 @@ import com.chesko.stream_pro.core.R
     indices = [
         Index(value = ["url"], unique = true),
         Index(value = ["group_name"]),
-        Index(value = ["name"])
+        Index(value = ["name"]),
+        Index(value = ["playlist_id"])
     ]
 )
 data class IptvChannel(
@@ -58,7 +59,9 @@ data class IptvChannel(
     @ColumnInfo(name = "is_favorite")
     val isFavorite: Boolean = false,
     @ColumnInfo(name = "last_played")
-    val lastPlayed: Long? = null
+    val lastPlayed: Long? = null,
+    @ColumnInfo(name = "playlist_id")
+    val playlistId: Int = 0
 ) {
     val isHd: Boolean
         get() = name.contains("HD", ignoreCase = true) ||

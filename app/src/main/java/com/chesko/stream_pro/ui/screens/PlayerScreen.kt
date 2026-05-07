@@ -828,33 +828,34 @@ fun PlayerScreenContent(
                     Surface(
                         onClick = handleStopCasting,
                         color = Color.Black.copy(alpha = 0.8f),
-                        shape = RoundedCornerShape(24.dp),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
-                        modifier = Modifier.padding(32.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                        modifier = Modifier.padding(12.dp)
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Icon(
                                 Icons.Default.CastConnected,
                                 null,
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(32.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                             Column {
                                 Text(
                                     stringResource(R.string.player_casting_active),
                                     color = Color.White,
-                                    style = MaterialTheme.typography.titleSmall,
+                                    style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
                                     stringResource(R.string.btn_stop_casting),
                                     color = MaterialTheme.colorScheme.primary,
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 9.sp
                                 )
                             }
                         }
@@ -1142,6 +1143,7 @@ fun PlayerScreenContent(
             modifier = Modifier.align(Alignment.CenterEnd)
         ) {
             QuickChannelList(
+                viewModel = viewModel,
                 allChannels = allChannels,
                 groups = groups,
                 currentChannel = currentChannel,
@@ -1174,13 +1176,24 @@ fun PlayerScreenContent(
                     .background(Color.Black.copy(alpha = 0.7f)),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.height(16.dp))
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                        .padding(12.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = stringResource(R.string.player_preparing),
                         color = Color.White,
-                        style = MaterialTheme.typography.titleSmall
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 9.sp
                     )
                 }
             }
@@ -1230,22 +1243,22 @@ fun CastDiscoveryOverlay(
     ) {
         Surface(
             modifier = Modifier
-                .width(260.dp)
-                .padding(8.dp)
+                .width(170.dp)
+                .padding(6.dp)
                 .clickable(enabled = false) {}, // Prevent tap propagation to background
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(12.dp),
             color = Color(0xFF121212),
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
             shadowElevation = 12.dp
         ) {
             Column(
-                modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp),
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Header with Pulse Effect - Smaller
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(26.dp)
                         .background(
                             MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                             CircleShape
@@ -1257,45 +1270,46 @@ fun CastDiscoveryOverlay(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .graphicsLayer {
-                                    scaleX = alpha + 0.3f
-                                    scaleY = alpha + 0.3f
+                                    scaleX = alpha + 0.1f
+                                    scaleY = alpha + 0.1f
                                     this.alpha = 0.8f - alpha
                                 }
-                                .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                                .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
                         )
                     }
                     Icon(
                         imageVector = if (isSearching) Icons.Default.Cast else Icons.Default.CastConnected,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(14.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
                     text = if (isSearching) "Mencari TV..." else "Pilih Perangkat",
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = Color.White,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp
                 )
                 
                 Text(
                     text = if (isSearching) "Pastikan WiFi sama" else "${routes.size} Ditemukan",
                     style = MaterialTheme.typography.labelSmall,
-                    fontSize = 9.sp,
+                    fontSize = 7.sp,
                     color = Color.White.copy(alpha = 0.4f),
-                    modifier = Modifier.padding(top = 2.dp)
+                    modifier = Modifier.padding(top = 1.dp)
                 )
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 if (routes.isEmpty() && !isSearching) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                            .padding(vertical = 2.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Surface(
@@ -1303,48 +1317,48 @@ fun CastDiscoveryOverlay(
                                 isSearching = true
                                 onRetry() 
                             },
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(6.dp),
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
                         ) {
                             Row(
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.Refresh, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Cari Ulang", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                Icon(Icons.Default.Refresh, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(9.dp))
+                                Spacer(modifier = Modifier.width(3.dp))
+                                Text("Cari Ulang", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 8.sp)
                             }
                         }
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             "Ketuk di luar untuk menutup",
                             style = MaterialTheme.typography.labelSmall,
-                            fontSize = 8.sp,
+                            fontSize = 7.sp,
                             color = Color.White.copy(alpha = 0.3f)
                         )
                     }
                 } else {
                     LazyColumn(
-                        modifier = Modifier.heightIn(max = 220.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                        modifier = Modifier.heightIn(max = 140.dp),
+                        verticalArrangement = Arrangement.spacedBy(3.dp)
                     ) {
                         items(routes) { route ->
                             Surface(
                                 onClick = { onRouteSelected(route) },
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(6.dp),
                                 color = Color.White.copy(alpha = 0.04f),
                                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
                             ) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(12.dp),
+                                        .padding(5.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .size(32.dp)
+                                            .size(18.dp)
                                             .background(Color.White.copy(alpha = 0.05f), CircleShape),
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -1356,16 +1370,17 @@ fun CastDiscoveryOverlay(
                                             },
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(16.dp)
+                                            modifier = Modifier.size(10.dp)
                                         )
                                     }
-                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = route.name,
                                             color = Color.White,
-                                            style = MaterialTheme.typography.labelMedium,
+                                            style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
+                                            fontSize = 9.sp,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
                                         )
@@ -1374,7 +1389,7 @@ fun CastDiscoveryOverlay(
                                                 text = route.description!!,
                                                 color = Color.White.copy(alpha = 0.3f),
                                                 style = MaterialTheme.typography.labelSmall,
-                                                fontSize = 8.sp,
+                                                fontSize = 6.sp,
                                                 maxLines = 1
                                             )
                                         }
@@ -1383,7 +1398,7 @@ fun CastDiscoveryOverlay(
                                         Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                         null,
                                         tint = Color.White.copy(alpha = 0.2f),
-                                        modifier = Modifier.size(16.dp)
+                                        modifier = Modifier.size(10.dp)
                                     )
                                 }
                             }
@@ -1986,6 +2001,7 @@ fun PlayerControlAction(icon: ImageVector, tint: Color = Color.White, onClick: (
 
 @Composable
 fun QuickChannelList(
+    viewModel: MainViewModel,
     allChannels: List<IptvChannel>,
     groups: List<String>,
     currentChannel: IptvChannel,
@@ -1993,6 +2009,8 @@ fun QuickChannelList(
     onClose: () -> Unit
 ) {
     val listState = rememberLazyListState()
+    val selectedGroup by viewModel.selectedGroup.collectAsState()
+    val groupListState = rememberLazyListState()
 
     // Optimized auto-scroll: Delay scroll until after the opening animation finishes
     LaunchedEffect(currentChannel) {
@@ -2003,10 +2021,20 @@ fun QuickChannelList(
         }
     }
 
+    // Auto-scroll to selected group chip in Quick List
+    LaunchedEffect(selectedGroup, groups) {
+        if (groups.isNotEmpty()) {
+            val index = if (selectedGroup == null) 0 else groups.indexOf(selectedGroup) + 1
+            if (index >= 0) {
+                groupListState.animateScrollToItem(index)
+            }
+        }
+    }
+
     Surface(
         modifier = Modifier
             .fillMaxHeight()
-            .width(240.dp),
+            .width(260.dp),
         color = Color(0xFF0D0D0F).copy(alpha = 0.95f),
         tonalElevation = 8.dp,
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
@@ -2024,18 +2052,54 @@ fun QuickChannelList(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = stringResource(R.string.player_channels_title).uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White.copy(alpha = 0.5f),
-                    letterSpacing = 1.sp
-                )
+                Column {
+                    Text(
+                        text = (selectedGroup ?: stringResource(R.string.player_channels_title)).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.primary,
+                        letterSpacing = 1.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.width(180.dp)
+                    )
+                    if (selectedGroup != null) {
+                        Text(
+                            text = stringResource(R.string.player_channels_title).lowercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 8.sp,
+                            color = Color.White.copy(alpha = 0.3f)
+                        )
+                    }
+                }
                 IconButton(
                     onClick = onClose,
                     modifier = Modifier.size(28.dp)
                 ) {
                     Icon(Icons.Default.Close, null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
+                }
+            }
+
+            // Group Selector in Quick List
+            LazyRow(
+                state = groupListState,
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(bottom = 8.dp)
+            ) {
+                item {
+                    QuickGroupChip(
+                        text = stringResource(R.string.group_all),
+                        isSelected = selectedGroup == null,
+                        onClick = { viewModel.setSelectedGroup(null) }
+                    )
+                }
+                items(groups) { group ->
+                    QuickGroupChip(
+                        text = group,
+                        isSelected = selectedGroup == group,
+                        onClick = { viewModel.setSelectedGroup(group) }
+                    )
                 }
             }
 
@@ -2059,6 +2123,26 @@ fun QuickChannelList(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun QuickGroupChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(8.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.05f),
+        modifier = Modifier.height(24.dp)
+    ) {
+        Box(modifier = Modifier.padding(horizontal = 10.dp), contentAlignment = Alignment.Center) {
+            Text(
+                text = text,
+                color = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f),
+                style = MaterialTheme.typography.labelSmall,
+                fontSize = 9.sp,
+                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
+            )
         }
     }
 }

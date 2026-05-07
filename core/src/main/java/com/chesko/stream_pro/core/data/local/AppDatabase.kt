@@ -6,15 +6,17 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.data.model.EpgProgram
+import com.chesko.stream_pro.core.data.model.Playlist
 
 @Database(
-    entities = [IptvChannel::class, EpgProgram::class],
-    version = 3,
+    entities = [IptvChannel::class, EpgProgram::class, Playlist::class],
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun channelDao(): ChannelDao
     abstract fun epgDao(): EpgDao
+    abstract fun playlistDao(): PlaylistDao
 
     companion object {
         @Volatile

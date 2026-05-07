@@ -77,9 +77,20 @@ android {
 
     packaging {
         resources {
+            // Optimasi: Menghapus file metadata duplikat yang tidak diperlukan dalam APK
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             excludes += "META-INF/INDEX.LIST"
             excludes += "META-INF/io.netty.versions.properties"
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/LICENSE*"
+            excludes += "META-INF/NOTICE*"
+            excludes += "META-INF/ASL2.0"
+            excludes += "META-INF/*.kotlin_module"
+            excludes += "META-INF/common_release.kotlin_module"
+            
+            // Opsional: Jika ada file yang bentrok tapi dibutuhkan, gunakan pickFirst
+            pickFirsts += "**/libjsc.so"
+            pickFirsts += "**/libc++_shared.so"
         }
     }
 

@@ -37,6 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
@@ -104,6 +105,8 @@ fun HomeScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val groups by viewModel.groups.collectAsState()
     val selectedGroup by viewModel.selectedGroup.collectAsState()
+    val allPlaylists by viewModel.allPlaylists.collectAsState()
+    val selectedPlaylistId by viewModel.selectedPlaylistId.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val recentlyPlayed by viewModel.recentlyPlayed.collectAsState()
     val favoriteChannels by viewModel.favoriteChannels.collectAsState()
@@ -125,6 +128,9 @@ fun HomeScreen(
 
     val drawerState = rememberDrawerState(initialValue = if (shouldOpenDrawer) DrawerValue.Open else DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    
+    // Local loading for playlist switching effect
+    var isSwitchingPlaylist by remember { mutableStateOf(false) }
 
     // Handle system back navigation
     BackHandler {
@@ -377,6 +383,61 @@ fun HomeScreen(
                                 .padding(horizontal = 8.dp)
                                 .verticalScroll(rememberScrollState())
                         ) {
+                            if (allPlaylists.isNotEmpty()) {
+                                Text(
+                                    stringResource(R.string.drawer_group_playlists),
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 0.5.sp
+                                )
+
+                                DrawerMenuItem(
+                                    icon = Icons.Default.Cloud,
+                                    label = stringResource(R.string.group_all),
+                                    isSelected = selectedPlaylistId == null,
+                                    onClick = {
+                                        if (selectedPlaylistId != null) {
+                                            scope.launch {
+                                                isSwitchingPlaylist = true
+                                                viewModel.setSelectedPlaylistId(null)
+                                                drawerState.close()
+                                                delay(800)
+                                                isSwitchingPlaylist = false
+                                            }
+                                        } else {
+                                            scope.launch { drawerState.close() }
+                                        }
+                                    }
+                                )
+
+                                allPlaylists.forEach { playlist ->
+                                    DrawerMenuItem(
+                                        icon = Icons.AutoMirrored.Filled.PlaylistPlay,
+                                        label = playlist.name,
+                                        isSelected = selectedPlaylistId == playlist.id,
+                                        onClick = {
+                                            if (selectedPlaylistId != playlist.id) {
+                                                scope.launch {
+                                                    isSwitchingPlaylist = true
+                                                    viewModel.setSelectedPlaylistId(playlist.id)
+                                                    drawerState.close()
+                                                    delay(800)
+                                                    isSwitchingPlaylist = false
+                                                }
+                                            } else {
+                                                scope.launch { drawerState.close() }
+                                            }
+                                        }
+                                    )
+                                }
+                                
+                                Spacer(modifier = Modifier.height(8.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(0.05f), modifier = Modifier.padding(horizontal = 12.dp))
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+
                             Text(
                                 stringResource(R.string.drawer_group_main),
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -548,8 +609,32 @@ fun HomeScreen(
                 else -> Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
             }
 
-            if (isLoading || allChannels.isEmpty()) {
+            if (isLoading || allChannels.isEmpty() || isSwitchingPlaylist) {
                 ShimmerHomeScreen()
+                
+                // Overlay for switching playlist to make it feel more "official"
+                if (isSwitchingPlaylist) {
+                    Box(
+                        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(40.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                strokeWidth = 4.dp
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                "MENGALIHKAN SERVER...",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 2.sp
+                            )
+                        }
+                    }
+                }
             } else {
                 LazyColumn(
                     state = lazyListState,
@@ -718,10 +803,7 @@ fun HomeScreen(
                             }
                         }
                     } else {
-                        val onChannelClick: (IptvChannel, String?) -> Unit = { channel, groupName ->
-                            if (searchQuery.isEmpty()) {
-                                viewModel.setSelectedGroup(groupName)
-                            }
+                        val onChannelClick: (IptvChannel, String?) -> Unit = { channel, _ ->
                             viewModel.markAsPlayed(channel)
                             onSelectChannel(channel)
                         }
@@ -750,8 +832,11 @@ fun HomeScreen(
                             }
                         }
 
-                        groups.take(15).forEach { group ->
-                            val groupChannels = allChannels.filter { it.group == group }
+                        groups.take(20).forEach { group ->
+                            val groupChannels = allChannels.filter { 
+                                val matchesPlaylist = selectedPlaylistId == null || it.playlistId == selectedPlaylistId
+                                matchesPlaylist && it.group == group 
+                            }
                             if (groupChannels.isNotEmpty()) {
                                 item(key = group) {
                                     ContentRow(
@@ -1724,10 +1809,24 @@ fun GroupChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun DrawerMenuItem(icon: ImageVector, label: String, onClick: () -> Unit) {
+fun DrawerMenuItem(
+    icon: ImageVector,
+    label: String,
+    isSelected: Boolean = false,
+    onClick: () -> Unit
+) {
+    val backgroundColor by animateColorAsState(
+        if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent,
+        label = "bg"
+    )
+    val contentColor by animateColorAsState(
+        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+        label = "content"
+    )
+
     Surface(
         onClick = onClick,
-        color = Color.Transparent,
+        color = backgroundColor,
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -1740,24 +1839,38 @@ fun DrawerMenuItem(icon: ImageVector, label: String, onClick: () -> Unit) {
             Box(
                 modifier = Modifier
                     .size(30.dp)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f), CircleShape),
+                    .background(
+                        if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                        else MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                        CircleShape
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     icon,
                     null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
                     modifier = Modifier.size(16.dp)
                 )
             }
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 label,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                color = contentColor,
                 style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp
+                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
+                fontSize = 13.sp,
+                modifier = Modifier.weight(1f)
             )
+            
+            if (isSelected) {
+                Icon(
+                    Icons.Default.CheckCircle,
+                    null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }

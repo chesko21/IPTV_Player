@@ -33,12 +33,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.cast.CastPlayer
 import androidx.media3.cast.DefaultMediaItemConverter
 import androidx.media3.session.MediaSession
-import androidx.media3.ui.PlayerNotificationManager
 import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.PendingIntent
-import android.graphics.Bitmap
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.cast.framework.CastContext
@@ -61,6 +57,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val allChannels: StateFlow<List<IptvChannel>>
     val favoriteChannels: StateFlow<List<IptvChannel>>
     val recentlyPlayed: StateFlow<List<IptvChannel>>
+    val allPlaylists: StateFlow<List<com.chesko.stream_pro.core.data.model.Playlist>>
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -73,6 +70,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _selectedGroup = MutableStateFlow<String?>(null)
     val selectedGroup: StateFlow<String?> = _selectedGroup
+
+    private val _selectedPlaylistId = MutableStateFlow<Int?>(null)
+    val selectedPlaylistId: StateFlow<Int?> = _selectedPlaylistId
 
     private val _selectedChannel = MutableStateFlow<IptvChannel?>(null)
     val selectedChannel: StateFlow<IptvChannel?> = _selectedChannel
@@ -142,7 +142,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val lastCastPosition: StateFlow<Long> = _lastCastPosition
 
     private var mediaSession: MediaSession? = null
-    private var notificationManager: PlayerNotificationManager? = null
 
     private val _availableRoutes = MutableStateFlow<List<MediaRouter.RouteInfo>>(emptyList())
     val availableRoutes: StateFlow<List<MediaRouter.RouteInfo>> = _availableRoutes
@@ -194,7 +193,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch(Dispatchers.Main) {
                 _lastCastPosition.value = _castPlayer.value?.currentPosition ?: 0L
                 _isCasting.value = false
-                notificationManager?.setPlayer(null)
             }
         }
         override fun onSessionResuming(session: com.google.android.gms.cast.framework.CastSession, sessionId: String) {}
@@ -232,9 +230,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 
                 player.setMediaItem(mediaItem, if (startPositionMs >= 0) startPositionMs else 0L)
                 
-                // Show notification instantly when media is set
-                setupNotification(player)
-
                 player.prepare()
                 player.playWhenReady = true
                 
@@ -245,74 +240,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _errorMessage.value = "Gagal mengirim ke TV: ${e.localizedMessage}"
             }
         }
-    }
-
-    private fun setupNotification(player: Player) {
-        val context = getApplication<Application>()
-        
-        // Ensure high priority notification channel is created
-        createNotificationChannel()
-
-        if (notificationManager != null) {
-            notificationManager?.setPlayer(player)
-            return
-        }
-
-        notificationManager = PlayerNotificationManager.Builder(context, 1001, "cast_channel")
-            .setChannelNameResourceId(R.string.cast_notification_channel_name)
-            .setChannelDescriptionResourceId(R.string.cast_notification_channel_description)
-            .setSmallIconResourceId(R.drawable.app_icon_android)
-            .setMediaDescriptionAdapter(object : PlayerNotificationManager.MediaDescriptionAdapter {
-                override fun getCurrentContentTitle(player: Player): CharSequence {
-                    return _selectedChannel.value?.name ?: context.getString(R.string.brand_name)
-                }
-
-                override fun getCurrentContentText(player: Player): CharSequence {
-                    return context.getString(R.string.cast_notification_title)
-                }
-
-                override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? = null
-
-                override fun createCurrentContentIntent(player: Player): PendingIntent? {
-                    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-                    return PendingIntent.getActivity(
-                        context, 0, intent,
-                        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-                    )
-                }
-            })
-            .setNotificationListener(object : PlayerNotificationManager.NotificationListener {
-                override fun onNotificationCancelled(notificationId: Int, dismissedByUser: Boolean) {
-                    if (dismissedByUser) stopCasting()
-                }
-            })
-            .build().apply {
-                setPlayer(player)
-                // Link to MediaSession for modern Android Media Controls
-                @Suppress("DEPRECATION")
-                mediaSession?.let { session ->
-                    setMediaSessionToken(session.sessionCompatToken)
-                }
-                setUseNextAction(false)
-                setUsePreviousAction(false)
-                setUseStopAction(true)
-                // Set priority for older Android versions
-                setPriority(NotificationCompat.PRIORITY_MAX)
-            }
-    }
-
-    private fun createNotificationChannel() {
-        val context = getApplication<Application>()
-        val name = context.getString(R.string.cast_notification_channel_name)
-        val descriptionText = context.getString(R.string.cast_notification_channel_description)
-        val importance = NotificationManager.IMPORTANCE_HIGH
-        val channel = NotificationChannel("cast_channel", name, importance).apply {
-            description = descriptionText
-            setShowBadge(true)
-            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-        }
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
     }
 
     private fun updateRoutes() {
@@ -470,7 +397,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val database = AppDatabase.getDatabase(application)
         val channelDao = database.channelDao()
         val epgDao = database.epgDao()
-        repository = ChannelRepository(channelDao, epgDao)
+        val playlistDao = database.playlistDao()
+        repository = ChannelRepository(channelDao, epgDao, playlistDao)
 
         _lastUrl.value = prefs.getString("last_m3u_url", "") ?: ""
 
@@ -489,6 +417,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         )
 
         recentlyPlayed = repository.recentlyPlayed.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
+
+        allPlaylists = repository.allPlaylists.stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
             emptyList()
@@ -570,6 +504,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         allChannels,
         _searchQuery,
         _selectedGroup,
+        _selectedPlaylistId,
         favoriteChannels,
         recentlyPlayed
     ) { array ->
@@ -577,15 +512,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val channels = array[0] as List<IptvChannel>
         val query = array[1] as String
         val group = array[2] as String?
+        val playlistId = array[3] as Int?
         @Suppress("UNCHECKED_CAST")
-        val favorites = array[3] as List<IptvChannel>
+        val favorites = array[4] as List<IptvChannel>
         @Suppress("UNCHECKED_CAST")
-        val history = array[4] as List<IptvChannel>
+        val history = array[5] as List<IptvChannel>
 
         val baseList = when (group) {
             getApplication<Application>().getString(R.string.group_favorites) -> favorites
             getApplication<Application>().getString(R.string.group_recently_played) -> history
-            else -> channels
+            else -> if (playlistId != null) channels.filter { it.playlistId == playlistId } else channels
         }
 
         baseList.filter { channel ->
@@ -610,14 +546,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         emptyList()
     )
 
-    val groups = allChannels.map { channels ->
+    val groups = combine(allChannels, _selectedPlaylistId) { channels, playlistId ->
+        val filtered = if (playlistId != null) channels.filter { it.playlistId == playlistId } else channels
         val context = getApplication<Application>()
-        val existingGroups = channels.mapNotNull { it.group }
+        val existingGroups = filtered.mapNotNull { it.group }
             .filter { it.isNotBlank() }
             .distinct()
             .sorted()
         
-        val hasNoGroup = channels.any { it.group.isNullOrBlank() }
+        val hasNoGroup = filtered.any { it.group.isNullOrBlank() }
         if (hasNoGroup) {
             existingGroups + context.getString(R.string.group_other)
         } else {
@@ -661,7 +598,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun loadPlaylist(url: String, onSuccess: () -> Unit = {}) {
+    fun loadPlaylist(url: String, name: String? = null, onSuccess: () -> Unit = {}) {
         if (url == "combined_demo") {
             loadDemoPlaylist(onSuccess)
             return
@@ -679,6 +616,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _lastUrl.value = url
 
             try {
+                // Ensure Playlist exists in DB
+                val playlistName = name ?: if (url.contains("indihome")) "Indihome" else "Server ${allPlaylists.value.size + 1}"
+                var playlist = repository.getPlaylistByUrl(url)
+                if (playlist == null) {
+                    val id = repository.insertPlaylist(
+                        com.chesko.stream_pro.core.data.model.Playlist(
+                            name = playlistName,
+                            url = url
+                        )
+                    )
+                    playlist = repository.getPlaylistByUrl(url)
+                }
+
+                // AKTIFKAN FILTER: Set playlist yang baru dimuat sebagai playlist aktif
+                _selectedPlaylistId.value = playlist?.id
+                _selectedGroup.value = null // Reset filter grup agar tidak bentrok
+
                 val m3uContent = when {
                     url.startsWith("http") -> fetchRawContent(url)
                     url.startsWith("file://") -> {
@@ -687,7 +641,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     else -> url
                 }
-                processM3uContent(m3uContent, url, onSuccess)
+                processM3uContent(m3uContent, url, playlist?.id ?: 0, onSuccess)
             } catch (e: Exception) {
                 val errorMsg = when (e) {
                     is java.net.UnknownHostException -> context.getString(R.string.error_host_not_found)
@@ -711,7 +665,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 withContext(Dispatchers.IO) {
                     internalFile.writeText(content)
                 }
-                processM3uContent(content, "file://${internalFile.absolutePath}", onSuccess)
+                processM3uContent(content, "file://${internalFile.absolutePath}", 0, onSuccess)
             } catch (e: Exception) {
                 _errorMessage.value = context.getString(R.string.error_save_parse_failed, e.message ?: "")
                 _isLoading.value = false
@@ -728,7 +682,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private suspend fun processM3uContent(content: String, urlSource: String? = null, onSuccess: () -> Unit) {
+    private suspend fun processM3uContent(content: String, urlSource: String? = null, playlistId: Int = 0, onSuccess: () -> Unit) {
         val channels = withContext(Dispatchers.Default) {
             M3uParser.parse(content)
         }
@@ -739,11 +693,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             val previousUrl = prefs.getString("last_m3u_url", "")
             if (urlSource != null && urlSource != previousUrl && previousUrl?.isNotBlank() == true) {
-                repository.clearEpg()
-                repository.clearRecentlyPlayed()
+                // repository.clearEpg() // Don't clear EPG if we want multi-playlist
             }
 
-            repository.syncChannels(channels)
+            repository.syncChannels(channels, playlistId)
             _randomCarouselChannels.value = channels.shuffled().take(10)
             _errorMessage.value = null
 
@@ -810,8 +763,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val castContext = CastContext.getSharedInstance(getApplication())
                 castContext.sessionManager.endCurrentSession(true)
                 _isCasting.value = false
-                notificationManager?.setPlayer(null)
-                Log.d("MainViewModel", "Cast screen disconnected manually or via notification")
+                Log.d("MainViewModel", "Cast screen disconnected manually")
             } catch (e: Exception) {
                 Log.e("MainViewModel", "Error stopping cast: ${e.message}")
             }
@@ -862,14 +814,41 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _selectedGroup.value = group
     }
 
-    fun setCategoryFilter(category: String?) {
-        _selectedGroup.value = category
+    fun setSelectedPlaylistId(id: Int?) {
+        _selectedPlaylistId.value = id
+        if (id != null) {
+            viewModelScope.launch {
+                val playlist = allPlaylists.value.find { it.id == id }
+                val hasChannels = allChannels.value.any { it.playlistId == id }
+                
+                if (!hasChannels && playlist != null) {
+                    loadPlaylist(playlist.url, playlist.name)
+                }
+            }
+        }
+    }
+
+    fun deletePlaylist(playlist: com.chesko.stream_pro.core.data.model.Playlist) {
+        viewModelScope.launch {
+            repository.deletePlaylist(playlist)
+        }
     }
 
     fun setSelectedChannel(channel: IptvChannel?) {
         _selectedChannel.value = channel
-        if (channel != null && _isCasting.value) {
-            transferCurrentMediaToCast()
+        if (channel != null) {
+            // Otomatis deteksi dan set grup jika saat ini berada di mode "Semua Saluran"
+            if (_selectedGroup.value == null) {
+                if (!channel.group.isNullOrBlank()) {
+                    _selectedGroup.value = channel.group
+                } else {
+                    _selectedGroup.value = getApplication<Application>().getString(R.string.group_other)
+                }
+            }
+            
+            if (_isCasting.value) {
+                transferCurrentMediaToCast()
+            }
         }
     }
 
@@ -1086,7 +1065,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     return@launch
                 }
 
-                repository.syncChannels(allDemoChannels)
+                repository.syncChannels(allDemoChannels, 0)
                 _randomCarouselChannels.value = allDemoChannels.shuffled().take(10)
 
                 _lastUrl.value = "combined_demo"
@@ -1256,7 +1235,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         try {
             CastContext.getSharedInstance(getApplication()).sessionManager.removeSessionManagerListener(sessionManagerListener, com.google.android.gms.cast.framework.CastSession::class.java)
         } catch (e: Exception) {}
-        notificationManager?.setPlayer(null)
         mediaSession?.release()
         _castPlayer.value?.release()
     }

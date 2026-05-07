@@ -65,6 +65,7 @@
     <string name="exit_confirm_msg">Yakin ingin keluar?</string>
     <string name="btn_exit">KELUAR</string>
     <string name="premium_badge">PREMIUM</string>
+    <string name="drawer_group_playlists">PLAYLIST AKTIF</string>
     <string name="drawer_group_main">UTAMA</string>
     <string name="drawer_group_settings">PENGATURAN</string>
     <string name="drawer_group_support">DUKUNGAN</string>

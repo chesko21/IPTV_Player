@@ -62,6 +62,9 @@ interface ChannelDao {
     @Query("DELETE FROM channels WHERE is_favorite = 0 AND (last_played IS NULL OR last_played < :olderThan)")
     suspend fun cleanupOldNonFavorites(olderThan: Long)
 
+    @Query("DELETE FROM channels WHERE playlist_id = :playlistId")
+    suspend fun deleteChannelsByPlaylist(playlistId: Int)
+
     @Query("DELETE FROM channels")
     suspend fun deleteAllChannels()
 

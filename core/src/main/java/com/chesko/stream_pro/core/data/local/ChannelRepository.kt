@@ -2,6 +2,7 @@ package com.chesko.stream_pro.core.data.local
 
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.data.model.EpgProgram
+import com.chesko.stream_pro.core.data.model.Playlist
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -14,8 +15,34 @@ import kotlinx.coroutines.withContext
 
 class ChannelRepository(
     private val channelDao: ChannelDao,
-    private val epgDao: EpgDao
+    private val epgDao: EpgDao,
+    private val playlistDao: PlaylistDao
 ) {
+
+    // Playlist Logic
+    val allPlaylists: Flow<List<Playlist>> = playlistDao.getAllPlaylists()
+
+    suspend fun getPlaylistByUrl(url: String): Playlist? {
+        return playlistDao.getPlaylistByUrl(url)
+    }
+
+    suspend fun insertPlaylist(playlist: Playlist): Long {
+        return playlistDao.insertPlaylist(playlist)
+    }
+
+    suspend fun updatePlaylist(playlist: Playlist) {
+        playlistDao.updatePlaylist(playlist)
+    }
+
+    suspend fun deletePlaylist(playlist: Playlist) {
+        channelDao.deleteChannelsByPlaylist(playlist.id)
+        playlistDao.deletePlaylist(playlist)
+    }
+
+    suspend fun clearAllPlaylists() {
+        playlistDao.clearPlaylists()
+        channelDao.deleteAllChannels()
+    }
 
     // Channel Logic
     val allChannels: Flow<List<IptvChannel>> = channelDao.getAllChannels()
@@ -61,21 +88,26 @@ class ChannelRepository(
         channelDao.deleteAllChannels()
     }
 
-    suspend fun syncChannels(newChannels: List<IptvChannel>) {
+    suspend fun syncChannels(newChannels: List<IptvChannel>, playlistId: Int = 0) {
         val currentFavorites = favoriteChannels.first().associateBy { it.url }
         
-        // Clear all channels to ensure we don't have leftovers from previous playlists
-        channelDao.deleteAllChannels()
+        // Clear channels belonging to THIS playlist only
+        if (playlistId != 0) {
+            channelDao.deleteChannelsByPlaylist(playlistId)
+        } else {
+            channelDao.deleteAllChannels()
+        }
 
         val channelsToInsert = newChannels.map { newChannel ->
             val existing = currentFavorites[newChannel.url]
             if (existing != null) {
                 newChannel.copy(
                     isFavorite = true,
-                    lastPlayed = existing.lastPlayed
+                    lastPlayed = existing.lastPlayed,
+                    playlistId = playlistId
                 )
             } else {
-                newChannel
+                newChannel.copy(playlistId = playlistId)
             }
         }
 

@@ -304,7 +304,9 @@ fun LoginScreen(
                                                         return@UrlSlide
                                                     }
                                                     keyboardController?.hide()
-                                                    viewModel.loadPlaylist(url, onSuccess = {
+                                                    val demoIndex = dynamicDemoUrls.indexOf(url)
+                                                    val playlistName = if (demoIndex != -1) context.getString(R.string.login_server_label, demoIndex + 1) else null
+                                                    viewModel.loadPlaylist(url, playlistName, onSuccess = {
                                                         onNavigateToHome()
                                                     })
                                                 }
