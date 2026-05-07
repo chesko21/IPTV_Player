@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.Color
 // --- BRAND COLORS ---
 val PrimaryBlue = Color(0xFF2979FF)
 val PrimaryBlueDark = Color(0xFF004ECB)
-val PrimaryBlueLight = Color(0xFFD1E4FF)
+val PrimaryBlueLight = Color(0xFFA0C1F1)
 
 val SecondaryBlue = Color(0xFF448AFF)
 val TertiaryCyan = Color(0xFF00E5FF)
@@ -45,4 +45,4 @@ val CosmicInfo = Color(0xFF00B0FF)
 val ScrimColor = Color(0x99000000)
 val GlassHighlight = Color(0x1AFFFFFF)
 val CinematicBlack = Color(0xFF000000)
-val PureWhite = Color(0xFFFFFFFF)
+val PureWhite = Color(0xFFBDB8B8)

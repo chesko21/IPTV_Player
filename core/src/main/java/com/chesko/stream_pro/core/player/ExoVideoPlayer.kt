@@ -174,7 +174,28 @@ fun VideoPlayer(
     DisposableEffect(exoPlayer, lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_PAUSE -> if (!exoPlayer.isCurrentMediaItemLive) exoPlayer.pause()
+                Lifecycle.Event.ON_PAUSE -> {
+                    // Hanya pause jika tidak sedang dalam mode PiP (IPTV tetap jalan di PiP)
+                    val activity = context as? android.app.Activity
+                    val inPip = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                        activity?.isInPictureInPictureMode == true
+                    } else false
+
+                    if (!inPip && !exoPlayer.isCurrentMediaItemLive) {
+                        exoPlayer.pause()
+                    }
+                }
+                Lifecycle.Event.ON_STOP -> {
+                    val activity = context as? android.app.Activity
+                    val inPip = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                        activity?.isInPictureInPictureMode == true
+                    } else false
+                    
+                    // Stop player if not in PiP or if activity is finishing (clicked X in PiP)
+                    if (!inPip || activity?.isFinishing == true) {
+                        exoPlayer.stop()
+                    }
+                }
                 Lifecycle.Event.ON_RESUME -> exoPlayer.play()
                 else -> {}
             }

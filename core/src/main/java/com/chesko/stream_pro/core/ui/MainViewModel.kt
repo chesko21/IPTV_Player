@@ -149,6 +149,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _availableRoutes = MutableStateFlow<List<MediaRouter.RouteInfo>>(emptyList())
     val availableRoutes: StateFlow<List<MediaRouter.RouteInfo>> = _availableRoutes
 
+    private val _isInPipMode = MutableStateFlow(false)
+    val isInPipMode: StateFlow<Boolean> = _isInPipMode
+
+    private val _currentRoute = MutableStateFlow<String?>(null)
+    val currentRoute: StateFlow<String?> = _currentRoute
+
+    fun setInPipMode(inPip: Boolean) {
+        _isInPipMode.value = inPip
+    }
+
+    fun setCurrentRoute(route: String?) {
+        _currentRoute.value = route
+    }
+
     private val mediaRouter = MediaRouter.getInstance(application)
     private val selector = MediaRouteSelector.Builder()
         .addControlCategory(CastMediaControlIntent.categoryForCast(CastMediaControlIntent.DEFAULT_MEDIA_RECEIVER_APPLICATION_ID))
@@ -216,6 +230,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (!player.isCastSessionAvailable) {
             Log.w("MainViewModel", "Cast session not available, cannot transfer")
             return
+        }
+
+        // Initialize MediaSession if not already done
+        if (mediaSession == null) {
+            val intent = getApplication<Application>().packageManager.getLaunchIntentForPackage(getApplication<Application>().packageName)
+            val pendingIntent = PendingIntent.getActivity(
+                getApplication(),
+                0,
+                intent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            mediaSession = MediaSession.Builder(getApplication(), player)
+                .setSessionActivity(pendingIntent)
+                .build()
         }
 
         // Check if already playing this item to avoid double-loading
@@ -298,24 +326,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     override fun onCastSessionUnavailable() {
                         Log.d("MainViewModel", "Cast Session Unavailable")
                         _isCasting.value = false
+                        mediaSession?.release()
+                        mediaSession = null
                     }
                 })
 
-                // Set up MediaSession for CastPlayer
-                val intent = getApplication<Application>().packageManager.getLaunchIntentForPackage(getApplication<Application>().packageName)
-                val pendingIntent = PendingIntent.getActivity(
-                    getApplication(),
-                    0,
-                    intent,
-                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-                )
-
-                mediaSession = MediaSession.Builder(getApplication(), cp)
-                    .setSessionActivity(pendingIntent)
-                    .build()
-
                 // Initial state check
                 _isCasting.value = cp.isCastSessionAvailable
+                if (_isCasting.value) {
+                    transferCurrentMediaToCast()
+                }
             } catch (e: Exception) {
                 Log.e("MainViewModel", "Cast init failed: ${e.message}")
             }
@@ -785,6 +805,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 _castPlayer.value?.stop()
                 _castPlayer.value?.clearMediaItems()
+                
+                // Release media session to remove PiP buttons and notification
+                mediaSession?.release()
+                mediaSession = null
+
                 val castContext = CastContext.getSharedInstance(getApplication())
                 castContext.sessionManager.endCurrentSession(true)
                 _isCasting.value = false
@@ -868,15 +893,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setSelectedChannel(channel: IptvChannel?) {
         _selectedChannel.value = channel
         if (channel != null) {
-            // Otomatis deteksi dan set grup jika saat ini berada di mode "Semua Saluran"
-            if (_selectedGroup.value == null) {
-                if (!channel.group.isNullOrBlank()) {
-                    _selectedGroup.value = channel.group
-                } else {
-                    _selectedGroup.value = getApplication<Application>().getString(R.string.group_other)
-                }
-            }
-            
             if (_isCasting.value) {
                 transferCurrentMediaToCast()
             }

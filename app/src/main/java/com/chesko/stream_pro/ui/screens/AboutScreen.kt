@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import android.content.ClipData
-import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
@@ -198,7 +198,7 @@ fun AboutScreen(
 
 @Composable
 fun DonationSection() {
-    val clipboardManager = LocalClipboard.current
+    val clipboardManager = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
     val danaNumber = "08976248342"
     var showSnackbar by remember { mutableStateOf(false) }
@@ -253,10 +253,8 @@ fun DonationSection() {
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
                     .clickable {
-                        scope.launch {
-                            clipboardManager.setClipEntry(androidx.compose.ui.platform.ClipEntry(ClipData.newPlainText("DANA", danaNumber)))
-                            showSnackbar = true
-                        }
+                        clipboardManager.setText(AnnotatedString(danaNumber))
+                        showSnackbar = true
                     },
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))

@@ -78,8 +78,7 @@ import com.google.android.gms.cast.CastMediaControlIntent
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro.core.player.VideoPlayer
 import android.content.ClipData
-import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboardManager
 import kotlinx.coroutines.launch
 import androidx.compose.ui.text.AnnotatedString
 import com.chesko.stream_pro.core.ui.MainViewModel
@@ -405,6 +404,7 @@ fun PlayerScreenContent(
 
     var showControls by remember { mutableStateOf(true) }
     var isClosing by remember { mutableStateOf(false) }
+    val isInPipMode by viewModel.isInPipMode.collectAsState()
 
     val setSystemBarsVisibility = remember {
         { visible: Boolean ->
@@ -563,6 +563,18 @@ fun PlayerScreenContent(
     var showResolutionDialog by remember { mutableStateOf(false) }
     var showDebugDialog by remember { mutableStateOf(false) }
     var showChannelInfo by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isInPipMode) {
+        if (isInPipMode) {
+            showControls = false
+            showChannelList = false
+            showAudioDialog = false
+            showSubtitleDialog = false
+            showResolutionDialog = false
+            showDebugDialog = false
+            showChannelInfo = false
+        }
+    }
 
     var zappingJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
 
@@ -818,7 +830,7 @@ fun PlayerScreenContent(
                 }
             )
 
-            if (isCasting) {
+            if (isCasting && !isInPipMode) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -866,338 +878,340 @@ fun PlayerScreenContent(
     }
 
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(isLocked, showChannelList) {
-                if (isLocked || showChannelList) return@pointerInput
+    if (!isInPipMode) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(isLocked, showChannelList) {
+                    if (isLocked || showChannelList) return@pointerInput
 
-                detectVerticalDragGestures(
-                    onDragEnd = { gestureType = null },
-                    onDragCancel = { gestureType = null },
-                    onVerticalDrag = { change, dragAmount ->
-                        change.consume()
-                        val delta = -dragAmount / size.height
-                        val third = size.width / 3f
+                    detectVerticalDragGestures(
+                        onDragEnd = { gestureType = null },
+                        onDragCancel = { gestureType = null },
+                        onVerticalDrag = { change, dragAmount ->
+                            change.consume()
+                            val delta = -dragAmount / size.height
+                            val third = size.width / 3f
 
-                        val topThreshold = if (size.height > size.width) size.height * 0.30f else size.height * 0.15f
-                        val bottomThreshold = if (size.height > size.width) size.height * 0.70f else size.height * 0.85f
+                            val topThreshold = if (size.height > size.width) size.height * 0.30f else size.height * 0.15f
+                            val bottomThreshold = if (size.height > size.width) size.height * 0.70f else size.height * 0.85f
 
-                        if (change.position.y < topThreshold || change.position.y > bottomThreshold) {
-                            gestureType = null
-                            return@detectVerticalDragGestures
-                        }
-
-                        if (change.position.x < third) {
-                            gestureType = "Brightness"
-                            brightness = (brightness + delta).coerceIn(0.01f, 1f)
-                            activity?.let {
-                                val lp = it.window.attributes
-                                lp.screenBrightness = brightness
-                                it.window.attributes = lp
+                            if (change.position.y < topThreshold || change.position.y > bottomThreshold) {
+                                gestureType = null
+                                return@detectVerticalDragGestures
                             }
-                        } else if (change.position.x > (2 * third)) {
-                            gestureType = "Volume"
-                            volume = (volume + delta).coerceIn(0f, 1f)
-                            val maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-                            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, (volume * maxVol).toInt(), 0)
-                        } else {
 
-                            gestureType = null
+                            if (change.position.x < third) {
+                                gestureType = "Brightness"
+                                brightness = (brightness + delta).coerceIn(0.01f, 1f)
+                                activity?.let {
+                                    val lp = it.window.attributes
+                                    lp.screenBrightness = brightness
+                                    it.window.attributes = lp
+                                }
+                            } else if (change.position.x > (2 * third)) {
+                                gestureType = "Volume"
+                                volume = (volume + delta).coerceIn(0f, 1f)
+                                val maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, (volume * maxVol).toInt(), 0)
+                            } else {
+
+                                gestureType = null
+                            }
                         }
-                    }
-                )
-            }
-            .pointerInput(isLocked, showChannelList) {
-                detectTapGestures(
-                    onTap = {
-                        if (!showChannelList) showControls = !showControls
-                    }
-                )
-            }
-    ) {
-        // Overlay logic...
-    }
-
-
-        if (isPlaybackStuck && !isBuffering) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.85f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(32.dp)
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
-                        modifier = Modifier.size(60.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                Icons.Default.SignalWifiOff,
-                                contentDescription = null,
-                                modifier = Modifier.size(32.dp),
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = errorMessage ?: stringResource(R.string.player_connection_lost),
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = if (errorMessage != null) stringResource(R.string.player_link_dead) else stringResource(R.string.player_stopped),
-                        color = Color.White.copy(alpha = 0.4f),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 9.sp,
-                        textAlign = TextAlign.Center
                     )
                 }
-            }
-        }
-
-        Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
-
-        AnimatedVisibility(
-            visible = isLocked && showControls,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier.align(Alignment.Center)
-        ) {
-            IconButton(
-                onClick = { isLocked = false; showControls = true },
-                modifier = Modifier.size(80.dp).background(Color.Black.copy(0.5f), CircleShape)
-            ) {
-                Icon(Icons.Default.Lock, null, tint = Color.White, modifier = Modifier.size(40.dp))
-            }
-        }
-
-        AnimatedVisibility(
-            visible = (showChannelInfo || showControls) && !isLocked && !showChannelList,
-            enter = fadeIn(tween(400)) + slideInVertically { it / 2 },
-            exit = fadeOut(tween(400)) + slideOutVertically { it / 2 },
-            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()
-        ) {
-            ChannelInfoBar(
-                currentChannel = currentChannel,
-                currentProgram = currentProgram,
-                nextProgram = nextProgram,
-                showFullControls = showControls,
-                isFullscreen = isFullscreen,
-                exoPlayer = exoPlayer,
-                castPlayer = castPlayer,
-                onSeek = { position ->
-                    if (isCasting) {
-                        castPlayer?.seekTo(position)
-                    } else {
-                        exoPlayer?.seekTo(position)
-                    }
-                }
-            )
-        }
-
-        AnimatedVisibility(
-            visible = showControls && !isLocked && !showChannelList,
-            enter = fadeIn(tween(300)),
-            exit = fadeOut(tween(300)),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            ControlOverlay(
-                currentChannel = currentChannel,
-                isFavorite = isFavorite,
-                onBack = handleBack,
-                onToggleFavorite = {
-                    viewModel.toggleFavorite(currentChannel)
-                },
-                onShowChannels = { showChannelList = true },
-                onLock = { isLocked = true },
-                onPrev = {
-                    if (currentGroupChannels.isNotEmpty()) {
-                        val idx = currentGroupChannels.indexOfFirst { it.url == currentChannel.url }
-                        val prevIdx = if (idx <= 0) currentGroupChannels.size - 1 else idx - 1
-                        changeChannel(currentGroupChannels[prevIdx])
-                    }
-                },
-                onNext = {
-                    if (currentGroupChannels.isNotEmpty()) {
-                        val idx = currentGroupChannels.indexOfFirst { it.url == currentChannel.url }
-                        val nextIdx = if (idx == -1 || idx >= currentGroupChannels.size - 1) 0 else idx + 1
-                        changeChannel(currentGroupChannels[nextIdx])
-                    }
-                },
-                onFullscreenToggle = toggleFullscreen,
-                isFullscreen = isFullscreen,
-                onShowAudio = { showAudioDialog = true },
-                onShowSubtitle = { showSubtitleDialog = true },
-                onShowResolution = { showResolutionDialog = true },
-                onShowDebug = { if (isDebug) showDebugDialog = true },
-                onShowCast = { 
-                    if (isCasting) {
-                        handleStopCasting()
-                    } else {
-                        showCastDiscovery = true 
-                    }
-                },
-                exoPlayer = exoPlayer,
-                castPlayer = castPlayer,
-                isCasting = isCasting,
-                isPlayingState = isPlayingState,
-                isDebug = isDebug,
-                isPlaybackStuck = isPlaybackStuck,
-                isBuffering = isBuffering,
-                onReload = reloadVideo,
-                loadingStatus = loadingStatus
-            )
-        }
-
-        GestureHUD(gestureType, brightness, volume, seekPosition, seekTarget, seekDuration)
-
-        // Floating Menus (Audio, CC, Quality) positioned above buttons
-        val menuModifier = Modifier
-            .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal))
-            .padding(bottom = 80.dp)
-
-        // Tap background to dismiss
-        if (showAudioDialog || showSubtitleDialog || showResolutionDialog) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = {
-                            showAudioDialog = false
-                            showSubtitleDialog = false
-                            showResolutionDialog = false
+                .pointerInput(isLocked, showChannelList) {
+                    detectTapGestures(
+                        onTap = {
+                            if (!showChannelList) showControls = !showControls
                         }
                     )
-            )
-        }
-
-        AnimatedVisibility(
-            visible = showAudioDialog,
-            enter = slideInVertically { it } + fadeIn(),
-            exit = slideOutVertically { it } + fadeOut(),
-            modifier = Modifier.align(Alignment.BottomStart).then(menuModifier).padding(start = 24.dp)
+                }
         ) {
-            TrackSelectionMenu(
-                title = stringResource(R.string.player_menu_audio),
-                exoPlayer = exoPlayer,
-                trackType = C.TRACK_TYPE_AUDIO,
-                onDismiss = { showAudioDialog = false },
-                showAudioBoost = true,
-                audioBoost = audioBoost,
-                onAudioBoostToggle = { viewModel.setAudioBoost(it) }
-            )
+            // Overlay logic...
         }
 
-        AnimatedVisibility(
-            visible = showSubtitleDialog,
-            enter = slideInVertically { it } + fadeIn(),
-            exit = slideOutVertically { it } + fadeOut(),
-            modifier = Modifier.align(Alignment.BottomStart).then(menuModifier).padding(start = 24.dp)
-        ) {
-            TrackSelectionMenu(
-                title = stringResource(R.string.player_menu_subtitle),
-                exoPlayer = exoPlayer,
-                trackType = C.TRACK_TYPE_TEXT,
-                onDismiss = { showSubtitleDialog = false }
-            )
-        }
 
-        AnimatedVisibility(
-            visible = showResolutionDialog,
-            enter = slideInVertically { it } + fadeIn(),
-            exit = slideOutVertically { it } + fadeOut(),
-            modifier = Modifier.align(Alignment.BottomEnd).then(menuModifier).padding(end = 24.dp)
-        ) {
-            TrackSelectionMenu(
-                title = stringResource(R.string.player_menu_quality),
-                exoPlayer = exoPlayer,
-                trackType = C.TRACK_TYPE_VIDEO,
-                onDismiss = { showResolutionDialog = false }
-            )
-        }
-
-        if (showDebugDialog && isDebug) {
-            DebugInfoDialog(
-                channel = currentChannel,
-                onDismiss = { showDebugDialog = false }
-            )
-        }
-
-        AnimatedVisibility(
-            visible = showChannelList,
-            enter = slideInHorizontally(initialOffsetX = { it }),
-            exit = slideOutHorizontally(targetOffsetX = { it }),
-            modifier = Modifier.align(Alignment.CenterEnd)
-        ) {
-            QuickChannelList(
-                viewModel = viewModel,
-                allChannels = allChannels,
-                groups = groups,
-                currentChannel = currentChannel,
-                onChannelSelect = {
-                    currentChannel = it
-                    viewModel.markAsPlayed(it)
-                    showChannelList = false
-                },
-                onClose = { showChannelList = false }
-            )
-        }
-
-        if (showCastDiscovery) {
-            CastDiscoveryOverlay(
-                routes = availableRoutes,
-                onRouteSelected = { route ->
-                    isConnectingToCast = true
-                    route.select()
-                    showCastDiscovery = false
-                },
-                onRetry = { viewModel.retryDiscovery() },
-                onDismiss = { showCastDiscovery = false }
-            )
-        }
-
-        if (isConnectingToCast) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.7f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
+            if (isPlaybackStuck && !isBuffering) {
+                Box(
                     modifier = Modifier
-                        .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                        .padding(12.dp)
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.85f)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                        strokeWidth = 2.dp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.player_preparing),
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 9.sp
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(32.dp)
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
+                            modifier = Modifier.size(60.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    Icons.Default.SignalWifiOff,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp),
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = errorMessage ?: stringResource(R.string.player_connection_lost),
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (errorMessage != null) stringResource(R.string.player_link_dead) else stringResource(R.string.player_stopped),
+                            color = Color.White.copy(alpha = 0.4f),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 9.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
-        }
+
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
+
+            AnimatedVisibility(
+                visible = isLocked && showControls,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier.align(Alignment.Center)
+            ) {
+                IconButton(
+                    onClick = { isLocked = false; showControls = true },
+                    modifier = Modifier.size(80.dp).background(Color.Black.copy(0.5f), CircleShape)
+                ) {
+                    Icon(Icons.Default.Lock, null, tint = Color.White, modifier = Modifier.size(40.dp))
+                }
+            }
+
+            AnimatedVisibility(
+                visible = (showChannelInfo || showControls) && !isLocked && !showChannelList,
+                enter = fadeIn(tween(400)) + slideInVertically { it / 2 },
+                exit = fadeOut(tween(400)) + slideOutVertically { it / 2 },
+                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+            ) {
+                ChannelInfoBar(
+                    currentChannel = currentChannel,
+                    currentProgram = currentProgram,
+                    nextProgram = nextProgram,
+                    showFullControls = showControls,
+                    isFullscreen = isFullscreen,
+                    exoPlayer = exoPlayer,
+                    castPlayer = castPlayer,
+                    onSeek = { position ->
+                        if (isCasting) {
+                            castPlayer?.seekTo(position)
+                        } else {
+                            exoPlayer?.seekTo(position)
+                        }
+                    }
+                )
+            }
+
+            AnimatedVisibility(
+                visible = showControls && !isLocked && !showChannelList,
+                enter = fadeIn(tween(300)),
+                exit = fadeOut(tween(300)),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                ControlOverlay(
+                    currentChannel = currentChannel,
+                    isFavorite = isFavorite,
+                    onBack = handleBack,
+                    onToggleFavorite = {
+                        viewModel.toggleFavorite(currentChannel)
+                    },
+                    onShowChannels = { showChannelList = true },
+                    onLock = { isLocked = true },
+                    onPrev = {
+                        if (currentGroupChannels.isNotEmpty()) {
+                            val idx = currentGroupChannels.indexOfFirst { it.url == currentChannel.url }
+                            val prevIdx = if (idx <= 0) currentGroupChannels.size - 1 else idx - 1
+                            changeChannel(currentGroupChannels[prevIdx])
+                        }
+                    },
+                    onNext = {
+                        if (currentGroupChannels.isNotEmpty()) {
+                            val idx = currentGroupChannels.indexOfFirst { it.url == currentChannel.url }
+                            val nextIdx = if (idx == -1 || idx >= currentGroupChannels.size - 1) 0 else idx + 1
+                            changeChannel(currentGroupChannels[nextIdx])
+                        }
+                    },
+                    onFullscreenToggle = toggleFullscreen,
+                    isFullscreen = isFullscreen,
+                    onShowAudio = { showAudioDialog = true },
+                    onShowSubtitle = { showSubtitleDialog = true },
+                    onShowResolution = { showResolutionDialog = true },
+                    onShowDebug = { if (isDebug) showDebugDialog = true },
+                    onShowCast = { 
+                        if (isCasting) {
+                            handleStopCasting()
+                        } else {
+                            showCastDiscovery = true 
+                        }
+                    },
+                    exoPlayer = exoPlayer,
+                    castPlayer = castPlayer,
+                    isCasting = isCasting,
+                    isPlayingState = isPlayingState,
+                    isDebug = isDebug,
+                    isPlaybackStuck = isPlaybackStuck,
+                    isBuffering = isBuffering,
+                    onReload = reloadVideo,
+                    loadingStatus = loadingStatus
+                )
+            }
+
+            GestureHUD(gestureType, brightness, volume, seekPosition, seekTarget, seekDuration)
+
+            // Floating Menus (Audio, CC, Quality) positioned above buttons
+            val menuModifier = Modifier
+                .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal))
+                .padding(bottom = 80.dp)
+
+            // Tap background to dismiss
+            if (showAudioDialog || showSubtitleDialog || showResolutionDialog) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {
+                                showAudioDialog = false
+                                showSubtitleDialog = false
+                                showResolutionDialog = false
+                            }
+                        )
+                )
+            }
+
+            AnimatedVisibility(
+                visible = showAudioDialog,
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut(),
+                modifier = Modifier.align(Alignment.BottomStart).then(menuModifier).padding(start = 24.dp)
+            ) {
+                TrackSelectionMenu(
+                    title = stringResource(R.string.player_menu_audio),
+                    exoPlayer = exoPlayer,
+                    trackType = C.TRACK_TYPE_AUDIO,
+                    onDismiss = { showAudioDialog = false },
+                    showAudioBoost = true,
+                    audioBoost = audioBoost,
+                    onAudioBoostToggle = { viewModel.setAudioBoost(it) }
+                )
+            }
+
+            AnimatedVisibility(
+                visible = showSubtitleDialog,
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut(),
+                modifier = Modifier.align(Alignment.BottomStart).then(menuModifier).padding(start = 24.dp)
+            ) {
+                TrackSelectionMenu(
+                    title = stringResource(R.string.player_menu_subtitle),
+                    exoPlayer = exoPlayer,
+                    trackType = C.TRACK_TYPE_TEXT,
+                    onDismiss = { showSubtitleDialog = false }
+                )
+            }
+
+            AnimatedVisibility(
+                visible = showResolutionDialog,
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut(),
+                modifier = Modifier.align(Alignment.BottomEnd).then(menuModifier).padding(end = 24.dp)
+            ) {
+                TrackSelectionMenu(
+                    title = stringResource(R.string.player_menu_quality),
+                    exoPlayer = exoPlayer,
+                    trackType = C.TRACK_TYPE_VIDEO,
+                    onDismiss = { showResolutionDialog = false }
+                )
+            }
+
+            if (showDebugDialog && isDebug) {
+                DebugInfoDialog(
+                    channel = currentChannel,
+                    onDismiss = { showDebugDialog = false }
+                )
+            }
+
+            AnimatedVisibility(
+                visible = showChannelList,
+                enter = slideInHorizontally(initialOffsetX = { it }),
+                exit = slideOutHorizontally(targetOffsetX = { it }),
+                modifier = Modifier.align(Alignment.CenterEnd)
+            ) {
+                QuickChannelList(
+                    viewModel = viewModel,
+                    allChannels = allChannels,
+                    groups = groups,
+                    currentChannel = currentChannel,
+                    onChannelSelect = {
+                        currentChannel = it
+                        viewModel.markAsPlayed(it)
+                        showChannelList = false
+                    },
+                    onClose = { showChannelList = false }
+                )
+            }
+
+            if (showCastDiscovery) {
+                CastDiscoveryOverlay(
+                    routes = availableRoutes,
+                    onRouteSelected = { route ->
+                        isConnectingToCast = true
+                        route.select()
+                        showCastDiscovery = false
+                    },
+                    onRetry = { viewModel.retryDiscovery() },
+                    onDismiss = { showCastDiscovery = false }
+                )
+            }
+
+            if (isConnectingToCast) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.7f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                            .padding(12.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.player_preparing),
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 9.sp
+                        )
+                    }
+                }
+            }
+    }
     }
 }
 
@@ -1755,15 +1769,13 @@ fun DebugInfoDialog(
 
 @Composable
 fun DebugInfoItem(label: String, value: String) {
-    val clipboardManager = LocalClipboard.current
+    val clipboardManager = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                scope.launch {
-                    clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText(label, value)))
-                }
+                clipboardManager.setText(AnnotatedString(value))
             }
             .padding(vertical = 8.dp)
     ) {

@@ -35,7 +35,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalClipboardManager
 import android.content.ClipData
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.platform.LocalContext
@@ -67,7 +67,7 @@ fun ProfileScreen(
     var tempEmail by remember { mutableStateOf("") }
     var isBackInvoked by remember { mutableStateOf(false) }
 
-    val clipboardManager = LocalClipboard.current
+    val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -406,7 +406,7 @@ fun ProfileDetails(
     deviceId: String,
     memberSince: String,
     onEditEmail: () -> Unit,
-    clipboardManager: androidx.compose.ui.platform.Clipboard,
+    clipboardManager: androidx.compose.ui.platform.ClipboardManager,
     snackbarHostState: SnackbarHostState,
     context: android.content.Context,
     scope: kotlinx.coroutines.CoroutineScope
@@ -431,8 +431,8 @@ fun ProfileDetails(
             label = stringResource(R.string.label_device_id),
             value = deviceId.take(12) + "...",
             onClick = {
+                clipboardManager.setText(AnnotatedString(deviceId))
                 scope.launch {
-                    clipboardManager.setClipEntry(androidx.compose.ui.platform.ClipEntry(android.content.ClipData.newPlainText("Device ID", deviceId)))
                     snackbarHostState.showSnackbar(context.getString(R.string.msg_device_id_copied))
                 }
             }

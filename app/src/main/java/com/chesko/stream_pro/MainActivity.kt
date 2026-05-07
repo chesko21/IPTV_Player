@@ -96,16 +96,52 @@ class MainActivity : FragmentActivity() {
 
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("iptv_player_prefs", MODE_PRIVATE)
-        val lang = prefs.getString("app_language", "in") ?: "in"
+        val lang = prefs.getString("app_language", "en") ?: "en"
         super.attachBaseContext(LocaleHelper.applyLocale(newBase, lang))
     }
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        // Saat tombol HOME ditekan, kita anggap cast terhenti sesuai permintaan
         val viewModel: com.chesko.stream_pro.core.ui.MainViewModel = androidx.lifecycle.ViewModelProvider(this)[com.chesko.stream_pro.core.ui.MainViewModel::class.java]
+        
         if (viewModel.isCasting.value) {
             viewModel.stopCasting()
+        } else {
+            val currentRoute = viewModel.currentRoute.value
+            if (currentRoute?.startsWith("player") == true) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    try {
+                        val params = android.app.PictureInPictureParams.Builder()
+                            .setActions(emptyList())
+                            .build()
+                        enterPictureInPictureMode(params)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        val viewModel: com.chesko.stream_pro.core.ui.MainViewModel = androidx.lifecycle.ViewModelProvider(this)[com.chesko.stream_pro.core.ui.MainViewModel::class.java]
+        viewModel.setInPipMode(isInPictureInPictureMode)
+        
+        if (isInPictureInPictureMode) {
+            // Update PiP params to ensure no actions/buttons are shown
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                val params = android.app.PictureInPictureParams.Builder()
+                    .setActions(emptyList())
+                    .build()
+                setPictureInPictureParams(params)
+            }
+        } else {
+            // Jika keluar dari mode PiP
+            if (lifecycle.currentState == androidx.lifecycle.Lifecycle.State.CREATED || isFinishing) {
+                // PiP ditutup melalui tombol 'X'
+                finishAndRemoveTask()
+            }
         }
     }
 
@@ -179,6 +215,12 @@ class MainActivity : FragmentActivity() {
                 }
 
                 val navController = rememberNavController()
+
+                LaunchedEffect(navController) {
+                    navController.addOnDestinationChangedListener { _, destination, _ ->
+                        viewModel.setCurrentRoute(destination.route)
+                    }
+                }
 
                 val snackbarHostState = remember { SnackbarHostState() }
                 val errorMessage by viewModel.errorMessage.collectAsState()

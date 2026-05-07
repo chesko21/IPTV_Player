@@ -20,6 +20,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -256,8 +257,8 @@ fun HomeScreen(
                     .fillMaxWidth(drawerWidthFraction)
                     .statusBarsPadding(),
                 drawerShape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp),
-                drawerContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
-                drawerTonalElevation = 0.dp
+                drawerContainerColor = MaterialTheme.colorScheme.surface,
+                drawerTonalElevation = 10.dp
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize()
@@ -288,7 +289,7 @@ fun HomeScreen(
                                     shape = CircleShape,
                                     color = MaterialTheme.colorScheme.surfaceVariant,
                                     border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                                    shadowElevation = 6.dp
+                                    shadowElevation = 10.dp
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
                                         if (profileImageUri != null) {
@@ -324,7 +325,7 @@ fun HomeScreen(
                                     Text(
                                         userEmail,
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                         fontSize = 10.sp,
@@ -360,7 +361,7 @@ fun HomeScreen(
                                 Spacer(modifier = Modifier.height(20.dp))
                                 HorizontalDivider(
                                     modifier = Modifier.padding(horizontal = 12.dp),
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
                                     thickness = 1.dp
                                 )
                             }
@@ -548,18 +549,18 @@ fun HomeScreen(
                                         onLogout()
                                     }
                                 },
-                            color = Color.Red.copy(0.06f),
+                            color = MaterialTheme.colorScheme.error.copy(alpha = 0.08f),
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, Color.Red.copy(0.1f))
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.15f))
                         ) {
                             Row(
                                 modifier = Modifier.padding(10.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center
                             ) {
-                                Icon(Icons.AutoMirrored.Filled.Logout, null, tint = Color.Red, modifier = Modifier.size(18.dp))
+                                Icon(Icons.AutoMirrored.Filled.Logout, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(10.dp))
-                                Text(stringResource(R.string.menu_logout), color = Color.Red, fontWeight = FontWeight.Black, fontSize = 13.sp, letterSpacing = 0.5.sp)
+                                Text(stringResource(R.string.menu_logout), color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Black, fontSize = 13.sp, letterSpacing = 0.5.sp)
                             }
                         }
 
@@ -591,13 +592,13 @@ fun HomeScreen(
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
-                            alpha = 0.6f
+                            alpha = if (isSystemInDarkTheme()) 0.6f else 0.3f
                         )
                     } else {
-                        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+                        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainer))
                     }
                 }
-                else -> Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+                else -> Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainer))
             }
 
             if (isLoading || allChannels.isEmpty() || isSwitchingPlaylist) {
@@ -753,7 +754,7 @@ fun HomeScreen(
                                         Text(
                                             stringResource(R.string.search_not_found_msg),
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             textAlign = TextAlign.Center
                                         )
                                     }
@@ -1333,10 +1334,10 @@ fun HeaderSection(
 
     Surface(
         color = if (isSearchExpanded) MaterialTheme.colorScheme.surface
-                else MaterialTheme.colorScheme.surface.copy(alpha = alpha.coerceIn(0f, 0.95f)),
+                else MaterialTheme.colorScheme.surface.copy(alpha = if (isSystemInDarkTheme()) alpha.coerceIn(0f, 0.95f) else (alpha * 0.9f).coerceIn(0f, 0.98f)),
         modifier = modifier.fillMaxWidth(),
-        tonalElevation = 4.dp,
-        shadowElevation = if (alpha > 0.5f) 4.dp else 0.dp
+        tonalElevation = if (isSystemInDarkTheme()) 4.dp else 1.dp,
+        shadowElevation = if (alpha > 0.5f) 2.dp else 0.dp
     ) {
         Box(
             modifier = Modifier.fillMaxWidth(),
@@ -1432,8 +1433,8 @@ fun HeaderSection(
                             }
                         },
                         colors = TextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                             focusedTextColor = MaterialTheme.colorScheme.onSurface,
@@ -1532,11 +1533,12 @@ fun ContentRow(
                                 ),
                                 CircleShape
                             )
+                            .alpha(if (isSystemInDarkTheme()) 1f else 0.7f)
                     )
                 }
                 Surface(
                     onClick = onSeeAllClick,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = if (isSystemInDarkTheme()) 0.1f else 0.07f),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Row(
@@ -1745,8 +1747,8 @@ fun ChannelModernItem(
         Text(
             text = programText,
             color = if (currentProgram != null)
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-                else MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f),
+                MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 10.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
