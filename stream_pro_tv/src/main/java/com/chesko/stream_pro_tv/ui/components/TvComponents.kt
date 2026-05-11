@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.*
 import coil.compose.AsyncImage
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.focus.focusRequester
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro_tv.R
 
@@ -140,12 +141,14 @@ fun PositionFocusedItemInLazyLayout(
 fun ChannelTvGridItem(
     channel: IptvChannel,
     onClick: (IptvChannel) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    focusRequester: androidx.compose.ui.focus.FocusRequester? = null
 ) {
     Surface(
         onClick = { onClick(channel) },
         modifier = modifier
-            .aspectRatio(1f),
+            .aspectRatio(1f)
+            .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier),
         shape = ClickableSurfaceDefaults.shape(shape = MaterialTheme.shapes.medium),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.15f),
         colors = ClickableSurfaceDefaults.colors(

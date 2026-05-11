@@ -174,31 +174,31 @@ fun AppNavigation(isTvDevice: Boolean, viewModel: MainViewModel) {
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        if (showNavigation) {
-            if (isTvDevice) {
-                TvNavigationWrapper(
-                    selectedRoute = currentRoute ?: "home",
-                    onRouteSelected = { route ->
-                        if (currentRoute != route) {
-                            navController.navigate(route) {
-                                popUpTo("home") { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+        if (isTvDevice) {
+            TvNavigationWrapper(
+                selectedRoute = currentRoute ?: "home",
+                showSidebar = showNavigation,
+                onRouteSelected = { route ->
+                    if (currentRoute != route) {
+                        navController.navigate(route) {
+                            popUpTo("home") { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
                         }
                     }
-                ) {
-                    NavHostContent(
-                        navController = navController,
-                        viewModel = viewModel,
-                        lastUrl = lastUrl,
-                        selectedChannel = selectedChannel,
-                        networkStatus = networkStatus
-                    )
                 }
-            } else {
+            ) {
+                NavHostContent(
+                    navController = navController,
+                    viewModel = viewModel,
+                    lastUrl = lastUrl,
+                    selectedChannel = selectedChannel,
+                    networkStatus = networkStatus
+                )
+            }
+        } else {
+            if (showNavigation) {
                 val screenWidth = configuration.screenWidthDp.dp
-
                 ResponsiveNavigationLayout(
                     isSmallScreen = screenWidth < 600.dp,
                     selectedRoute = currentRoute ?: "home",
@@ -217,15 +217,15 @@ fun AppNavigation(isTvDevice: Boolean, viewModel: MainViewModel) {
                     selectedChannel = selectedChannel,
                     networkStatus = networkStatus
                 )
+            } else {
+                NavHostContent(
+                    navController = navController,
+                    viewModel = viewModel,
+                    lastUrl = lastUrl,
+                    selectedChannel = selectedChannel,
+                    networkStatus = networkStatus
+                )
             }
-        } else {
-            NavHostContent(
-                navController = navController,
-                viewModel = viewModel,
-                lastUrl = lastUrl,
-                selectedChannel = selectedChannel,
-                networkStatus = networkStatus
-            )
         }
 
         // Global Network Alert
@@ -469,10 +469,6 @@ fun NavHostContent(
             )
         }
         composable("home") {
-            LaunchedEffect(Unit) { 
-                viewModel.setSelectedGroup(null)
-                viewModel.setCategoryFilter(null) 
-            }
             HomeScreen(
                 viewModel = viewModel,
                 onChannelClick = { channel ->

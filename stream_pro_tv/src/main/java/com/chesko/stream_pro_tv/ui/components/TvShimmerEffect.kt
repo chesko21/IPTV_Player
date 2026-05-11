@@ -45,13 +45,15 @@ fun Modifier.shimmerEffect(): Modifier = composed {
 }
 
 @Composable
-fun ShimmerHomeScreen() {
+fun ShimmerHomeScreen(showBackground: Boolean = true) {
     Box(modifier = Modifier.fillMaxSize()) {
-        // Use UniverseBackground to match the theme
-        com.chesko.stream_pro_tv.ui.screens.UniverseBackground(
-            primaryColor = MaterialTheme.colorScheme.primary,
-            glowAlpha = 0.6f
-        )
+        if (showBackground) {
+            // Use UniverseBackground to match the theme
+            com.chesko.stream_pro_tv.ui.screens.UniverseBackground(
+                primaryColor = MaterialTheme.colorScheme.primary,
+                glowAlpha = 0.6f
+            )
+        }
         
         Column(
             modifier = Modifier

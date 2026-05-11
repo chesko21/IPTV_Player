@@ -17,4 +17,3 @@ val StarlightWhite = Color(0xFFE5E7EB) // Grayish White
 val NebulaGlow = Color(0xFFFACC15).copy(alpha = 0.15f)
 val DeepSpaceBlue = Color(0xFF171717)
 val GalacticError = Color(0xFFEF4444) // Modern Red
-0

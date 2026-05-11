@@ -30,87 +30,92 @@ import androidx.tv.material3.*
 fun TvNavigationWrapper(
     selectedRoute: String,
     onRouteSelected: (String) -> Unit,
+    showSidebar: Boolean = true,
     content: @Composable () -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
     val sidebarWidth by animateDpAsState(
-        targetValue = if (isExpanded) 220.dp else 70.dp,
-
+        targetValue = if (!showSidebar) 0.dp else if (isExpanded) 220.dp else 70.dp,
         animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
         label = "sidebarWidth"
     )
 
     val (homeFR, searchFR, liveFR, moviesFR, sportFR, favFR, settingsFR) = remember { FocusRequester.createRefs() }
 
-    BackHandler(enabled = isExpanded) {
+    BackHandler(enabled = isExpanded && showSidebar) {
         isExpanded = false
     }
 
     Row(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .width(sidebarWidth)
-                .fillMaxHeight()
-                .onFocusChanged { isExpanded = it.hasFocus }
-                .focusGroup()
-
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color(0xFF0A0A0A),
-                            Color(0xFF00020A)
+        AnimatedVisibility(
+            visible = showSidebar,
+            enter = expandHorizontally(),
+            exit = shrinkHorizontally()
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(sidebarWidth)
+                    .fillMaxHeight()
+                    .onFocusChanged { isExpanded = it.hasFocus }
+                    .focusGroup()
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFF0A0A0A),
+                                Color(0xFF00020A)
+                            )
                         )
                     )
-                )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight(),
-                horizontalAlignment = Alignment.Start
             ) {
-                BrandingSection(isExpanded)
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight(),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    BrandingSection(isExpanded)
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                SidebarItem(
-                    label = stringResource(R.string.nav_home), icon = Icons.Default.Home, isSelected = selectedRoute == "home", isExpanded = isExpanded,
-                    modifier = Modifier.focusRequester(homeFR).focusProperties { down = searchFR },
-                    onClick = { onRouteSelected("home") }
-                )
-                SidebarItem(
-                    label = stringResource(R.string.nav_search), icon = Icons.Default.Search, isSelected = selectedRoute == "search", isExpanded = isExpanded,
-                    modifier = Modifier.focusRequester(searchFR).focusProperties { up = homeFR; down = liveFR },
-                    onClick = { onRouteSelected("search") }
-                )
-                SidebarItem(
-                    label = stringResource(R.string.nav_live), icon = Icons.Default.Tv, isSelected = selectedRoute == "live", isExpanded = isExpanded,
-                    modifier = Modifier.focusRequester(liveFR).focusProperties { up = searchFR; down = moviesFR },
-                    onClick = { onRouteSelected("live") }
-                )
-                SidebarItem(
-                    label = stringResource(R.string.nav_movies), icon = Icons.Default.Movie, isSelected = selectedRoute == "movies", isExpanded = isExpanded,
-                    modifier = Modifier.focusRequester(moviesFR).focusProperties { up = liveFR; down = sportFR },
-                    onClick = { onRouteSelected("movies") }
-                )
-                SidebarItem(
-                    label = stringResource(R.string.nav_sports), icon = Icons.Default.SportsSoccer, isSelected = selectedRoute == "sport", isExpanded = isExpanded,
-                    modifier = Modifier.focusRequester(sportFR).focusProperties { up = moviesFR; down = favFR },
-                    onClick = { onRouteSelected("sport") }
-                )
-                SidebarItem(
-                    label = stringResource(R.string.nav_favorites), icon = Icons.Default.Favorite, isSelected = selectedRoute == "favorites", isExpanded = isExpanded,
-                    modifier = Modifier.focusRequester(favFR).focusProperties { up = sportFR; down = settingsFR; next = settingsFR },
-                    onClick = { onRouteSelected("favorites") }
-                )
+                    SidebarItem(
+                        label = stringResource(R.string.nav_home), icon = Icons.Default.Home, isSelected = selectedRoute == "home", isExpanded = isExpanded,
+                        modifier = Modifier.focusRequester(homeFR).focusProperties { down = searchFR },
+                        onClick = { onRouteSelected("home") }
+                    )
+                    SidebarItem(
+                        label = stringResource(R.string.nav_search), icon = Icons.Default.Search, isSelected = selectedRoute == "search", isExpanded = isExpanded,
+                        modifier = Modifier.focusRequester(searchFR).focusProperties { up = homeFR; down = liveFR },
+                        onClick = { onRouteSelected("search") }
+                    )
+                    SidebarItem(
+                        label = stringResource(R.string.nav_live), icon = Icons.Default.Tv, isSelected = selectedRoute == "live", isExpanded = isExpanded,
+                        modifier = Modifier.focusRequester(liveFR).focusProperties { up = searchFR; down = moviesFR },
+                        onClick = { onRouteSelected("live") }
+                    )
+                    SidebarItem(
+                        label = stringResource(R.string.nav_movies), icon = Icons.Default.Movie, isSelected = selectedRoute == "movies", isExpanded = isExpanded,
+                        modifier = Modifier.focusRequester(moviesFR).focusProperties { up = liveFR; down = sportFR },
+                        onClick = { onRouteSelected("movies") }
+                    )
+                    SidebarItem(
+                        label = stringResource(R.string.nav_sports), icon = Icons.Default.SportsSoccer, isSelected = selectedRoute == "sport", isExpanded = isExpanded,
+                        modifier = Modifier.focusRequester(sportFR).focusProperties { up = moviesFR; down = favFR },
+                        onClick = { onRouteSelected("sport") }
+                    )
+                    SidebarItem(
+                        label = stringResource(R.string.nav_favorites), icon = Icons.Default.Favorite, isSelected = selectedRoute == "favorites", isExpanded = isExpanded,
+                        modifier = Modifier.focusRequester(favFR).focusProperties { up = sportFR; down = settingsFR; next = settingsFR },
+                        onClick = { onRouteSelected("favorites") }
+                    )
 
-                Spacer(modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.weight(1f))
 
-                SidebarItem(
-                    label = stringResource(R.string.nav_settings), icon = Icons.Default.Settings, isSelected = selectedRoute == "settings", isExpanded = isExpanded,
-                    modifier = Modifier.focusRequester(settingsFR).focusProperties { up = favFR; previous = favFR },
-                    onClick = { onRouteSelected("settings") }
-                )
+                    SidebarItem(
+                        label = stringResource(R.string.nav_settings), icon = Icons.Default.Settings, isSelected = selectedRoute == "settings", isExpanded = isExpanded,
+                        modifier = Modifier.focusRequester(settingsFR).focusProperties { up = favFR; previous = favFR },
+                        onClick = { onRouteSelected("settings") }
+                    )
+                }
             }
         }
 

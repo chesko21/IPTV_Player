@@ -30,6 +30,10 @@ import androidx.compose.runtime.*
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -47,7 +51,7 @@ import androidx.tv.material3.*
 import androidx.tv.material3.Text as TvText
 import com.chesko.stream_pro.core.ui.MainViewModel
 
-@OptIn(ExperimentalTvMaterial3Api::class)
+@OptIn(ExperimentalTvMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun TvSettingsScreen(
     viewModel: MainViewModel,
@@ -80,6 +84,7 @@ fun TvSettingsScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val firstItemFocusRequester = remember { FocusRequester() }
 
     BackHandler {
         onBack()
@@ -101,7 +106,14 @@ fun TvSettingsScreen(
         )
 
         // Settings Container
-        Row(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .focusProperties {
+                    @Suppress("DEPRECATION")
+                    enter = { firstItemFocusRequester }
+                }
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -134,7 +146,8 @@ fun TvSettingsScreen(
                         icon = Icons.Default.HighQuality,
                         title = stringResource(R.string.settings_quality_title),
                         subtitle = stringResource(R.string.settings_quality_subtitle, if (maxVideoHeight == 0) stringResource(R.string.settings_quality_auto) else "${maxVideoHeight}p"),
-                        onClick = { showQualityDialog = true }
+                        onClick = { showQualityDialog = true },
+                        modifier = Modifier.focusRequester(firstItemFocusRequester)
                     )
                     TvSettingsToggleItem(
                         icon = Icons.Default.SlowMotionVideo,
@@ -498,12 +511,13 @@ fun TvSettingsToggleItem(
     icon: ImageVector,
     title: String,
     subtitle: String,
+    modifier: Modifier = Modifier,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
     Surface(
         onClick = { onCheckedChange(!checked) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.02f),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = Color.Transparent,
@@ -550,11 +564,12 @@ fun TvSettingsActionItem(
     title: String,
     subtitle: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     contentColor: Color = Color.White
 ) {
     Surface(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.02f),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = Color.Transparent,
