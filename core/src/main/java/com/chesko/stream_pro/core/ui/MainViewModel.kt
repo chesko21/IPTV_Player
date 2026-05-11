@@ -17,11 +17,8 @@ import android.net.Uri
 import android.provider.Settings
 import android.util.Log
 import androidx.core.content.edit
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.xmlpull.v1.XmlPullParser
@@ -101,7 +98,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _darkMode = MutableStateFlow(prefs.getBoolean("dark_mode_permanent", true))
     val darkMode: StateFlow<Boolean> = _darkMode
 
-    private val _accentColor = MutableStateFlow(prefs.getInt("accent_color", 0xFF2979FF.toInt()))
+    private val _accentColor = MutableStateFlow(prefs.getInt("accent_color", 0xFFFACC15.toInt()))
     val accentColor: StateFlow<Int> = _accentColor
 
     private val _backgroundType = MutableStateFlow(prefs.getString("background_type", "default") ?: "default")
@@ -456,7 +453,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         )
 
         viewModelScope.launch {
-            delay(5000)
+            delay(1000)
             checkAndRefreshEpgIfNeeded()
         }
 
@@ -534,7 +531,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _selectedPlaylistId,
         favoriteChannels,
         recentlyPlayed,
-        _categoryFilter
+        _categoryFilter,
+        _appLanguage // Tambahkan appLanguage ke dalam combine agar filter terupdate saat bahasa berubah
     ) { array ->
         @Suppress("UNCHECKED_CAST")
         val channels = array[0] as List<IptvChannel>
@@ -546,10 +544,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         @Suppress("UNCHECKED_CAST")
         val history = array[5] as List<IptvChannel>
         val category = array[6] as String?
+        val lang = array[7] as String
+
+        // Gunakan LocaleHelper untuk mendapatkan string yang tepat sesuai bahasa aktif
+        val context = getApplication<Application>()
+        val localizedContext = LocaleHelper.applyLocale(context, lang)
+        val favLabel = localizedContext.getString(R.string.group_favorites)
+        val historyLabel = localizedContext.getString(R.string.group_recently_played)
+        val otherLabel = localizedContext.getString(R.string.group_other)
 
         var baseList = when (group) {
-            getApplication<Application>().getString(R.string.group_favorites) -> favorites
-            getApplication<Application>().getString(R.string.group_recently_played) -> history
+            favLabel -> favorites
+            historyLabel -> history
             else -> if (playlistId != null) channels.filter { it.playlistId == playlistId } else channels
         }
 
@@ -575,8 +581,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             val matchesGroup = when (group) {
-                null, getApplication<Application>().getString(R.string.group_favorites), getApplication<Application>().getString(R.string.group_recently_played) -> true
-                getApplication<Application>().getString(R.string.group_other) -> channel.group.isNullOrBlank()
+                null, favLabel, historyLabel -> true
+                otherLabel -> channel.group.isNullOrBlank()
                 else -> channel.group == group
             }
             
@@ -640,7 +646,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun loadPlaylist(url: String, name: String? = null, onSuccess: () -> Unit = {}) {
+    fun loadPlaylist(url: String, name: String? = null, updateFilter: Boolean = true, onSuccess: () -> Unit = {}) {
         if (url == "combined_demo") {
             loadDemoPlaylist(onSuccess)
             return
@@ -672,11 +678,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 // AKTIFKAN FILTER: Set playlist yang baru dimuat sebagai playlist aktif
-                val pId = playlist?.id
-                _selectedPlaylistId.value = pId
-                prefs.edit { putInt("last_selected_playlist_id", pId ?: -1) }
-                
-                _selectedGroup.value = null // Reset filter grup agar tidak bentrok
+                if (updateFilter) {
+                    val pId = playlist?.id
+                    _selectedPlaylistId.value = pId
+                    prefs.edit { putInt("last_selected_playlist_id", pId ?: -1) }
+                    _selectedGroup.value = null // Reset filter grup agar tidak bentrok
+                }
 
                 val m3uContent = when {
                     url.startsWith("http") -> fetchRawContent(url)
@@ -723,7 +730,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (currentUrl == "combined_demo") {
             loadDemoPlaylist()
         } else if (currentUrl.isNotEmpty()) {
-            loadPlaylist(currentUrl)
+            loadPlaylist(currentUrl, updateFilter = false)
         }
     }
 
@@ -827,14 +834,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun getProgramsForChannel(channel: IptvChannel): Flow<List<EpgProgram>> {
-        return repository.getProgramsForChannel(channel.tvgId, channel.name)
-    }
+    private val _epgCache = MutableStateFlow<Map<String, List<EpgProgram>>>(emptyMap())
+    val epgCache: StateFlow<Map<String, List<EpgProgram>>> = _epgCache
 
     fun prefetchEpgForChannels(channels: List<IptvChannel>) {
-        viewModelScope.launch {
-            channels.forEach { channel ->
-                repository.getProgramsForChannel(channel.tvgId, channel.name).first()
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentCache = _epgCache.value
+            val channelsToFetch = channels.filter { !currentCache.containsKey(it.url) }
+            
+            if (channelsToFetch.isEmpty()) return@launch
+            
+            // Fetch in smaller parallel batches to not overload DB but still be fast
+            channelsToFetch.chunked(15).forEach { chunk ->
+                val results = chunk.map { channel ->
+                    async {
+                        channel.url to repository.getProgramsForChannel(channel.tvgId, channel.name).first()
+                    }
+                }.awaitAll()
+
+                val newEntries = results.toMap()
+                _epgCache.update { it + newEntries }
             }
         }
     }
@@ -1177,11 +1196,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val currentTime = System.currentTimeMillis()
         val twentyFourHoursInMillis = 24 * 60 * 60 * 1000
 
-        if (currentTime - lastUpdate > twentyFourHoursInMillis) {
-            if (lastUrlStored == "combined_demo") {
-                loadDemoPlaylist()
-            } else if (lastUrlStored?.startsWith("http") == true) {
-                loadPlaylist(lastUrlStored)
+        // Hanya auto-refresh jika sudah lewat 24 jam DAN sedang ada koneksi internet
+        if (currentTime - lastUpdate > twentyFourHoursInMillis && networkStatus.value is NetworkObserver.NetworkStatus.Available) {
+            viewModelScope.launch {
+                delay(2000) // Beri waktu sistem internet untuk stabil
+                if (lastUrlStored == "combined_demo") {
+                    loadDemoPlaylist()
+                } else if (lastUrlStored?.startsWith("http") == true) {
+                    // Gunakan silent loading untuk auto-refresh agar tidak memunculkan notifikasi error jika gagal
+                    try {
+                        val m3uContent = fetchRawContent(lastUrlStored)
+                        val playlist = repository.getPlaylistByUrl(lastUrlStored)
+                        processM3uContent(m3uContent, lastUrlStored, playlist?.id ?: 0) {}
+                    } catch (e: Exception) {
+                        Log.e("MainViewModel", "Auto-refresh failed, keeping old data: ${e.message}")
+                    }
+                }
             }
         }
     }
@@ -1258,9 +1288,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         prefs.edit { putInt("accent_color", color) }
     }
 
+    fun resetAccentColor() {
+        val defaultColor = 0xFFFACC15.toInt()
+        setAccentColor(defaultColor)
+    }
+
     fun setBackgroundType(type: String) {
         _backgroundType.value = type
         prefs.edit { putString("background_type", type) }
+    }
+
+    fun resetBackground() {
+        setBackgroundType("default")
+        setBackgroundColor(0xFF000000.toInt())
+        setBackgroundImageUri(null)
     }
 
     fun setBackgroundColor(color: Int) {

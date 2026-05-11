@@ -26,6 +26,7 @@
     <string name="btn_cancel">Cancel</string>
     <string name="btn_apply">Apply</string>
     <string name="btn_save">Save</string>
+    <string name="btn_reset">Reset</string>
     <string name="background_default">Default</string>
     <string name="background_color">Custom Color</string>
     <string name="background_image">Custom Image</string>

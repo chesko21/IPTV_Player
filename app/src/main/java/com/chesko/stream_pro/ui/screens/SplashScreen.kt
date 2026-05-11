@@ -99,7 +99,7 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF020205)),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
 
@@ -145,7 +145,7 @@ fun SplashScreen(
                         .size(110.dp * cosmicPulse)
                         .background(
                             Brush.radialGradient(
-                                listOf(primaryColor.copy(alpha = 0.15f), Color.Transparent)
+                                listOf(primaryColor.copy(alpha = 0.25f), Color.Transparent)
                             ),
                             CircleShape
                         )
@@ -155,8 +155,8 @@ fun SplashScreen(
                     modifier = Modifier
                         .size(80.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF0D0D14))
-                        .border(1.dp, primaryColor.copy(alpha = 0.4f), CircleShape)
+                        .background(Color.Black)
+                        .border(1.5.dp, primaryColor.copy(alpha = 0.6f), CircleShape)
                         .padding(18.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -180,7 +180,7 @@ fun SplashScreen(
                         text = stringResource(R.string.brand_name).substringBefore("PRO"),
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = "PRO",
@@ -215,7 +215,7 @@ fun SplashScreen(
                     text = "${(loadingProgress.value * 100).toInt()}%",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.9f)
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.9f)
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -225,7 +225,7 @@ fun SplashScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(3.dp)
-                        .background(Color.White.copy(alpha = 0.1f), CircleShape)
+                        .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f), CircleShape)
                 ) {
                     Box(
                         modifier = Modifier
@@ -263,7 +263,7 @@ fun SplashScreen(
                 .graphicsLayer { alpha = contentAlpha.value * 0.3f },
             fontSize = 7.sp,
             letterSpacing = 4.sp,
-            color = Color.White
+            color = MaterialTheme.colorScheme.onBackground
         )
     }
 }

@@ -49,7 +49,7 @@ fun LoadingState(message: String = stringResource(R.string.loading_message)) {
                 Brush.radialGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f * bgPulse),
-                        Color(0xFF020205)
+                        MaterialTheme.colorScheme.background
                     )
                 )
             ),
@@ -76,7 +76,7 @@ fun LoadingState(message: String = stringResource(R.string.loading_message)) {
 
             Text(
                 text = message.uppercase(),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 letterSpacing = 4.sp,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Black,
@@ -111,6 +111,7 @@ fun CosmicOrbitalLoader() {
     )
 
     val primaryColor = MaterialTheme.colorScheme.primary
+    val onBackgroundColor = MaterialTheme.colorScheme.onBackground
 
     Box(
         modifier = Modifier.size(120.dp),
@@ -156,7 +157,7 @@ fun CosmicOrbitalLoader() {
             )
             
             drawCircle(
-                color = Color.White,
+                color = onBackgroundColor,
                 radius = 3.dp.toPx(),
                 center = particlePos
             )

@@ -22,7 +22,7 @@ fun AppBackground(viewModel: MainViewModel, content: @Composable () -> Unit) {
     val backgroundColor by viewModel.backgroundColor.collectAsState()
     val backgroundImageUri by viewModel.backgroundImageUri.collectAsState()
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) { // Dasar hitam pekat untuk AMOLED
         when (backgroundType) {
             "color" -> {
                 Box(modifier = Modifier
@@ -53,7 +53,7 @@ fun AppBackground(viewModel: MainViewModel, content: @Composable () -> Unit) {
             val overlayColor = if (isDarkTheme) {
                 Color.Black.copy(alpha = 0.6f)
             } else {
-                Color.White.copy(alpha = 0.8f)
+                MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
             }
             Box(
                 modifier = Modifier

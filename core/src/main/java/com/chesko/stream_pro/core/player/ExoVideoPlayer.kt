@@ -74,6 +74,11 @@ fun VideoPlayer(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    val activity = context as? android.app.Activity
+    val isInPipMode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+        activity?.isInPictureInPictureMode == true
+    } else false
+
     val currentOnPlayerInit by rememberUpdatedState(onPlayerInit)
     val currentOnSuccess by rememberUpdatedState(onSuccess)
     val currentOnError by rememberUpdatedState(onError)
@@ -322,12 +327,12 @@ fun VideoPlayer(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Watermark
+        // Watermark - Hidden during PiP
         Row(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(start = 24.dp, top = 48.dp)
-                .alpha(0.5f),
+                .alpha(if (isInPipMode) 0f else 0.5f),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(

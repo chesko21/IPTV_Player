@@ -150,18 +150,22 @@ class MainActivity : FragmentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
+        // Konfigurasi Edge-to-Edge murni tanpa scrim
+        enableEdgeToEdge(
+            statusBarStyle = androidx.activity.SystemBarStyle.auto(
+                android.graphics.Color.TRANSPARENT,
+                android.graphics.Color.TRANSPARENT
+            ),
+            navigationBarStyle = androidx.activity.SystemBarStyle.auto(
+                android.graphics.Color.TRANSPARENT,
+                android.graphics.Color.TRANSPARENT
+            )
+        )
+
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-        windowInsetsController.show(WindowInsetsCompat.Type.statusBars())
-        windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
+        windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
         windowInsetsController.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-            window.attributes.layoutInDisplayCutoutMode =
-                android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
-
-        enableEdgeToEdge()
+            WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
 
         setContent {
             val windowSize = calculateWindowSizeClass(this)
@@ -171,29 +175,12 @@ class MainActivity : FragmentActivity() {
             val networkStatus by viewModel.networkStatus.collectAsState()
             val backgroundType by viewModel.backgroundType.collectAsState()
             val backgroundColorInt by viewModel.backgroundColor.collectAsState()
-            val context = LocalContext.current
-
-            LaunchedEffect(backgroundType, backgroundColorInt, darkMode) {
-                val window = (context as? Activity)?.window ?: return@LaunchedEffect
-                val controller = WindowCompat.getInsetsController(window, window.decorView)
-                
-                val statusBarColor = when (backgroundType) {
-                    "color" -> Color(backgroundColorInt)
-                    else -> if (darkMode) Color(0xFF0A0A0A) else Color.White
-                }
-                
-                // Set the status bar appearance (icons/text) based on background luminance
-                controller.isAppearanceLightStatusBars = statusBarColor.luminance() > 0.5f
-                
-                // Suppress deprecation warning as we are using it for specific dynamic color matching 
-                // in an edge-to-edge context where the TopAppBar might be transparent.
-                @Suppress("DEPRECATION")
-                window.statusBarColor = statusBarColor.toArgb()
-            }
+            val backgroundOverride = if (backgroundType == "color") Color(backgroundColorInt) else null
 
             IPTV_PlayerTheme(
                 darkTheme = darkMode,
-                accentColor = Color(accentColorInt)
+                accentColor = Color(accentColorInt),
+                backgroundOverride = backgroundOverride
             ) {
                 val context = LocalContext.current
                 

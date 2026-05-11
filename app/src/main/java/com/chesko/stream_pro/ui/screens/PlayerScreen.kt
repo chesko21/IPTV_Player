@@ -85,6 +85,14 @@ import com.chesko.stream_pro.core.ui.MainViewModel
 import com.chesko.stream_pro.core.utils.PlayerUtils
 import com.chesko.stream_pro.core.utils.NetworkObserver
 import com.chesko.stream_pro.ui.components.shimmerEffect
+import com.chesko.stream_pro.ui.theme.OffWhiteSolar
+import com.chesko.stream_pro.ui.theme.DarkSurface
+import com.chesko.stream_pro.ui.theme.DarkOnSurface
+import com.chesko.stream_pro.ui.theme.CinematicBlack
+import com.chesko.stream_pro.ui.theme.DarkSurfaceVariant
+import com.chesko.stream_pro.ui.theme.DarkOnSurfaceVariant
+import com.chesko.stream_pro.ui.theme.PrimaryGoldDark
+import com.chesko.stream_pro.ui.theme.CosmicError
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import kotlinx.coroutines.delay
@@ -164,8 +172,8 @@ fun ChannelInfoBar(
             ) {
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = Color.White.copy(alpha = 0.2f),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f))
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
                 ) {
                     AsyncImage(
                         model = currentChannel.logo,
@@ -239,7 +247,7 @@ fun ChannelInfoBar(
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = stringResource(R.string.player_next, nextProgram.title),
-                            color = Color.White.copy(0.6f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(0.6f),
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
@@ -249,7 +257,7 @@ fun ChannelInfoBar(
                         )
                         Text(
                             text = timeFormatter.format(Date(nextProgram.startTime)),
-                            color = Color.White.copy(0.4f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(0.4f),
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Black
@@ -303,7 +311,7 @@ fun ChannelInfoBar(
                                 .height(2.dp)
                                 .clip(CircleShape),
                             color = MaterialTheme.colorScheme.primary,
-                            trackColor = Color.White.copy(alpha = 0.15f)
+                            trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
                         )
                     }
                     Spacer(modifier = Modifier.height(4.dp))
@@ -313,14 +321,14 @@ fun ChannelInfoBar(
                     ) {
                         Text(
                             PlayerUtils.formatTime(if (isDragging) (dragPosition * playbackDuration).toLong() else playbackPosition),
-                            color = Color.White.copy(0.5f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(0.5f),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             fontSize = 9.sp
                         )
                         Text(
                             PlayerUtils.formatTime(playbackDuration),
-                            color = Color.White.copy(0.5f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(0.5f),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             fontSize = 9.sp
@@ -338,7 +346,7 @@ fun ChannelInfoBar(
                         .height(2.dp)
                         .clip(CircleShape),
                     color = MaterialTheme.colorScheme.primary,
-                    trackColor = Color.White.copy(0.1f)
+                    trackColor = MaterialTheme.colorScheme.onSurface.copy(0.1f)
                 )
             }
         }
@@ -351,16 +359,16 @@ fun ChannelInfoBar(
 fun PlayerTheme(accentColor: Color, content: @Composable () -> Unit) {
     val playerColorScheme = darkColorScheme(
         primary = accentColor,
-        onPrimary = Color.White,
-        surface = Color(0xFF1A1A1A),
-        onSurface = Color(0xFFE1E1E1),
-        background = Color(0xFF0A0A0A),
-        onBackground = Color(0xFFE1E1E1),
-        surfaceVariant = Color(0xFF242424),
-        onSurfaceVariant = Color(0xFFBDBDBD),
-        primaryContainer = Color(0xFF003D96),
-        onPrimaryContainer = Color(0xFFD1E4FF),
-        error = Color(0xFFCF6679),
+        onPrimary = Color.Black,
+        surface = DarkSurface,
+        onSurface = DarkOnSurface,
+        background = Color.Black, // True black untuk pengalaman menonton maksimal
+        onBackground = DarkOnSurface,
+        surfaceVariant = DarkSurfaceVariant,
+        onSurfaceVariant = DarkOnSurfaceVariant,
+        primaryContainer = PrimaryGoldDark,
+        onPrimaryContainer = Color.Black,
+        error = CosmicError,
         onError = Color.Black
     )
 
@@ -402,6 +410,23 @@ fun PlayerScreenContent(
     val scope = rememberCoroutineScope()
     val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
 
+    // Force Status Bar & Nav Bar to be TRANSPARENT and icons WHITE in Player
+    // Using DisposableEffect to ensure immediate change and clean restore
+    DisposableEffect(Unit) {
+        activity?.window?.let { window ->
+            val controller = WindowCompat.getInsetsController(window, window.decorView)
+            
+            @Suppress("DEPRECATION")
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
+            @Suppress("DEPRECATION")
+            window.navigationBarColor = android.graphics.Color.TRANSPARENT
+
+            controller.isAppearanceLightStatusBars = false
+            controller.isAppearanceLightNavigationBars = false
+        }
+        onDispose { }
+    }
+
     var showControls by remember { mutableStateOf(true) }
     var isClosing by remember { mutableStateOf(false) }
     val isInPipMode by viewModel.isInPipMode.collectAsState()
@@ -442,6 +467,12 @@ fun PlayerScreenContent(
     // Keep ViewModel in sync with current channel for Casting and EPG
     LaunchedEffect(currentChannel) {
         viewModel.setSelectedChannel(currentChannel)
+        
+        // Optimization: Auto-select current channel's group if none selected
+        // to avoid loading "All Channels" which can be heavy.
+        if (viewModel.selectedGroup.value == null && !currentChannel.group.isNullOrBlank()) {
+            viewModel.setSelectedGroup(currentChannel.group)
+        }
     }
 
     val hwAcceleration by viewModel.hwAcceleration.collectAsState()
@@ -858,7 +889,7 @@ fun PlayerScreenContent(
                             Column {
                                 Text(
                                     stringResource(R.string.player_casting_active),
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -961,7 +992,7 @@ fun PlayerScreenContent(
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = errorMessage ?: stringResource(R.string.player_connection_lost),
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
@@ -970,7 +1001,7 @@ fun PlayerScreenContent(
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = if (errorMessage != null) stringResource(R.string.player_link_dead) else stringResource(R.string.player_stopped),
-                            color = Color.White.copy(alpha = 0.4f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 9.sp,
                             textAlign = TextAlign.Center
@@ -991,7 +1022,7 @@ fun PlayerScreenContent(
                     onClick = { isLocked = false; showControls = true },
                     modifier = Modifier.size(80.dp).background(Color.Black.copy(0.5f), CircleShape)
                 ) {
-                    Icon(Icons.Default.Lock, null, tint = Color.White, modifier = Modifier.size(40.dp))
+                    Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(40.dp))
                 }
             }
 
@@ -1069,7 +1100,12 @@ fun PlayerScreenContent(
                     isPlaybackStuck = isPlaybackStuck,
                     isBuffering = isBuffering,
                     onReload = reloadVideo,
-                    loadingStatus = loadingStatus
+                    loadingStatus = loadingStatus,
+                    onEnterPip = {
+                        activity?.enterPictureInPictureMode(
+                            android.app.PictureInPictureParams.Builder().build()
+                        )
+                    }
                 )
             }
 
@@ -1304,7 +1340,7 @@ fun CastDiscoveryOverlay(
                 Text(
                     text = if (isSearching) "Mencari TV..." else "Pilih Perangkat",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                     fontSize = 11.sp
                 )
@@ -1313,7 +1349,7 @@ fun CastDiscoveryOverlay(
                     text = if (isSearching) "Pastikan WiFi sama" else "${routes.size} Ditemukan",
                     style = MaterialTheme.typography.labelSmall,
                     fontSize = 7.sp,
-                    color = Color.White.copy(alpha = 0.4f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                     modifier = Modifier.padding(top = 1.dp)
                 )
 
@@ -1349,7 +1385,7 @@ fun CastDiscoveryOverlay(
                             "Ketuk di luar untuk menutup",
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 7.sp,
-                            color = Color.White.copy(alpha = 0.3f)
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                         )
                     }
                 } else {
@@ -1361,8 +1397,8 @@ fun CastDiscoveryOverlay(
                             Surface(
                                 onClick = { onRouteSelected(route) },
                                 shape = RoundedCornerShape(6.dp),
-                                color = Color.White.copy(alpha = 0.04f),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
                             ) {
                                 Row(
                                     modifier = Modifier
@@ -1373,7 +1409,7 @@ fun CastDiscoveryOverlay(
                                     Box(
                                         modifier = Modifier
                                             .size(18.dp)
-                                            .background(Color.White.copy(alpha = 0.05f), CircleShape),
+                                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), CircleShape),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
@@ -1391,7 +1427,7 @@ fun CastDiscoveryOverlay(
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = route.name,
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 9.sp,
@@ -1401,7 +1437,7 @@ fun CastDiscoveryOverlay(
                                         if (route.description != null) {
                                             Text(
                                                 text = route.description!!,
-                                                color = Color.White.copy(alpha = 0.3f),
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                                                 style = MaterialTheme.typography.labelSmall,
                                                 fontSize = 6.sp,
                                                 maxLines = 1
@@ -1411,7 +1447,7 @@ fun CastDiscoveryOverlay(
                                     Icon(
                                         Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                         null,
-                                        tint = Color.White.copy(alpha = 0.2f),
+                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                                         modifier = Modifier.size(10.dp)
                                     )
                                 }
@@ -1426,7 +1462,7 @@ fun CastDiscoveryOverlay(
                                         .height(1.5.dp)
                                         .clip(CircleShape),
                                     color = MaterialTheme.colorScheme.primary,
-                                    trackColor = Color.White.copy(alpha = 0.05f)
+                                    trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
                                 )
                             }
                         }
@@ -1465,7 +1501,7 @@ fun GestureHUD(type: String?, brightness: Float, volume: Float, seekPosition: Lo
                 Surface(
                     color = Color.Black.copy(alpha = 0.6f),
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, Color.White.copy(0.1f))
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.1f))
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -1475,7 +1511,7 @@ fun GestureHUD(type: String?, brightness: Float, volume: Float, seekPosition: Lo
                         Icon(
                             imageVector = if (isForward) Icons.Default.FastForward else Icons.Default.FastRewind,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(32.dp)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -1488,7 +1524,7 @@ fun GestureHUD(type: String?, brightness: Float, volume: Float, seekPosition: Lo
                             )
                             Text(
                                 " / ${PlayerUtils.formatTime(seekDuration)}",
-                                color = Color.White.copy(alpha = 0.6f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                 style = MaterialTheme.typography.titleMedium
                             )
                         }
@@ -1507,7 +1543,7 @@ fun GestureHUD(type: String?, brightness: Float, volume: Float, seekPosition: Lo
                             progress = { (seekTarget.toFloat() / seekDuration.toFloat()).coerceIn(0f, 1f) },
                             modifier = Modifier.width(200.dp).height(4.dp).clip(CircleShape),
                             color = MaterialTheme.colorScheme.primary,
-                            trackColor = Color.White.copy(0.1f)
+                            trackColor = MaterialTheme.colorScheme.onSurface.copy(0.1f)
                         )
                     }
                 }
@@ -1521,7 +1557,7 @@ fun GestureHUD(type: String?, brightness: Float, volume: Float, seekPosition: Lo
                     Icon(
                         imageVector = if (displayType == "Brightness") Icons.Default.Brightness6 else Icons.AutoMirrored.Filled.VolumeUp,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
@@ -1529,7 +1565,7 @@ fun GestureHUD(type: String?, brightness: Float, volume: Float, seekPosition: Lo
                     val percentage = (progress * 100).toInt()
                     Text(
                         text = "$percentage%",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -1572,15 +1608,15 @@ fun TrackSelectionMenu(
     Surface(
         modifier = Modifier.width(200.dp).padding(8.dp),
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFF1E1E1E).copy(alpha = 0.85f),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
         tonalElevation = 4.dp,
-        border = BorderStroke(1.dp, Color.White.copy(0.15f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.15f))
     ) {
         Column(modifier = Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelMedium,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Black,
                 textAlign = TextAlign.Center
             )
@@ -1606,7 +1642,7 @@ fun TrackSelectionMenu(
                         stringResource(R.string.player_boost),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 10.sp
                     )
                     Switch(
@@ -1697,7 +1733,7 @@ fun TrackItem(label: String, isSelected: Boolean, onClick: () -> Unit) {
         }
         Text(
             label,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White,
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )
@@ -1719,7 +1755,7 @@ fun DebugInfoDialog(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.BugReport, null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.player_debug_title), style = MaterialTheme.typography.titleLarge, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.player_debug_title), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -1758,7 +1794,7 @@ fun DebugInfoDialog(
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(0.1f), contentColor = Color.White)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onSurface.copy(0.1f), contentColor = MaterialTheme.colorScheme.onSurface)
                 ) {
                     Text(stringResource(R.string.btn_close))
                 }
@@ -1782,15 +1818,15 @@ fun DebugInfoItem(label: String, value: String) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(label, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.width(8.dp))
-            Icon(Icons.Default.ContentCopy, null, tint = Color.White.copy(0.3f), modifier = Modifier.size(12.dp))
+            Icon(Icons.Default.ContentCopy, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.3f), modifier = Modifier.size(12.dp))
         }
         Text(
             value,
-            color = Color.White.copy(0.8f),
+            color = MaterialTheme.colorScheme.onSurface.copy(0.8f),
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(top = 2.dp)
         )
-        HorizontalDivider(modifier = Modifier.padding(top = 8.dp), color = Color.White.copy(0.1f))
+        HorizontalDivider(modifier = Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.onSurface.copy(0.1f))
     }
 }
 
@@ -1823,7 +1859,8 @@ fun ControlOverlay(
     isPlaybackStuck: Boolean = false,
     isBuffering: Boolean = false,
     onReload: () -> Unit = {},
-    loadingStatus: String = ""
+    loadingStatus: String = "",
+    onEnterPip: () -> Unit = {}
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Top Navigation Bar
@@ -1839,10 +1876,18 @@ fun ControlOverlay(
 
             Spacer(modifier = Modifier.weight(1f))
 
+            // PiP Button
+            PlayerControlAction(
+                icon = Icons.Default.PictureInPicture,
+                onClick = onEnterPip
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
             // Cast Button
             PlayerControlAction(
                 icon = if (isCasting) Icons.Default.CastConnected else Icons.Default.Cast,
-                tint = if (isCasting) MaterialTheme.colorScheme.primary else Color.White,
+                tint = if (isCasting) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 onClick = onShowCast
             )
 
@@ -1866,9 +1911,9 @@ fun ControlOverlay(
                 modifier = Modifier
                     .size(42.dp)
                     .background(Color.Black.copy(0.3f), CircleShape)
-                    .border(1.dp, Color.White.copy(0.05f), CircleShape)
+                    .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.05f), CircleShape)
             ) {
-                Icon(Icons.Default.SkipPrevious, null, tint = Color.White, modifier = Modifier.size(22.dp))
+                Icon(Icons.Default.SkipPrevious, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(22.dp))
             }
 
             // Play/Pause Center Action & Loading Status
@@ -1906,14 +1951,14 @@ fun ControlOverlay(
                         modifier = Modifier.size(64.dp),
                         shape = CircleShape,
                         color = Color.Black.copy(alpha = 0.6f),
-                        border = BorderStroke(1.dp, Brush.linearGradient(listOf(Color.White.copy(0.2f), Color.Transparent))),
+                        border = BorderStroke(1.dp, Brush.linearGradient(listOf(MaterialTheme.colorScheme.onSurface.copy(0.2f), Color.Transparent))),
                         shadowElevation = 8.dp
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = if (isError) Icons.Default.Refresh else if (isPlayingState) Icons.Default.Pause else Icons.Default.PlayArrow,
                                 contentDescription = null,
-                                tint = Color.White,
+                                tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(32.dp)
                             )
                         }
@@ -1924,7 +1969,7 @@ fun ControlOverlay(
                             modifier = Modifier.size(80.dp),
                             color = MaterialTheme.colorScheme.primary,
                             strokeWidth = 2.dp,
-                            trackColor = Color.White.copy(0.05f)
+                            trackColor = MaterialTheme.colorScheme.onSurface.copy(0.05f)
                         )
                     }
                 }
@@ -1951,9 +1996,9 @@ fun ControlOverlay(
                 modifier = Modifier
                     .size(42.dp)
                     .background(Color.Black.copy(0.3f), CircleShape)
-                    .border(1.dp, Color.White.copy(0.05f), CircleShape)
+                    .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.05f), CircleShape)
             ) {
-                Icon(Icons.Default.SkipNext, null, tint = Color.White, modifier = Modifier.size(22.dp))
+                Icon(Icons.Default.SkipNext, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(22.dp))
             }
         }
 
@@ -1970,7 +2015,7 @@ fun ControlOverlay(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    PlayerControlAction(icon = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder, tint = if (isFavorite) Color(0xFFFFD700) else Color.White, onClick = onToggleFavorite)
+                    PlayerControlAction(icon = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder, tint = if (isFavorite) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurface, onClick = onToggleFavorite)
                     PlayerControlAction(icon = Icons.Default.ClosedCaption, onClick = onShowSubtitle)
                     PlayerControlAction(icon = Icons.AutoMirrored.Filled.VolumeUp, onClick = onShowAudio)
                 }
@@ -1987,7 +2032,7 @@ fun ControlOverlay(
 }
 
 @Composable
-fun PlayerControlAction(icon: ImageVector, tint: Color = Color.White, onClick: () -> Unit) {
+fun PlayerControlAction(icon: ImageVector, tint: Color = MaterialTheme.colorScheme.onSurface, onClick: () -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(if (isPressed) 0.85f else 1f, label = "scale")
@@ -2002,7 +2047,7 @@ fun PlayerControlAction(icon: ImageVector, tint: Color = Color.White, onClick: (
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick),
         shape = CircleShape,
         color = Color.Black.copy(alpha = 0.5f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)),
         shadowElevation = 2.dp
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -2036,8 +2081,9 @@ fun QuickChannelList(
     // Auto-scroll to selected group chip in Quick List
     LaunchedEffect(selectedGroup, groups) {
         if (groups.isNotEmpty()) {
-            val index = if (selectedGroup == null) 0 else groups.indexOf(selectedGroup) + 1
+            val index = if (selectedGroup == null) 0 else groups.indexOf(selectedGroup)
             if (index >= 0) {
+                // Gunakan animateScrollToItem dengan offset agar berada di tengah atau terlihat lebih baik
                 groupListState.animateScrollToItem(index)
             }
         }
@@ -2047,9 +2093,9 @@ fun QuickChannelList(
         modifier = Modifier
             .fillMaxHeight()
             .width(260.dp),
-        color = Color(0xFF0D0D0F).copy(alpha = 0.95f),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
         tonalElevation = 8.dp,
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
     ) {
         Column(
             modifier = Modifier
@@ -2080,7 +2126,7 @@ fun QuickChannelList(
                             text = stringResource(R.string.player_channels_title).lowercase(),
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 8.sp,
-                            color = Color.White.copy(alpha = 0.3f)
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                         )
                     }
                 }
@@ -2088,7 +2134,7 @@ fun QuickChannelList(
                     onClick = onClose,
                     modifier = Modifier.size(28.dp)
                 ) {
-                    Icon(Icons.Default.Close, null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                 }
             }
 
@@ -2099,13 +2145,6 @@ fun QuickChannelList(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(bottom = 8.dp)
             ) {
-                item {
-                    QuickGroupChip(
-                        text = stringResource(R.string.group_all),
-                        isSelected = selectedGroup == null,
-                        onClick = { viewModel.setSelectedGroup(null) }
-                    )
-                }
                 items(groups) { group ->
                     QuickGroupChip(
                         text = group,
@@ -2144,13 +2183,13 @@ fun QuickGroupChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(8.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.05f),
+        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
         modifier = Modifier.height(24.dp)
     ) {
         Box(modifier = Modifier.padding(horizontal = 10.dp), contentAlignment = Alignment.Center) {
             Text(
                 text = text,
-                color = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f),
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 style = MaterialTheme.typography.labelSmall,
                 fontSize = 9.sp,
                 fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
@@ -2181,7 +2220,7 @@ fun ChannelListItem(
                 modifier = Modifier
                     .size(40.dp, 28.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(Color.White.copy(alpha = 0.02f)),
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.02f)),
                 contentScale = ContentScale.Fit,
                 error = painterResource(R.drawable.app_icon_android),
                 placeholder = painterResource(R.drawable.app_icon_android)
@@ -2192,7 +2231,7 @@ fun ChannelListItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = channel.name,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.8f),
+                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                     maxLines = 1,
@@ -2202,7 +2241,7 @@ fun ChannelListItem(
                 if (!groupName.isNullOrEmpty()) {
                     Text(
                         text = groupName.uppercase(),
-                        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else Color.White.copy(alpha = 0.3f),
+                        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                         style = MaterialTheme.typography.labelSmall,
                         fontSize = 8.sp,
                         maxLines = 1

@@ -56,6 +56,7 @@ fun EpgScreen(
 ) {
     val allChannels by viewModel.allChannels.collectAsState()
     val groups by viewModel.groups.collectAsState()
+    val epgCache by viewModel.epgCache.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
     var isBackInvoked by remember { mutableStateOf(false) }
@@ -87,8 +88,8 @@ fun EpgScreen(
             } else {
                 allChannels.filter { it.group == group }
             }
-            // Only prefetch first 20 visible channels
-            viewModel.prefetchEpgForChannels(filteredChannels.take(20))
+            // Prefetch more channels for smoother scrolling
+            viewModel.prefetchEpgForChannels(filteredChannels.take(50))
         }
     }
 
@@ -322,12 +323,13 @@ fun EpgScreen(
                             state = listState,
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            items(
+                                items(
                                 items = filteredAllChannels,
                                 key = { it.url }
                             ) { channel ->
                                 EpgChannelRow(
                                     channel = channel,
+                                    programs = epgCache[channel.url] ?: emptyList(),
                                     viewModel = viewModel,
                                     horizontalScrollState = horizontalScrollState,
                                     startTime = startTime,
@@ -366,6 +368,7 @@ fun EpgScreen(
                                 ) { channel ->
                                     EpgChannelRow(
                                         channel = channel,
+                                        programs = epgCache[channel.url] ?: emptyList(),
                                         viewModel = viewModel,
                                         horizontalScrollState = horizontalScrollState,
                                         startTime = startTime,
@@ -389,6 +392,7 @@ fun EpgScreen(
 @Composable
 fun EpgChannelRow(
     channel: IptvChannel,
+    programs: List<EpgProgram>,
     viewModel: MainViewModel,
     horizontalScrollState: ScrollState,
     startTime: Long,
@@ -401,9 +405,12 @@ fun EpgChannelRow(
 ) {
     val context = LocalContext.current
 
-    // Optimized: Only collect programs for visible rows
-    val programsState = viewModel.getProgramsForChannel(channel).collectAsState(initial = emptyList())
-    val programs = programsState.value
+    // Trigger prefetch if missing
+    LaunchedEffect(channel.url) {
+        if (programs.isEmpty()) {
+            viewModel.prefetchEpgForChannels(listOf(channel))
+        }
+    }
 
     // Optimized: Cache filtered programs
     val filteredPrograms = remember(programs, startTime, endTime) {

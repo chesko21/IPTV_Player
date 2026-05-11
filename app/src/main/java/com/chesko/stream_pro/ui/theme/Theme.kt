@@ -14,16 +14,16 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryBlue,
-    onPrimary = PureWhite,
-    primaryContainer = PrimaryBlueDark,
-    onPrimaryContainer = PrimaryBlueLight,
+    primary = PrimaryGold,
+    onPrimary = Color.Black,
+    primaryContainer = PrimaryGoldDark,
+    onPrimaryContainer = PrimaryGoldLight,
     
-    secondary = SecondaryBlue,
-    onSecondary = PureWhite,
+    secondary = SecondaryGold,
+    onSecondary = Color.Black,
     
-    tertiary = TertiaryCyan,
-    onTertiary = CinematicBlack,
+    tertiary = TertiaryGold,
+    onTertiary = PureWhite,
     
     background = DarkBackground,
     onBackground = DarkOnSurface,
@@ -42,16 +42,16 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = PrimaryBlue,
-    onPrimary = PureWhite,
-    primaryContainer = PrimaryBlueLight,
-    onPrimaryContainer = PrimaryBlueDark,
+    primary = LightPrimaryNavy, // Menggunakan Navy #124170 sebagai aksen utama
+    onPrimary = Color.White,
+    primaryContainer = LightSurface,
+    onPrimaryContainer = LightPrimaryNavy,
     
-    secondary = SecondaryBlue,
-    onSecondary = PureWhite,
+    secondary = LightPrimaryNavy,
+    onSecondary = Color.White,
     
-    tertiary = TertiaryCyan,
-    onTertiary = CinematicBlack,
+    tertiary = LightPrimaryNavy,
+    onTertiary = Color.White,
     
     background = LightBackground,
     onBackground = LightOnSurface,
@@ -65,7 +65,7 @@ private val LightColorScheme = lightColorScheme(
     outline = LightOutline,
     
     error = CosmicError,
-    onError = PureWhite,
+    onError = LightBackground,
     scrim = ScrimColor
 )
 
@@ -78,22 +78,23 @@ private val LightColorScheme = lightColorScheme(
 fun IPTV_PlayerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     accentColor: Color? = null,
+    backgroundOverride: Color? = null,
     content: @Composable () -> Unit
 ) {
     // Choose base color scheme
     val baseColorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     
     // Apply dynamic branding (Accent Color) with contrast checking
-    val colorScheme = if (accentColor != null) {
-        val isLightAccent = accentColor.luminance() > 0.5f
+    val colorScheme = if (accentColor != null || backgroundOverride != null) {
+        val isLightAccent = (accentColor ?: baseColorScheme.primary).luminance() > 0.5f
         baseColorScheme.copy(
-            primary = accentColor,
+            primary = accentColor ?: baseColorScheme.primary,
             onPrimary = if (isLightAccent) Color.Black else Color.White,
-            secondary = accentColor,
+            secondary = accentColor ?: baseColorScheme.secondary,
             onSecondary = if (isLightAccent) Color.Black else Color.White,
-            primaryContainer = accentColor.copy(alpha = 0.15f),
-            onPrimaryContainer = if (darkTheme) Color.White else accentColor,
-            // Ensure surfaces are legible on custom backgrounds
+            background = backgroundOverride ?: baseColorScheme.background,
+            primaryContainer = (accentColor ?: baseColorScheme.primary).copy(alpha = 0.15f),
+            onPrimaryContainer = if (darkTheme) Color.White else (accentColor ?: baseColorScheme.primary),
             surface = if (darkTheme) DarkSurface.copy(alpha = 0.9f) else LightSurface.copy(alpha = 0.9f),
             surfaceVariant = if (darkTheme) DarkSurfaceVariant.copy(alpha = 0.7f) else LightSurfaceVariant.copy(alpha = 0.7f)
         )
@@ -106,19 +107,24 @@ fun IPTV_PlayerTheme(
 
     val view = LocalView.current
 
-    // Set System Bar Colors
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
             val insetsController = WindowCompat.getInsetsController(window, view)
             
-            // Set underlying window color (fallback for older APIs)
-            window.statusBarColor = colorScheme.background.toArgb()
-            window.navigationBarColor = colorScheme.background.toArgb()
+            // Selalu buat bar sistem transparan secara global untuk transisi mulus
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
+            window.navigationBarColor = android.graphics.Color.TRANSPARENT
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                window.isStatusBarContrastEnforced = false
+                window.isNavigationBarContrastEnforced = false
+            }
             
-            // Control icon contrast
-            insetsController.isAppearanceLightStatusBars = !darkTheme
-            insetsController.isAppearanceLightNavigationBars = !darkTheme
+            // Atur kontras ikon tetap adaptif
+            val isLightBackground = colorScheme.background.luminance() > 0.5f
+            insetsController.isAppearanceLightStatusBars = isLightBackground
+            insetsController.isAppearanceLightNavigationBars = isLightBackground
         }
     }
 

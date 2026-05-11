@@ -121,6 +121,11 @@ fun HomeScreen(
     val favGroup = stringResource(com.chesko.stream_pro.core.R.string.group_favorites)
     val historyGroup = stringResource(com.chesko.stream_pro.core.R.string.group_recently_played)
     
+    val activity = context as? android.app.Activity
+    val isInPipMode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+        activity?.isInPictureInPictureMode == true
+    } else false
+    
     var showExitDialog by remember { mutableStateOf(false) }
     var isGroupsExpanded by remember { mutableStateOf(false) }
     
@@ -257,8 +262,8 @@ fun HomeScreen(
                     .fillMaxWidth(drawerWidthFraction)
                     .statusBarsPadding(),
                 drawerShape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp),
-                drawerContainerColor = MaterialTheme.colorScheme.surface,
-                drawerTonalElevation = 10.dp
+                drawerContainerColor = MaterialTheme.colorScheme.background,
+                drawerTonalElevation = 0.dp
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize()
@@ -620,7 +625,7 @@ fun HomeScreen(
                             Text(
                                 stringResource(R.string.msg_switching_server),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onBackground,
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = 2.sp
                             )
@@ -701,12 +706,10 @@ fun HomeScreen(
                     if (selectedGroup != null || searchQuery.isNotEmpty()) {
                         item {
                             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                val title = when {
-                                    searchQuery.isNotEmpty() -> stringResource(R.string.search_results)
-                                    selectedGroup == "Favorit" -> stringResource(R.string.row_favorite)
-                                    selectedGroup == "Terakhir Ditonton" -> stringResource(R.string.row_history)
-                                    selectedGroup != null -> selectedGroup!!
-                                    else -> ""
+                                val title = when (selectedGroup) {
+                                    favGroup -> stringResource(R.string.row_favorite)
+                                    historyGroup -> stringResource(R.string.row_history)
+                                    else -> if (searchQuery.isNotEmpty()) stringResource(R.string.search_results) else selectedGroup ?: ""
                                 }
                                 Text(
                                     text = title,
@@ -978,12 +981,12 @@ fun HomeScreen(
             }
 
             HeaderSection(
-                alpha = headerAlpha.value,
+                alpha = if (isInPipMode) 0f else headerAlpha.value,
                 searchQuery = searchQuery,
                 onSearchQueryChange = { viewModel.setSearchQuery(it) },
                 onRefresh = { viewModel.refreshPlaylist() },
                 onMenuClick = { scope.launch { drawerState.open() } },
-                modifier = Modifier.statusBarsPadding()
+                modifier = Modifier.statusBarsPadding().alpha(if (isInPipMode) 0f else 1f)
             )
 
             // SIMPLE SHUTDOWN ANIMATION OVERLAY
@@ -997,7 +1000,7 @@ fun HomeScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.departure_msg).uppercase(),
-                        color = Color.White.copy(alpha = (shutdownProgress.value * 2f).coerceIn(0f, 1f)),
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = (shutdownProgress.value * 2f).coerceIn(0f, 1f)),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Light,
                         letterSpacing = 4.sp
@@ -1198,8 +1201,8 @@ fun EnhancedHeroCarousel(
                                 1.dp,
                                 Brush.linearGradient(
                                     colors = listOf(
-                                        Color.White.copy(alpha = 0.2f),
-                                        Color.White.copy(alpha = 0.05f)
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
                                     )
                                 )
                             )
@@ -1243,7 +1246,7 @@ fun EnhancedHeroCarousel(
                                 text = channel.name,
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Black,
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 fontSize = 18.sp,
@@ -1340,7 +1343,9 @@ fun HeaderSection(
         shadowElevation = if (alpha > 0.5f) 2.dp else 0.dp
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding(), // Tambahkan padding di dalam Surface
             contentAlignment = Alignment.Center
         ) {
             Row(
@@ -1698,7 +1703,7 @@ fun ChannelModernItem(
                             stringResource(R.string.status_live),
                             modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onError,
                             fontWeight = FontWeight.Black,
                             fontSize = 8.sp
                         )

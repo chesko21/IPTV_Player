@@ -327,6 +327,10 @@ fun SettingsScreen(
             onColorSelected = {
                 viewModel.setAccentColor(it.toArgb())
                 showColorPicker = false
+            },
+            onReset = {
+                viewModel.resetAccentColor()
+                showColorPicker = false
             }
         )
     }
@@ -337,6 +341,10 @@ fun SettingsScreen(
             onColorSelected = {
                 viewModel.setBackgroundColor(it.toArgb())
                 viewModel.setBackgroundType("color")
+                showBackgroundColorPicker = false
+            },
+            onReset = {
+                viewModel.resetBackground()
                 showBackgroundColorPicker = false
             }
         )
@@ -491,7 +499,7 @@ fun LanguagePickerDialog(
         "pt" to "Portuguese (Português)",
         "ru" to "Russian (Русский)",
         "ja" to "Japanese (日本語)"
-    )
+    ).sortedBy { it.second }
 
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -728,7 +736,11 @@ fun BufferPickerDialog(currentBuffer: Int, onDismiss: () -> Unit, onBufferSelect
 }
 
 @Composable
-fun ColorPickerDialog(onDismiss: () -> Unit, onColorSelected: (Color) -> Unit) {
+fun ColorPickerDialog(
+    onDismiss: () -> Unit,
+    onColorSelected: (Color) -> Unit,
+    onReset: (() -> Unit)? = null
+) {
     val currentPrimary = MaterialTheme.colorScheme.primary
     var hsv by remember {
         val hsv = FloatArray(3)
@@ -796,6 +808,15 @@ fun ColorPickerDialog(onDismiss: () -> Unit, onColorSelected: (Color) -> Unit) {
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    if (onReset != null) {
+                        TextButton(
+                            onClick = onReset,
+                            modifier = Modifier.height(28.dp)
+                        ) {
+                            Text(stringResource(R.string.btn_reset), fontWeight = FontWeight.SemiBold, fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                     TextButton(onClick = onDismiss, modifier = Modifier.height(28.dp)) {
                         Text(stringResource(R.string.btn_cancel), fontWeight = FontWeight.SemiBold, fontSize = 11.sp)
                     }
@@ -936,12 +957,14 @@ fun SettingsGroup(
             text = title,
             style = MaterialTheme.typography.labelMedium,
             color = accentColor,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(start = 6.dp, bottom = 6.dp)
+            fontWeight = FontWeight.Black,
+            letterSpacing = 1.sp,
+            modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
         )
         Surface(
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.4f),
+            shape = RoundedCornerShape(20.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.05f)),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column {

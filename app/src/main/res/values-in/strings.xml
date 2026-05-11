@@ -27,6 +27,7 @@
     <string name="btn_cancel">Batal</string>
     <string name="btn_apply">Terapkan</string>
     <string name="btn_save">Simpan</string>
+    <string name="btn_reset">Atur Ulang</string>
     <string name="background_default">Default</string>
     <string name="background_color">Warna Kustom</string>
     <string name="background_image">Gambar Kustom</string>
