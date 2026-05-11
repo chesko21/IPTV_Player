@@ -15,8 +15,8 @@ android {
         applicationId = "com.chesko.stream_pro_tv"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.1.1"
+        versionCode = 2
+        versionName = "1.1.2"
 
         ndk {
             val isRelease = project.gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = true) }
