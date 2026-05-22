@@ -469,6 +469,9 @@ fun NavHostContent(
             )
         }
         composable("home") {
+            LaunchedEffect(Unit) {
+                viewModel.setCategoryFilter(null)
+            }
             HomeScreen(
                 viewModel = viewModel,
                 onChannelClick = { channel ->
@@ -478,6 +481,9 @@ fun NavHostContent(
             )
         }
         composable("search") {
+            LaunchedEffect(Unit) {
+                viewModel.setCategoryFilter(null)
+            }
             TvSearchScreen(
                 viewModel = viewModel,
                 onBack = { 

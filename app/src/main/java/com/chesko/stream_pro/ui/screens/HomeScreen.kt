@@ -278,14 +278,11 @@ fun HomeScreen(
     val lazyListState = rememberLazyListState()
     val groupLazyListState = rememberLazyListState()
 
-    // Auto-scroll to top when group or search changes
     LaunchedEffect(selectedGroup, searchQuery) {
         if (!isLoading) {
             lazyListState.scrollToItem(0)
         }
     }
-
-    // Auto-scroll to selected group chip
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -1491,7 +1488,6 @@ fun ContentRow(
                             overflow = TextOverflow.Ellipsis
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        // Scroll Affordance Indicator
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(2.dp),
                             verticalAlignment = Alignment.CenterVertically
