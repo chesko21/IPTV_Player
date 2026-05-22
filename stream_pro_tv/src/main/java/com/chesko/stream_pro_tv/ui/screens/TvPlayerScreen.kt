@@ -779,13 +779,11 @@ fun TvPlayerScreenContent(
                                 )
                             }
                         } else if (currentProgram != null) {
-                            // LIVE MODE WITH EPG
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Current Program (Sedang Tayang)
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = stringResource(R.string.player_current_program),
@@ -811,7 +809,6 @@ fun TvPlayerScreenContent(
                                     )
                                 }
 
-                                // Next Program (Selanjutnya)
                                 if (nextProgram != null) {
                                     Spacer(Modifier.width(16.dp))
                                     Column(
@@ -847,7 +844,6 @@ fun TvPlayerScreenContent(
                                 }
                             }
                         } else {
-                            // EMPTY STATE
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -863,7 +859,6 @@ fun TvPlayerScreenContent(
                             }
                         }
 
-                        // THE SEEKBAR (Progress Bar) - Integrated at bottom
                         Box(
                             modifier = Modifier.fillMaxWidth().height(if (isSmallScreen) 8.dp else 12.dp),
                             contentAlignment = Alignment.Center

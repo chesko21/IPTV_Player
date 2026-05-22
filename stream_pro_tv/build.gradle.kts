@@ -10,21 +10,20 @@ plugins {
 android {
     namespace = "com.chesko.stream_pro_tv"
     compileSdk = 35
-
     defaultConfig {
         applicationId = "com.chesko.stream_pro_tv"
-        minSdk = 26
+        minSdk = 23
         targetSdk = 35
         versionCode = 2
-        versionName = "1.1.2"
+        versionName = "2.1.2"
 
         ndk {
             val isRelease = project.gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = true) }
 
             if (isRelease) {
-                abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86_64"))
+                abiFilters += setOf("armeabi-v7a", "arm64-v8a", "x86_64")
             } else {
-                abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86_64", "x86"))
+                abiFilters += setOf("armeabi-v7a", "arm64-v8a", "x86_64", "x86")
             }
         }
     }
@@ -72,6 +71,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "17"
@@ -91,6 +91,7 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(project(":core"))
     implementation(libs.androidx.core.ktx)
 
@@ -139,6 +140,8 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.material)
+    implementation(libs.play.services.cast.framework)
+    implementation(libs.play.services.ads)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)

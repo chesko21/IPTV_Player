@@ -48,10 +48,8 @@ fun LoadingState(message: String? = null) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Cosmic Loading Indicator
             Box(contentAlignment = Alignment.Center) {
                 Canvas(modifier = Modifier.size(60.dp)) {
-                    // Outer glow circle
                     drawCircle(
                         brush = Brush.radialGradient(
                             colors = listOf(

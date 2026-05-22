@@ -15,10 +15,9 @@ class StreamProApp : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
-        // Initialize CastContext early to prevent crashes during CastPlayer initialization in ViewModels
         try {
             CastContext.getSharedInstance(this)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             android.util.Log.e("StreamProApp", "CastContext initialization failed: ${e.message}")
         }
     }

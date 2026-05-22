@@ -98,14 +98,12 @@ fun TvSettingsScreen(
     Box(modifier = Modifier
         .fillMaxSize()
         .background(Color(0xFF00020A))) {
-        
-        // Immersive Background
+
         UniverseBackground(
             primaryColor = MaterialTheme.colorScheme.primary,
             glowAlpha = 0.6f
         )
 
-        // Settings Container
         Row(
             modifier = Modifier
                 .fillMaxSize()
@@ -247,7 +245,6 @@ fun TvSettingsScreen(
             }
         }
 
-        // Snackbar Host
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -275,7 +272,6 @@ fun TvSettingsScreen(
             }
         }
 
-        // --- Dialogs with Universe Styling ---
         
         if (showBufferDialog) {
             UniverseAlertDialog(

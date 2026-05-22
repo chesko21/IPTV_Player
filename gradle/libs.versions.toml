@@ -40,11 +40,13 @@ coreSplashscreen = "1.0.1"
 media3 = "1.5.0"
 mediarouter = "1.7.0"
 playServicesCast = "21.5.0"
+playServicesAds = "23.5.0"
 leanback = "1.2.0"
 glide = "5.0.7"
 tvFoundation = "1.0.0-rc01"
 tvMaterial = "1.0.1"
 ktor = "2.3.12"
+desugarJdkLibs = "2.1.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -103,6 +105,8 @@ androidx-media3-exoplayer-rtsp = { group = "androidx.media3", name = "media3-exo
 androidx-media3-cast = { group = "androidx.media3", name = "media3-cast", version.ref = "media3" }
 androidx-mediarouter = { group = "androidx.mediarouter", name = "mediarouter", version.ref = "mediarouter" }
 play-services-cast-framework = { group = "com.google.android.gms", name = "play-services-cast-framework", version.ref = "playServicesCast" }
+play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
+desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 androidx-leanback = { group = "androidx.leanback", name = "leanback", version.ref = "leanback" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 androidx-tv-foundation = { group = "androidx.tv", name = "tv-foundation", version.ref = "tvFoundation" }

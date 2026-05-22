@@ -220,7 +220,7 @@ fun ShimmerHomeScreen() {
             }
         }
 
-        repeat(3) {
+        repeat(2) {
             ShimmerContentRow()
         }
     }

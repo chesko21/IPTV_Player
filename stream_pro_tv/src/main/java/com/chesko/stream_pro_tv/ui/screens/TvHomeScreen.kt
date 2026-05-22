@@ -28,8 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.chesko.stream_pro_tv.R
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Locale
+import java.text.SimpleDateFormat
 import kotlinx.coroutines.delay
 import androidx.tv.material3.*
 import com.chesko.stream_pro.core.data.model.IptvChannel
@@ -79,13 +80,13 @@ fun HomeScreen(
                     TvClock(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(horizontal = 48.dp, vertical = 32.dp)
+                            .padding(end = 48.dp, top = 32.dp)
                     )
 
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 48.dp, vertical = 32.dp)
+                            .padding(start = 32.dp, end = 48.dp, top = 32.dp, bottom = 32.dp)
                     ) {
                         Column(modifier = Modifier.padding(bottom = 24.dp)) {
                             Text(
@@ -160,31 +161,31 @@ fun HomeScreen(
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TvClock(modifier: Modifier = Modifier) {
-    var currentTime by remember { mutableStateOf(LocalDateTime.now()) }
+    var currentTime by remember { mutableStateOf(Calendar.getInstance()) }
     
     LaunchedEffect(Unit) {
         while(true) {
-            currentTime = LocalDateTime.now()
+            currentTime = Calendar.getInstance()
             delay(1000)
         }
     }
 
-    val timeFormatter = remember { DateTimeFormatter.ofPattern("HH:mm") }
-    val dateFormatter = remember { DateTimeFormatter.ofPattern("EEEE, d MMMM") }
+    val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    val dateFormatter = remember { SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()) }
 
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.End
     ) {
         Text(
-            text = currentTime.format(timeFormatter),
+            text = timeFormatter.format(currentTime.time),
             style = MaterialTheme.typography.headlineLarge,
             color = Color.White,
             fontWeight = FontWeight.Black,
             letterSpacing = (-2).sp
         )
         Text(
-            text = currentTime.format(dateFormatter).uppercase(),
+            text = dateFormatter.format(currentTime.time).uppercase(),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,

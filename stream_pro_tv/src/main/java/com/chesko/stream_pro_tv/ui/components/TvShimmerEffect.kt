@@ -46,12 +46,14 @@ fun Modifier.shimmerEffect(): Modifier = composed {
 
 @Composable
 fun ShimmerHomeScreen(showBackground: Boolean = true) {
+    val isLowEnd = android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.M
+    
     Box(modifier = Modifier.fillMaxSize()) {
         if (showBackground) {
             // Use UniverseBackground to match the theme
             com.chesko.stream_pro_tv.ui.screens.UniverseBackground(
                 primaryColor = MaterialTheme.colorScheme.primary,
-                glowAlpha = 0.6f
+                glowAlpha = if (isLowEnd) 0.3f else 0.6f
             )
         }
         
@@ -62,7 +64,7 @@ fun ShimmerHomeScreen(showBackground: Boolean = true) {
         ) {
             // Shimmer untuk Group Selector
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                repeat(5) {
+                repeat(if (isLowEnd) 3 else 5) {
                     Box(
                         modifier = Modifier
                             .width(120.dp)
@@ -77,7 +79,7 @@ fun ShimmerHomeScreen(showBackground: Boolean = true) {
 
             // Shimmer untuk Channel Grid (6 Kolom agar sinkron)
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                repeat(3) { // Tampilkan 3 baris shimmer
+                repeat(if (isLowEnd) 2 else 3) { // Tampilkan lebih sedikit baris pada low end
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         repeat(6) { // 6 Kolom
                             Box(

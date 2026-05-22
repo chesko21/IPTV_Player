@@ -13,10 +13,10 @@ android {
 
     defaultConfig {
         applicationId = "com.chesko.stream_pro"
-        minSdk = 26
+        minSdk = 23
         targetSdk = 35
         versionCode = 3
-        versionName = "2.0.2"
+        versionName = "2.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -42,7 +42,7 @@ android {
     buildTypes {
         debug {
             ndk {
-                abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
+                abiFilters += setOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
             }
         }
         release {
@@ -54,7 +54,7 @@ android {
                 "proguard-rules.pro"
             )
             ndk {
-                abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a"))
+                abiFilters += setOf("armeabi-v7a", "arm64-v8a", "x86_64")
             }
         }
     }
@@ -62,6 +62,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 
     buildFeatures {
@@ -77,7 +78,6 @@ android {
 
     packaging {
         resources {
-            // Optimasi: Menghapus file metadata duplikat yang tidak diperlukan dalam APK
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             excludes += "META-INF/INDEX.LIST"
             excludes += "META-INF/io.netty.versions.properties"
@@ -87,8 +87,7 @@ android {
             excludes += "META-INF/ASL2.0"
             excludes += "META-INF/*.kotlin_module"
             excludes += "META-INF/common_release.kotlin_module"
-            
-            // Opsional: Jika ada file yang bentrok tapi dibutuhkan, gunakan pickFirst
+
             pickFirsts += "**/libjsc.so"
             pickFirsts += "**/libc++_shared.so"
         }
@@ -101,6 +100,7 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(project(":core"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
@@ -148,6 +148,7 @@ dependencies {
     implementation(libs.androidx.media3.cast)
     implementation(libs.androidx.mediarouter)
     implementation(libs.play.services.cast.framework)
+    implementation(libs.play.services.ads)
 
 
     ksp(libs.androidx.room.compiler)

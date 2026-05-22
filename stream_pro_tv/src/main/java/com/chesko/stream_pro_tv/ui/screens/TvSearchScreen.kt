@@ -97,7 +97,6 @@ fun TvSearchScreen(
                     vertical = if (isSmall) 16.dp else 32.dp
                 )
         ) {
-            // Header Section
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
                     onClick = onBack,
@@ -139,7 +138,6 @@ fun TvSearchScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Premium Search Bar
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -221,7 +219,6 @@ fun TvSearchScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Search Results Grid
             if (filteredChannels.isEmpty() && searchQuery.isNotEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {

@@ -20,8 +20,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.tv.material3.*
 import coil.compose.AsyncImage
 import androidx.compose.ui.res.stringResource
@@ -149,24 +151,28 @@ fun ChannelTvGridItem(
         modifier = modifier
             .aspectRatio(1f)
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier),
-        shape = ClickableSurfaceDefaults.shape(shape = MaterialTheme.shapes.medium),
-        scale = ClickableSurfaceDefaults.scale(focusedScale = 1.15f),
+        shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(12.dp)),
+        scale = ClickableSurfaceDefaults.scale(focusedScale = 1.1f),
         colors = ClickableSurfaceDefaults.colors(
-            containerColor = Color.White.copy(alpha = 0.05f),
+            containerColor = Color(0xFF151515).copy(alpha = 0.6f),
             focusedContainerColor = MaterialTheme.colorScheme.primary,
             contentColor = Color.White.copy(alpha = 0.8f),
-            focusedContentColor = Color.White
+            focusedContentColor = Color.Black
         ),
         border = ClickableSurfaceDefaults.border(
+            border = Border(
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
+                shape = RoundedCornerShape(12.dp)
+            ),
             focusedBorder = Border(
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-                shape = MaterialTheme.shapes.medium
+                border = BorderStroke(2.dp, Color.White),
+                shape = RoundedCornerShape(12.dp)
             )
         ),
         glow = ClickableSurfaceDefaults.glow(
             focusedGlow = Glow(
-                elevationColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                elevation = 15.dp
+                elevationColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                elevation = 20.dp
             )
         )
     ) {
@@ -197,21 +203,19 @@ fun ChannelTvGridItem(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            if (LocalContentColor.current == Color.Black) 
-                                Color.Transparent 
-                            else 
-                                Color(0xFF081A38).copy(alpha = 0.8f)
+                            Color.Black.copy(alpha = 0.4f)
                         )
                         .padding(vertical = 6.dp, horizontal = 8.dp)
                 ) {
                     Text(
                         text = channel.name,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        fontSize = 9.sp
                     )
                 }
             }
@@ -224,10 +228,10 @@ fun ChannelTvGridItem(
                     tint = Color.Black,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                        .size(20.dp)
+                        .padding(6.dp)
+                        .size(16.dp)
                         .background(Color(0xFFFFD600), CircleShape)
-                        .padding(4.dp)
+                        .padding(3.dp)
                 )
             }
         }
@@ -243,36 +247,37 @@ fun GroupTvItem(
 ) {
     Surface(
         onClick = onClick,
-        shape = ClickableSurfaceDefaults.shape(shape = MaterialTheme.shapes.extraLarge),
+        shape = ClickableSurfaceDefaults.shape(shape = CircleShape),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.1f),
         colors = ClickableSurfaceDefaults.colors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.08f),
-            focusedContainerColor = MaterialTheme.colorScheme.primary,
-            contentColor = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f),
-            focusedContentColor = Color.White
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.05f),
+            focusedContainerColor = Color.White,
+            contentColor = if (isSelected) Color.Black else Color.White.copy(alpha = 0.5f),
+            focusedContentColor = Color.Black
         ),
         border = ClickableSurfaceDefaults.border(
             focusedBorder = Border(
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-                shape = MaterialTheme.shapes.extraLarge
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                shape = CircleShape
             ),
             border = Border(
-                border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else Color.Transparent),
-                shape = MaterialTheme.shapes.extraLarge
+                border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.1f)),
+                shape = CircleShape
             )
         )
     ) {
         Box(
             modifier = Modifier
-                .height(44.dp)
-                .padding(horizontal = 24.dp),
+                .height(40.dp)
+                .padding(horizontal = 20.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = groupName, 
                 style = MaterialTheme.typography.labelLarge,
-                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
-                textAlign = TextAlign.Center
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center,
+                fontSize = 12.sp
             )
         }
     }

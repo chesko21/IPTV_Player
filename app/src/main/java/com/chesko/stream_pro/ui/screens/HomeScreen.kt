@@ -35,6 +35,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
@@ -112,6 +113,7 @@ fun HomeScreen(
     val recentlyPlayed by viewModel.recentlyPlayed.collectAsState()
     val favoriteChannels by viewModel.favoriteChannels.collectAsState()
     val randomCarousel by viewModel.randomCarouselChannels.collectAsState()
+    val channelsByGroup by viewModel.channelsByGroup.collectAsState()
 
     val backgroundType by viewModel.backgroundType.collectAsState()
     val backgroundColorInt by viewModel.backgroundColor.collectAsState()
@@ -134,11 +136,9 @@ fun HomeScreen(
 
     val drawerState = rememberDrawerState(initialValue = if (shouldOpenDrawer) DrawerValue.Open else DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    
-    // Local loading for playlist switching effect
+
     var isSwitchingPlaylist by remember { mutableStateOf(false) }
 
-    // Handle system back navigation
     BackHandler {
         when {
             drawerState.isOpen -> scope.launch { drawerState.close() }
@@ -149,39 +149,84 @@ fun HomeScreen(
     }
 
     if (showExitDialog) {
-        Dialog(onDismissRequest = { showExitDialog = false }) {
+        Dialog(
+            onDismissRequest = { showExitDialog = false }
+        ) {
             Surface(
-                modifier = Modifier.width(280.dp),
+                modifier = Modifier
+                    .width(280.dp)
+                    .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(28.dp))
+                    .graphicsLayer {
+                        shadowElevation = 20.dp.toPx()
+                        shape = RoundedCornerShape(28.dp)
+                        clip = true
+                    },
                 shape = RoundedCornerShape(28.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 6.dp
+                color = Color(0xFF0F0F0F),
+                tonalElevation = 8.dp
             ) {
                 Column(
-                    modifier = Modifier.padding(24.dp),
+                    modifier = Modifier.padding(28.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Surface(
+                        modifier = Modifier.size(64.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(20.dp))
+
                     Text(
-                        stringResource(R.string.exit_confirm_msg),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center
+                        text = stringResource(R.string.exit_confirm_title ?: R.string.brand_name),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White
                     )
-                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = stringResource(R.string.exit_confirm_msg),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.7f),
+                        textAlign = TextAlign.Center,
+                        lineHeight = 20.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        TextButton(
+                        Button(
                             onClick = { showExitDialog = false },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = Color.White
+                            )
                         ) {
                             Text(
-                                stringResource(R.string.btn_cancel),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Medium
+                                text = stringResource(R.string.btn_cancel),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold
                             )
                         }
+
                         Button(
                             onClick = {
                                 showExitDialog = false
@@ -195,13 +240,20 @@ fun HomeScreen(
                                     (context as? Activity)?.finish()
                                 }
                             },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = Color.White
+                            ),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                         ) {
                             Text(
-                                stringResource(R.string.btn_exit),
-                                fontWeight = FontWeight.Bold
+                                text = stringResource(R.string.btn_exit),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.ExtraBold
                             )
                         }
                     }
@@ -226,28 +278,14 @@ fun HomeScreen(
     val lazyListState = rememberLazyListState()
     val groupLazyListState = rememberLazyListState()
 
-    // Smart Caching: Prefetch EPG for visible items indirectly handled by startSmartCaching in ViewModel
+    // Auto-scroll to top when group or search changes
+    LaunchedEffect(selectedGroup, searchQuery) {
+        if (!isLoading) {
+            lazyListState.scrollToItem(0)
+        }
+    }
 
     // Auto-scroll to selected group chip
-    LaunchedEffect(selectedGroup, groups) {
-        if (groups.isNotEmpty()) {
-            val index = if (selectedGroup == null) 0 else groups.indexOf(selectedGroup) + 1
-            if (index >= 0) {
-                groupLazyListState.animateScrollToItem(index)
-            }
-        }
-    }
-
-    val headerAlpha = remember {
-        derivedStateOf {
-            if (lazyListState.firstVisibleItemIndex > 0) {
-                1f
-            } else {
-                val scroll = lazyListState.firstVisibleItemScrollOffset.toFloat()
-                (scroll / 300f).coerceIn(0f, 1f)
-            }
-        }
-    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -380,61 +418,6 @@ fun HomeScreen(
                                 .padding(horizontal = 8.dp)
                                 .verticalScroll(rememberScrollState())
                         ) {
-                            if (allPlaylists.isNotEmpty()) {
-                                Text(
-                                    stringResource(R.string.drawer_group_playlists),
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Black,
-                                    letterSpacing = 0.5.sp
-                                )
-
-                                DrawerMenuItem(
-                                    icon = Icons.Default.Cloud,
-                                    label = stringResource(R.string.group_all),
-                                    isSelected = selectedPlaylistId == null,
-                                    onClick = {
-                                        if (selectedPlaylistId != null) {
-                                            scope.launch {
-                                                isSwitchingPlaylist = true
-                                                viewModel.setSelectedPlaylistId(null)
-                                                drawerState.close()
-                                                delay(800)
-                                                isSwitchingPlaylist = false
-                                            }
-                                        } else {
-                                            scope.launch { drawerState.close() }
-                                        }
-                                    }
-                                )
-
-                                allPlaylists.forEach { playlist ->
-                                    DrawerMenuItem(
-                                        icon = Icons.AutoMirrored.Filled.PlaylistPlay,
-                                        label = playlist.name,
-                                        isSelected = selectedPlaylistId == playlist.id,
-                                        onClick = {
-                                            if (selectedPlaylistId != playlist.id) {
-                                                scope.launch {
-                                                    isSwitchingPlaylist = true
-                                                    viewModel.setSelectedPlaylistId(playlist.id)
-                                                    drawerState.close()
-                                                    delay(800)
-                                                    isSwitchingPlaylist = false
-                                                }
-                                            } else {
-                                                scope.launch { drawerState.close() }
-                                            }
-                                        }
-                                    )
-                                }
-                                
-                                Spacer(modifier = Modifier.height(8.dp))
-                                HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(0.05f), modifier = Modifier.padding(horizontal = 12.dp))
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
-
                             Text(
                                 stringResource(R.string.drawer_group_main),
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -587,7 +570,6 @@ fun HomeScreen(
                     }
                 }
         ) {
-            // Background Layer
             when (backgroundType) {
                 "color" -> Box(modifier = Modifier.fillMaxSize().background(Color(backgroundColorInt)))
                 "image" -> {
@@ -608,8 +590,7 @@ fun HomeScreen(
 
             if (isLoading || allChannels.isEmpty() || isSwitchingPlaylist) {
                 ShimmerHomeScreen()
-                
-                // Overlay for switching playlist to make it feel more "official"
+
                 if (isSwitchingPlaylist) {
                     Box(
                         modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)),
@@ -633,363 +614,370 @@ fun HomeScreen(
                     }
                 }
             } else {
-                LazyColumn(
-                    state = lazyListState,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    item {
-                        Spacer(modifier = Modifier.statusBarsPadding().height(60.dp))
-                    }
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Column {
+                        HeaderSection(
+                            alpha = if (isInPipMode) 0f else 1f,
+                            searchQuery = searchQuery,
+                            onSearchQueryChange = { viewModel.setSearchQuery(it) },
+                            onRefresh = { viewModel.refreshPlaylist() },
+                            onMenuClick = { scope.launch { drawerState.open() } },
+                            modifier = Modifier.alpha(if (isInPipMode) 0f else 1f)
+                        )
 
-                    if (searchQuery.isEmpty()) {
-                        if (selectedGroup == null) {
-                            if (randomCarousel.isNotEmpty()) {
-                                item {
-                                    EnhancedHeroCarousel(
-                                        channels = randomCarousel,
-                                        onPlayClick = {
-                                            viewModel.setSelectedGroup(null)
-                                            viewModel.markAsPlayed(it)
-                                            onSelectChannel(it)
-                                        }
-                                    )
-                                    Spacer(modifier = Modifier.height(14.dp))
-                                }
-                            } else if (filteredChannels.isNotEmpty()) {
-                                item {
-                                    EnhancedHeroCarousel(
-                                        channels = filteredChannels.take(5),
-                                        onPlayClick = {
-                                            viewModel.setSelectedGroup(null)
-                                            viewModel.markAsPlayed(it)
-                                            onSelectChannel(it)
-                                        }
-                                    )
-                                    Spacer(modifier = Modifier.height(14.dp))
-                                }
-                            }
-                        }
-
-                        if (groups.isNotEmpty()) {
-                            item {
-                                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                    LazyRow(
-                                        state = groupLazyListState,
-                                        modifier = Modifier
-                                            .widthIn(max = 1200.dp)
-                                            .fillMaxWidth()
-                                            .padding(bottom = 14.dp),
-                                        contentPadding = PaddingValues(horizontal = 16.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                    ) {
-                                        item {
-                                            GroupChip(
-                                                text = stringResource(R.string.group_all),
-                                                isSelected = selectedGroup == null,
-                                                onClick = { viewModel.setSelectedGroup(null) }
-                                            )
-                                        }
-                                        items(groups) { group ->
-                                            GroupChip(
-                                                text = group,
-                                                isSelected = selectedGroup == group,
-                                                onClick = { viewModel.setSelectedGroup(group) }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Content Area
-                    if (selectedGroup != null || searchQuery.isNotEmpty()) {
-                        item {
-                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                val title = when (selectedGroup) {
-                                    favGroup -> stringResource(R.string.row_favorite)
-                                    historyGroup -> stringResource(R.string.row_history)
-                                    else -> if (searchQuery.isNotEmpty()) stringResource(R.string.search_results) else selectedGroup ?: ""
-                                }
-                                Text(
-                                    text = title,
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Black,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.widthIn(max = 1200.dp).fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp)
-                                )
-                            }
-                        }
-
-                        if (filteredChannels.isEmpty()) {
-                            item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(48.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        modifier = Modifier
-                                            .widthIn(max = 600.dp)
-                                            .fillMaxWidth()
-                                            .padding(32.dp)
-                                            .background(
-                                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                                RoundedCornerShape(24.dp)
-                                            )
-                                            .padding(32.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Default.SearchOff,
-                                            null,
-                                            modifier = Modifier.size(80.dp),
-                                            tint = MaterialTheme.colorScheme.primary.copy(0.2f)
-                                        )
-                                        Spacer(modifier = Modifier.height(20.dp))
-                                        Text(
-                                            stringResource(R.string.search_not_found_title),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Text(
-                                            stringResource(R.string.search_not_found_msg),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            textAlign = TextAlign.Center
-                                        )
-                                    }
-                                }
-                            }
-                        } else {
-                            val columns = when (windowSize.widthSizeClass) {
-                                WindowWidthSizeClass.Compact -> 2
-                                WindowWidthSizeClass.Medium -> 3
-                                else -> 4
-                            }
-                            val chunkedChannels = filteredChannels.chunked(columns)
-                            items(chunkedChannels) { chunk ->
-                                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                    Row(
-                                        modifier = Modifier
-                                            .widthIn(max = 1200.dp)
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                                    ) {
-                                        chunk.forEach { channel ->
-                                            ChannelModernItem(
-                                                viewModel = viewModel,
-                                                channel = channel,
-                                                modifier = Modifier.weight(1f),
-                                                onClick = {
-                                                    viewModel.markAsPlayed(channel)
-                                                    onSelectChannel(channel)
+                        if (searchQuery.isEmpty()) {
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.background.copy(alpha = 0.98f),
+                                tonalElevation = 3.dp
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    if (selectedGroup == null) {
+                                        if (randomCarousel.isNotEmpty()) {
+                                            EnhancedHeroCarousel(
+                                                channels = randomCarousel,
+                                                onPlayClick = {
+                                                    viewModel.setSelectedGroup(null)
+                                                    viewModel.markAsPlayed(it)
+                                                    onSelectChannel(it)
                                                 }
                                             )
+                                            Spacer(modifier = Modifier.height(10.dp))
+                                        } else if (filteredChannels.isNotEmpty()) {
+                                            EnhancedHeroCarousel(
+                                                channels = filteredChannels.take(5),
+                                                onPlayClick = {
+                                                    viewModel.setSelectedGroup(null)
+                                                    viewModel.markAsPlayed(it)
+                                                    onSelectChannel(it)
+                                                }
+                                            )
+                                            Spacer(modifier = Modifier.height(10.dp))
                                         }
-                                        repeat(columns - chunk.size) {
-                                            Spacer(modifier = Modifier.weight(1f))
+                                    }
+
+                                    if (groups.isNotEmpty()) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(top = 8.dp, bottom = 12.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            LazyRow(
+                                                state = groupLazyListState,
+                                                modifier = Modifier
+                                                    .widthIn(max = 1200.dp)
+                                                    .fillMaxWidth(),
+                                                contentPadding = PaddingValues(horizontal = 16.dp),
+                                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                            ) {
+                                                item {
+                                                    GroupChip(
+                                                        text = stringResource(R.string.group_all),
+                                                        isSelected = selectedGroup == null,
+                                                        onClick = { viewModel.setSelectedGroup(null) }
+                                                    )
+                                                }
+                                                items(groups) { group ->
+                                                    GroupChip(
+                                                        text = group,
+                                                        isSelected = selectedGroup == group,
+                                                        onClick = { viewModel.setSelectedGroup(group) }
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    } else {
-                        val onChannelClick: (IptvChannel, String?) -> Unit = { channel, _ ->
-                            viewModel.markAsPlayed(channel)
-                            onSelectChannel(channel)
-                        }
-
-                        if (favoriteChannels.isNotEmpty()) {
-                            item {
-                                ContentRow(
-                                    viewModel = viewModel,
-                                    title = stringResource(R.string.row_favorite),
-                                    channels = favoriteChannels,
-                                    onSeeAllClick = { viewModel.setSelectedGroup(favGroup) },
-                                    onChannelSelected = { onChannelClick(it, favGroup) }
-                                )
-                            }
-                        }
-
-                        if (recentlyPlayed.isNotEmpty()) {
-                            item {
-                                ContentRow(
-                                    viewModel = viewModel,
-                                    title = stringResource(R.string.row_history),
-                                    channels = recentlyPlayed,
-                                    onSeeAllClick = { viewModel.setSelectedGroup(historyGroup) },
-                                    onChannelSelected = { onChannelClick(it, historyGroup) }
-                                )
-                            }
-                        }
-
-                        groups.take(20).forEach { group ->
-                            val groupChannels = allChannels.filter { 
-                                val matchesPlaylist = selectedPlaylistId == null || it.playlistId == selectedPlaylistId
-                                matchesPlaylist && it.group == group 
-                            }
-                            if (groupChannels.isNotEmpty()) {
-                                item(key = group) {
-                                    ContentRow(
-                                        viewModel = viewModel,
-                                        title = group,
-                                        channels = groupChannels,
-                                        onSeeAllClick = { viewModel.setSelectedGroup(group) },
-                                        onChannelSelected = { onChannelClick(it, group) }
-                                    )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        LazyColumn(
+                            state = lazyListState,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            if (selectedGroup != null || searchQuery.isNotEmpty()) {
+                                item {
+                                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                        val title = when (selectedGroup) {
+                                            favGroup -> stringResource(R.string.row_favorite)
+                                            historyGroup -> stringResource(R.string.row_history)
+                                            else -> if (searchQuery.isNotEmpty()) stringResource(R.string.search_results) 
+                                                    else try { 
+                                                        java.net.URLDecoder.decode(selectedGroup ?: "", "UTF-8") 
+                                                    } catch(_: Exception) { 
+                                                        selectedGroup?.replace("+", " ") ?: "" 
+                                                    }
+                                        }
+                                        Text(
+                                            text = title,
+                                            style = MaterialTheme.typography.titleLarge,
+                                            fontWeight = FontWeight.Black,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            modifier = Modifier.widthIn(max = 1200.dp).fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp)
+                                        )
+                                    }
                                 }
-                            }
-                        }
 
-                        if (groups.size > 15) {
-                            item {
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                    Column(
-                                        modifier = Modifier
-                                            .widthIn(max = 1200.dp)
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 16.dp)
-                                            .background(
-                                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
-                                                RoundedCornerShape(24.dp)
-                                            )
-                                            .border(
-                                                1.dp,
-                                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
-                                                RoundedCornerShape(24.dp)
-                                            )
-                                            .padding(20.dp)
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
+                                if (filteredChannels.isEmpty() && !isLoading && allChannels.isNotEmpty()) {
+                                    item {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(48.dp),
+                                            contentAlignment = Alignment.Center
                                         ) {
-                                            Column {
-                                                Text(
-                                                    stringResource(R.string.other_groups).uppercase(),
-                                                    style = MaterialTheme.typography.labelMedium,
-                                                    fontWeight = FontWeight.Black,
-                                                    color = MaterialTheme.colorScheme.primary,
-                                                    letterSpacing = 1.5.sp
+                                            Column(
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                modifier = Modifier
+                                                    .widthIn(max = 600.dp)
+                                                    .fillMaxWidth()
+                                                    .padding(32.dp)
+                                                    .background(
+                                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                                        RoundedCornerShape(24.dp)
+                                                    )
+                                                    .padding(32.dp)
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.SearchOff,
+                                                    null,
+                                                    modifier = Modifier.size(80.dp),
+                                                    tint = MaterialTheme.colorScheme.primary.copy(0.2f)
                                                 )
-                                                Box(
-                                                    modifier = Modifier
-                                                        .width(24.dp)
-                                                        .height(2.dp)
-                                                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                                Spacer(modifier = Modifier.height(20.dp))
+                                                Text(
+                                                    stringResource(R.string.search_not_found_title),
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                                Text(
+                                                    stringResource(R.string.search_not_found_msg),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    textAlign = TextAlign.Center
                                                 )
                                             }
-                                            Surface(
-                                                onClick = { isGroupsExpanded = !isGroupsExpanded },
-                                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                                shape = RoundedCornerShape(8.dp)
+                                        }
+                                    }
+                                } else {
+                                    val columns = when (windowSize.widthSizeClass) {
+                                        WindowWidthSizeClass.Compact -> 2
+                                        WindowWidthSizeClass.Medium -> 3
+                                        else -> 4
+                                    }
+                                    val chunkedChannels = filteredChannels.chunked(columns)
+                                    items(chunkedChannels) { chunk ->
+                                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .widthIn(max = 1200.dp)
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                            ) {
+                                                chunk.forEach { channel ->
+                                                    ChannelModernItem(
+                                                        viewModel = viewModel,
+                                                        channel = channel,
+                                                        modifier = Modifier.weight(1f),
+                                                        onClick = {
+                                                            viewModel.markAsPlayed(channel)
+                                                            onSelectChannel(channel)
+                                                        }
+                                                    )
+                                                }
+                                                repeat(columns - chunk.size) {
+                                                    Spacer(modifier = Modifier.weight(1f))
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                val onChannelClick: (IptvChannel, String?) -> Unit = { channel, _ ->
+                                    viewModel.markAsPlayed(channel)
+                                    onSelectChannel(channel)
+                                }
+
+                                if (favoriteChannels.isNotEmpty()) {
+                                    item {
+                                        ContentRow(
+                                            viewModel = viewModel,
+                                            title = stringResource(R.string.row_favorite),
+                                            channels = favoriteChannels,
+                                            onSeeAllClick = { viewModel.setSelectedGroup(favGroup) },
+                                            onChannelSelected = { onChannelClick(it, favGroup) }
+                                        )
+                                    }
+                                }
+
+                                if (recentlyPlayed.isNotEmpty()) {
+                                    item {
+                                        ContentRow(
+                                            viewModel = viewModel,
+                                            title = stringResource(R.string.row_history),
+                                            channels = recentlyPlayed,
+                                            onSeeAllClick = { viewModel.setSelectedGroup(historyGroup) },
+                                            onChannelSelected = { onChannelClick(it, historyGroup) }
+                                        )
+                                    }
+                                }
+
+                                groups.take(20).forEach { group ->
+                                    val groupChannels = channelsByGroup[group] ?: emptyList()
+                                    if (groupChannels.isNotEmpty()) {
+                                        item(key = group) {
+                                            ContentRow(
+                                                viewModel = viewModel,
+                                                title = group,
+                                                channels = groupChannels,
+                                                onSeeAllClick = { viewModel.setSelectedGroup(group) },
+                                                onChannelSelected = { onChannelClick(it, group) }
+                                            )
+                                        }
+                                    }
+                                }
+
+                                if (groups.size > 15) {
+                                    item {
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                            Column(
+                                                modifier = Modifier
+                                                    .widthIn(max = 1200.dp)
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 16.dp)
+                                                    .background(
+                                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
+                                                        RoundedCornerShape(24.dp)
+                                                    )
+                                                    .border(
+                                                        1.dp,
+                                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                                                        RoundedCornerShape(24.dp)
+                                                    )
+                                                    .padding(20.dp)
                                             ) {
                                                 Row(
-                                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
                                                     verticalAlignment = Alignment.CenterVertically
                                                 ) {
-                                                    Text(
-                                                        if (isGroupsExpanded) stringResource(R.string.see_less) else stringResource(R.string.see_all),
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        fontWeight = FontWeight.Black,
-                                                        color = MaterialTheme.colorScheme.primary
-                                                    )
-                                                    Icon(
-                                                        if (isGroupsExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                                        null,
-                                                        modifier = Modifier.size(14.dp),
-                                                        tint = MaterialTheme.colorScheme.primary
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        Spacer(modifier = Modifier.height(20.dp))
-
-                                        val remainingGroups = if (isGroupsExpanded) groups.drop(15) else groups.drop(15).take(6)
-                                        val otherGroupColumns = when (windowSize.widthSizeClass) {
-                                            WindowWidthSizeClass.Compact -> 2
-                                            WindowWidthSizeClass.Medium -> 3
-                                            else -> 4
-                                        }
-                                        Column(
-                                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                                        ) {
-                                            remainingGroups.chunked(otherGroupColumns).forEach { chunk ->
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                                ) {
-                                                    chunk.forEach { group ->
-                                                        Surface(
-                                                            onClick = { viewModel.setSelectedGroup(group) },
-                                                            modifier = Modifier.weight(1f),
-                                                            shape = RoundedCornerShape(16.dp),
-                                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
+                                                    Column {
+                                                        Text(
+                                                            stringResource(R.string.other_groups).uppercase(),
+                                                            style = MaterialTheme.typography.labelMedium,
+                                                            fontWeight = FontWeight.Black,
+                                                            color = MaterialTheme.colorScheme.primary,
+                                                            letterSpacing = 1.5.sp
+                                                        )
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .width(24.dp)
+                                                                .height(2.dp)
+                                                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                                        )
+                                                    }
+                                                    Surface(
+                                                        onClick = { isGroupsExpanded = !isGroupsExpanded },
+                                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                                        shape = RoundedCornerShape(8.dp)
+                                                    ) {
+                                                        Row(
+                                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                            verticalAlignment = Alignment.CenterVertically
                                                         ) {
-                                                            Row(
-                                                                modifier = Modifier.padding(12.dp),
-                                                                verticalAlignment = Alignment.CenterVertically
-                                                            ) {
-                                                                Box(
-                                                                    modifier = Modifier
-                                                                        .size(36.dp)
-                                                                        .background(MaterialTheme.colorScheme.primary.copy(0.12f), CircleShape),
-                                                                    contentAlignment = Alignment.Center
+                                                            Text(
+                                                                if (isGroupsExpanded) stringResource(R.string.see_less) else stringResource(R.string.see_all),
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                fontWeight = FontWeight.Black,
+                                                                color = MaterialTheme.colorScheme.primary
+                                                            )
+                                                            Icon(
+                                                                if (isGroupsExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                                                null,
+                                                                modifier = Modifier.size(14.dp),
+                                                                tint = MaterialTheme.colorScheme.primary
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                                Spacer(modifier = Modifier.height(20.dp))
+
+                                                val remainingGroups = if (isGroupsExpanded) groups.drop(15) else groups.drop(15).take(6)
+                                                val otherGroupColumns = when (windowSize.widthSizeClass) {
+                                                    WindowWidthSizeClass.Compact -> 2
+                                                    WindowWidthSizeClass.Medium -> 3
+                                                    else -> 4
+                                                }
+                                                Column(
+                                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                                ) {
+                                                    remainingGroups.chunked(otherGroupColumns).forEach { chunk ->
+                                                        Row(
+                                                            modifier = Modifier.fillMaxWidth(),
+                                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                                        ) {
+                                                            chunk.forEach { group ->
+                                                                Surface(
+                                                                    onClick = { viewModel.setSelectedGroup(group) },
+                                                                    modifier = Modifier.weight(1f),
+                                                                    shape = RoundedCornerShape(16.dp),
+                                                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
                                                                 ) {
-                                                                    Icon(
-                                                                        Icons.Default.Folder,
-                                                                        null,
-                                                                        tint = MaterialTheme.colorScheme.primary,
-                                                                        modifier = Modifier.size(18.dp)
-                                                                    )
+                                                                    Row(
+                                                                        modifier = Modifier.padding(12.dp),
+                                                                        verticalAlignment = Alignment.CenterVertically
+                                                                    ) {
+                                                                        Box(
+                                                                            modifier = Modifier
+                                                                                .size(36.dp)
+                                                                                .background(MaterialTheme.colorScheme.primary.copy(0.12f), CircleShape),
+                                                                            contentAlignment = Alignment.Center
+                                                                        ) {
+                                                                            Icon(
+                                                                                Icons.Default.Folder,
+                                                                                null,
+                                                                                tint = MaterialTheme.colorScheme.primary,
+                                                                                modifier = Modifier.size(18.dp)
+                                                                            )
+                                                                        }
+                                                                        Spacer(modifier = Modifier.width(12.dp))
+                                                                        Text(
+                                                                            group,
+                                                                            style = MaterialTheme.typography.labelMedium,
+                                                                            fontWeight = FontWeight.Bold,
+                                                                            color = MaterialTheme.colorScheme.onSurface,
+                                                                            maxLines = 1,
+                                                                            overflow = TextOverflow.Ellipsis
+                                                                        )
+                                                                    }
                                                                 }
-                                                                Spacer(modifier = Modifier.width(12.dp))
-                                                                Text(
-                                                                    group,
-                                                                    style = MaterialTheme.typography.labelMedium,
-                                                                    fontWeight = FontWeight.Bold,
-                                                                    color = MaterialTheme.colorScheme.onSurface,
-                                                                    maxLines = 1,
-                                                                    overflow = TextOverflow.Ellipsis
-                                                                )
+                                                            }
+                                                            repeat(otherGroupColumns - chunk.size) {
+                                                                Spacer(modifier = Modifier.weight(1f))
                                                             }
                                                         }
                                                     }
-                                                    repeat(otherGroupColumns - chunk.size) {
-                                                        Spacer(modifier = Modifier.weight(1f))
-                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
-                    }
 
-                    item {
-                        Spacer(modifier = Modifier.height(120.dp))
+                            item {
+                                Spacer(modifier = Modifier.height(120.dp))
+                            }
+                        }
                     }
                 }
             }
 
-            HeaderSection(
-                alpha = if (isInPipMode) 0f else headerAlpha.value,
-                searchQuery = searchQuery,
-                onSearchQueryChange = { viewModel.setSearchQuery(it) },
-                onRefresh = { viewModel.refreshPlaylist() },
-                onMenuClick = { scope.launch { drawerState.open() } },
-                modifier = Modifier.statusBarsPadding().alpha(if (isInPipMode) 0f else 1f)
-            )
-
-            // SIMPLE SHUTDOWN ANIMATION OVERLAY
             if (isShuttingDown) {
                 Box(
                     modifier = Modifier
@@ -1008,7 +996,6 @@ fun HomeScreen(
                 }
             }
 
-            // Optimized Scroll to Top FAB
             val showFab by remember {
                 derivedStateOf {
                     lazyListState.firstVisibleItemIndex > 4
@@ -1066,7 +1053,6 @@ fun EnhancedHeroCarousel(
 
     var isAutoScrollEnabled by remember { mutableStateOf(true) }
 
-    // Auto-scroll
     LaunchedEffect(isAutoScrollEnabled) {
         if (isAutoScrollEnabled && channels.size > 1) {
             delay(6000)
@@ -1084,7 +1070,6 @@ fun EnhancedHeroCarousel(
             .height(carouselHeight),
         contentAlignment = Alignment.Center
     ) {
-        // Dynamic Background based on current page
         val currentChannel = channels.getOrNull(pagerState.currentPage)
 
         Box(modifier = Modifier.fillMaxSize()) {
@@ -1161,7 +1146,6 @@ fun EnhancedHeroCarousel(
                     modifier = Modifier
                         .fillMaxSize()
                 ) {
-                    // Background Image (Logo)
                     AsyncImage(
                         model = channel.logo,
                         contentDescription = null,
@@ -1174,7 +1158,6 @@ fun EnhancedHeroCarousel(
                         placeholder = painterResource(R.drawable.app_icon_android)
                     )
 
-                    // Gradient Overlay to ensure text readability
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -1279,8 +1262,6 @@ fun EnhancedHeroCarousel(
                 }
             }
         }
-
-        // Indicators
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -1345,7 +1326,7 @@ fun HeaderSection(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding(), // Tambahkan padding di dalam Surface
+                .statusBarsPadding(),
             contentAlignment = Alignment.Center
         ) {
             Row(
@@ -1582,8 +1563,7 @@ fun ContentRow(
                         )
                     }
                 }
-                
-                // Subtle edge fade to indicate more content
+
                 Box(
                     modifier = Modifier
                         .align(Alignment.CenterEnd)

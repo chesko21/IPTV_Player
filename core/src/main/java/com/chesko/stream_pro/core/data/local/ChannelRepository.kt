@@ -91,13 +91,6 @@ class ChannelRepository(
     suspend fun syncChannels(newChannels: List<IptvChannel>, playlistId: Int = 0) {
         val currentFavorites = favoriteChannels.first().associateBy { it.url }
         
-        // Clear channels belonging to THIS playlist only
-        if (playlistId != 0) {
-            channelDao.deleteChannelsByPlaylist(playlistId)
-        } else {
-            channelDao.deleteAllChannels()
-        }
-
         val channelsToInsert = newChannels.map { newChannel ->
             val existing = currentFavorites[newChannel.url]
             if (existing != null) {
@@ -111,7 +104,7 @@ class ChannelRepository(
             }
         }
 
-        channelDao.insertChannels(channelsToInsert)
+        channelDao.replaceChannels(playlistId, channelsToInsert)
     }
 
     suspend fun toggleFavorite(channel: IptvChannel) {

@@ -1,18 +1,13 @@
+# Built-in ignores
 *.iml
 .gradle
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
 /build
+/.idea/
 /captures
 .externalNativeBuild
 .cxx
 
-# Project exclude paths
+# Project specific ignores
 /core/build/
 /app/build/
 /stream_pro_tv/build/
@@ -22,11 +17,16 @@ local.properties
 secrets.properties
 google-services.json
 
-# Signing files (IMPORTANT: Never upload these to GitHub)
+# Signing files (IMPORTANT: Never commit these)
 *.jks
 *.keystore
 *.p12
 *.google_play_track_details.json
 
-# Log files
+# Profiling and diagnostics
+*.hprof
 *.log
+
+# OS specific
+.DS_Store
+Thumbs.db

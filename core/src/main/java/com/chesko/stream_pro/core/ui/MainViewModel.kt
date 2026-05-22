@@ -461,7 +461,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         mediaRouter.addCallback(selector, routeCallback, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY)
         try {
             CastContext.getSharedInstance(application).sessionManager.addSessionManagerListener(sessionManagerListener, com.google.android.gms.cast.framework.CastSession::class.java)
-        } catch (e: Exception) {}
+        } catch (e: Throwable) {}
 
         fetchRemoteConfig()
     }
@@ -532,7 +532,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         favoriteChannels,
         recentlyPlayed,
         _categoryFilter,
-        _appLanguage // Tambahkan appLanguage ke dalam combine agar filter terupdate saat bahasa berubah
+        _appLanguage
     ) { array ->
         @Suppress("UNCHECKED_CAST")
         val channels = array[0] as List<IptvChannel>
@@ -546,7 +546,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val category = array[6] as String?
         val lang = array[7] as String
 
-        // Gunakan LocaleHelper untuk mendapatkan string yang tepat sesuai bahasa aktif
         val context = getApplication<Application>()
         val localizedContext = LocaleHelper.applyLocale(context, lang)
         val favLabel = localizedContext.getString(R.string.group_favorites)
@@ -556,10 +555,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         var baseList = when (group) {
             favLabel -> favorites
             historyLabel -> history
-            else -> if (playlistId != null) channels.filter { it.playlistId == playlistId } else channels
+            else -> {
+                if (playlistId != null) {
+                    channels.filter { it.playlistId == playlistId }
+                } else if (channels.isNotEmpty()) {
+                    val firstPid = channels.firstOrNull { it.playlistId != 0 }?.playlistId 
+                        ?: channels.firstOrNull()?.playlistId
+                    if (firstPid != null) channels.filter { it.playlistId == firstPid } else channels
+                } else {
+                    channels
+                }
+            }
         }
 
-        // Apply Category Filter
         if (category != null) {
             baseList = baseList.filter { ch ->
                 val g = ch.group?.lowercase() ?: ""
@@ -583,7 +591,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val matchesGroup = when (group) {
                 null, favLabel, historyLabel -> true
                 otherLabel -> channel.group.isNullOrBlank()
-                else -> channel.group == group
+                else -> {
+                    val target = group.lowercase().trim()
+                    val current = (channel.group ?: "").lowercase().trim()
+                    
+                    current == target || 
+                    current.replace("+", " ") == target.replace("+", " ") ||
+                    current.replace(" ", "+") == target.replace(" ", "+")
+                }
             }
             
             matchesSearch && matchesGroup
@@ -612,6 +627,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         emptyList()
+    )
+
+    val channelsByGroup = combine(allChannels, _selectedPlaylistId, groups) { channels, playlistId, groupList ->
+        val filtered = if (playlistId != null) channels.filter { it.playlistId == playlistId } else channels
+        val context = getApplication<Application>()
+        val otherLabel = context.getString(R.string.group_other)
+        
+        groupList.associateWith { group ->
+            if (group == otherLabel) {
+                filtered.filter { it.group.isNullOrBlank() }
+            } else {
+                filtered.filter { it.group == group }
+            }
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        emptyMap()
     )
 
     private val _isCheckingConnection = MutableStateFlow(false)
@@ -664,28 +697,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _lastUrl.value = url
 
             try {
-                // Ensure Playlist exists in DB
-                val playlistName = name ?: if (url.contains("indihome")) "Indihome" else "Server ${allPlaylists.value.size + 1}"
-                var playlist = repository.getPlaylistByUrl(url)
-                if (playlist == null) {
-                    val id = repository.insertPlaylist(
-                        com.chesko.stream_pro.core.data.model.Playlist(
-                            name = playlistName,
-                            url = url
-                        )
-                    )
-                    playlist = repository.getPlaylistByUrl(url)
-                }
-
-                // AKTIFKAN FILTER: Set playlist yang baru dimuat sebagai playlist aktif
-                if (updateFilter) {
-                    val pId = playlist?.id
-                    _selectedPlaylistId.value = pId
-                    prefs.edit { putInt("last_selected_playlist_id", pId ?: -1) }
-                    _selectedGroup.value = null // Reset filter grup agar tidak bentrok
-                }
-
-                val m3uContent = when {
+                 val m3uContent = when {
                     url.startsWith("http") -> fetchRawContent(url)
                     url.startsWith("file://") -> {
                         val filePath = url.substring(7)
@@ -693,7 +705,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     else -> url
                 }
-                processM3uContent(m3uContent, url, playlist?.id ?: 0, onSuccess)
+                
+                val playlistName = name ?: if (url.contains("indihome")) "Indihome" else "Active Server"
+                val currentPlaylist = repository.getPlaylistByUrl(url)
+                if (currentPlaylist == null) {
+                    repository.clearAllPlaylists()
+                }
+
+                val newId = (repository.getPlaylistByUrl(url)?.id ?: 
+                            repository.insertPlaylist(com.chesko.stream_pro.core.data.model.Playlist(name = playlistName, url = url))).toInt()
+
+                if (updateFilter) {
+                    _selectedPlaylistId.value = newId
+                    prefs.edit { putInt("last_selected_playlist_id", newId) }
+                    _selectedGroup.value = null
+                }
+
+                processM3uContent(m3uContent, url, newId, onSuccess)
             } catch (e: Exception) {
                 val errorMsg = when (e) {
                     is java.net.UnknownHostException -> context.getString(R.string.error_host_not_found)
@@ -745,7 +773,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             val previousUrl = prefs.getString("last_m3u_url", "")
             if (urlSource != null && urlSource != previousUrl && previousUrl?.isNotBlank() == true) {
-                // repository.clearEpg() // Don't clear EPG if we want multi-playlist
+
             }
 
             repository.syncChannels(channels, playlistId)
@@ -812,8 +840,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 _castPlayer.value?.stop()
                 _castPlayer.value?.clearMediaItems()
-                
-                // Release media session to remove PiP buttons and notification
+
                 mediaSession?.release()
                 mediaSession = null
 
@@ -843,8 +870,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val channelsToFetch = channels.filter { !currentCache.containsKey(it.url) }
             
             if (channelsToFetch.isEmpty()) return@launch
-            
-            // Fetch in smaller parallel batches to not overload DB but still be fast
+
             channelsToFetch.chunked(15).forEach { chunk ->
                 val results = chunk.map { channel ->
                     async {
@@ -1088,7 +1114,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val allDemoChannels = mutableListOf<IptvChannel>()
                     val allEpgUrls = mutableSetOf<String>()
 
-                    // 1. Try to fetch dynamic URLs from GitHub
                     val remoteUrls = try {
                         val configRequest = Request.Builder()
                             .url(decryptUrl(CONFIG_URL))
@@ -1102,7 +1127,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         null
                     }
 
-                    // 2. Use remote URLs if available, otherwise fallback to hardcoded
                     val urlsToLoad = if (!remoteUrls.isNullOrEmpty()) remoteUrls else DEMO_URLS
 
                     urlsToLoad.forEach { url ->
@@ -1196,14 +1220,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val currentTime = System.currentTimeMillis()
         val twentyFourHoursInMillis = 24 * 60 * 60 * 1000
 
-        // Hanya auto-refresh jika sudah lewat 24 jam DAN sedang ada koneksi internet
         if (currentTime - lastUpdate > twentyFourHoursInMillis && networkStatus.value is NetworkObserver.NetworkStatus.Available) {
             viewModelScope.launch {
-                delay(2000) // Beri waktu sistem internet untuk stabil
+                delay(2000)
                 if (lastUrlStored == "combined_demo") {
                     loadDemoPlaylist()
                 } else if (lastUrlStored?.startsWith("http") == true) {
-                    // Gunakan silent loading untuk auto-refresh agar tidak memunculkan notifikasi error jika gagal
                     try {
                         val m3uContent = fetchRawContent(lastUrlStored)
                         val playlist = repository.getPlaylistByUrl(lastUrlStored)

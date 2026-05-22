@@ -116,6 +116,23 @@ fun TvNavigationWrapper(
                         onClick = { onRouteSelected("settings") }
                     )
                 }
+                
+                // Subtle divider between sidebar and content
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(1.dp)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color.White.copy(alpha = 0.1f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                        .align(Alignment.CenterEnd)
+                )
             }
         }
 

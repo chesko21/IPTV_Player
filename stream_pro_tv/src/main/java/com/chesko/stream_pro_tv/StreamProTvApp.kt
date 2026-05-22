@@ -8,7 +8,19 @@ import coil.memory.MemoryCache
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 
+import com.google.android.gms.cast.framework.CastContext
+
 class StreamProTvApp : Application(), ImageLoaderFactory {
+
+    override fun onCreate() {
+        super.onCreate()
+        // Inisialisasi CastContext lebih awal untuk mencegah crash pada perangkat tanpa Play Services
+        try {
+            CastContext.getSharedInstance(this)
+        } catch (e: Throwable) {
+            android.util.Log.e("StreamProTvApp", "CastContext initialization failed: ${e.message}")
+        }
+    }
 
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(this)

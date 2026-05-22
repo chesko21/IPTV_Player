@@ -79,7 +79,6 @@ fun TvLoginScreen(
     var selectedTab by remember { mutableStateOf(0) }
     var url by remember { mutableStateOf(lastUrl) }
 
-    // Sync local url state when lastUrl from ViewModel changes
     LaunchedEffect(lastUrl) {
         url = lastUrl
     }
@@ -109,7 +108,6 @@ fun TvLoginScreen(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        // Universe Background
         UniverseBackground(MaterialTheme.colorScheme.primary, glowAlpha.value)
 
         // Error Message Overlay
@@ -141,7 +139,6 @@ fun TvLoginScreen(
             }
         }
 
-        // Subtle gradient overlay for readability
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -155,7 +152,6 @@ fun TvLoginScreen(
                 )
         )
 
-        // Unified Row Layout (Always Row for Premium Landscape Experience)
         Row(
             modifier = Modifier
                 .fillMaxSize()
@@ -163,12 +159,10 @@ fun TvLoginScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            // Left Side: Branding & Logo
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 BrandingSection()
             }
 
-            // Right Side: Login Form
             LoginFormSection(
                 selectedTab = selectedTab,
                 onTabSelected = { selectedTab = it },
@@ -234,7 +228,6 @@ fun BrandingSection() {
             modifier = Modifier.size(140.dp),
             contentAlignment = Alignment.Center
         ) {
-            // Cosmic Glow behind logo
             Canvas(modifier = Modifier.size(140.dp * glowScale)) {
                 drawCircle(
                     brush = Brush.radialGradient(
@@ -333,7 +326,6 @@ fun LoginFormSection(
             )
             .padding(if (modifier == Modifier.fillMaxWidth()) 24.dp else 36.dp)
     ) {
-        // Tab Selector - Universe Glass Look
         Row(
             modifier = Modifier
                 .fillMaxWidth()

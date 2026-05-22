@@ -427,9 +427,10 @@ fun ProfileDetails(
             onClick = onEditEmail
         )
         MinimalDetailItem(
-            icon = Icons.Default.ContentCopy,
+            icon = Icons.Default.Devices,
             label = stringResource(R.string.label_device_id),
-            value = deviceId.take(12) + "...",
+            value = deviceId,
+            trailingIcon = Icons.Default.ContentCopy,
             onClick = {
                 clipboardManager.setText(AnnotatedString(deviceId))
                 scope.launch {
@@ -712,6 +713,7 @@ fun MinimalDetailItem(
     icon: ImageVector,
     label: String,
     value: String,
+    trailingIcon: ImageVector = Icons.Default.Edit,
     onClick: (() -> Unit)? = null
 ) {
     Surface(
@@ -747,8 +749,8 @@ fun MinimalDetailItem(
             }
             if (onClick != null) {
                 Icon(
-                    Icons.Default.Edit,
-                    contentDescription = "Edit",
+                    trailingIcon,
+                    contentDescription = null,
                     modifier = Modifier.size(14.dp),
                     tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
                 )

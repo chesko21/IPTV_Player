@@ -34,25 +34,32 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun UniverseBackground(primaryColor: Color, glowAlpha: Float) {
+    // Only run animations if it's not a super old device or keep it simple
+    val isLowEnd = android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.M
+    
     val infiniteTransition = rememberInfiniteTransition(label = "universe")
     
-    // Stars animation
-    val starAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "starAlpha"
-    )
+    // Stars animation - static for low end
+    val starAlpha by if (isLowEnd) {
+        mutableStateOf(0.7f)
+    } else {
+        infiniteTransition.animateFloat(
+            initialValue = 0.3f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(2000, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "starAlpha"
+        )
+    }
 
-    // Nebula movement
+    // Nebula movement - slower or static for low end
     val nebulaOffset by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1000f,
         animationSpec = infiniteRepeatable(
-            animation = tween(60000, easing = LinearEasing),
+            animation = tween(if (isLowEnd) 120000 else 60000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "nebulaOffset"
@@ -62,13 +69,13 @@ fun UniverseBackground(primaryColor: Color, glowAlpha: Float) {
         // Deep Space Background
         drawRect(Color(0xFF00020A))
 
-        // Drawing stars
-        val starCount = 150
-        val random = java.util.Random(42) // Fixed seed for consistency
+        // Drawing stars - fewer for low end
+        val starCount = if (isLowEnd) 50 else 150
+        val random = java.util.Random(42)
         repeat(starCount) {
             val x = random.nextFloat() * size.width
             val y = random.nextFloat() * size.height
-            val starSize = random.nextFloat() * 2.dp.toPx()
+            val starSize = random.nextFloat() * (if (isLowEnd) 1.dp.toPx() else 2.dp.toPx())
             val individualAlpha = (random.nextFloat() * 0.5f + 0.5f) * starAlpha
             
             drawCircle(
@@ -78,37 +85,39 @@ fun UniverseBackground(primaryColor: Color, glowAlpha: Float) {
             )
         }
 
-        // Cosmic Nebulas (Big blurred spots)
+        // Cosmic Nebulas - Only 1 or 2 for low end
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(primaryColor.copy(alpha = 0.15f * glowAlpha), Color.Transparent),
+                colors = listOf(primaryColor.copy(alpha = 0.12f * glowAlpha), Color.Transparent),
                 center = androidx.compose.ui.geometry.Offset(
                     size.width * 0.2f + (nebulaOffset % 200),
                     size.height * 0.3f
                 ),
-                radius = size.minDimension * 0.8f
+                radius = size.minDimension * (if (isLowEnd) 0.6f else 0.8f)
             )
         )
 
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color(0xFF6A1B9A).copy(alpha = 0.1f * glowAlpha), Color.Transparent),
-                center = androidx.compose.ui.geometry.Offset(
-                    size.width * 0.8f - (nebulaOffset % 150),
-                    size.height * 0.7f
-                ),
-                radius = size.minDimension * 0.7f
+        if (!isLowEnd) {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(Color(0xFF6A1B9A).copy(alpha = 0.1f * glowAlpha), Color.Transparent),
+                    center = androidx.compose.ui.geometry.Offset(
+                        size.width * 0.8f - (nebulaOffset % 150),
+                        size.height * 0.7f
+                    ),
+                    radius = size.minDimension * 0.7f
+                )
             )
-        )
+        }
         
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(Color(0xFF0D47A1).copy(alpha = 0.1f * glowAlpha), Color.Transparent),
+                colors = listOf(Color(0xFF0D47A1).copy(alpha = 0.08f * glowAlpha), Color.Transparent),
                 center = androidx.compose.ui.geometry.Offset(
                     size.width * 0.5f,
                     size.height * 0.5f + (nebulaOffset % 100 - 50)
                 ),
-                radius = size.minDimension * 1.0f
+                radius = size.minDimension * (if (isLowEnd) 0.8f else 1.0f)
             )
         )
     }

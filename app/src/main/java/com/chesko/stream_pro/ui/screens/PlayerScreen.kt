@@ -107,6 +107,17 @@ private fun isDebugMode(context: Context): Boolean {
     return (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
 }
 
+private fun getSystemBrightness(context: Context): Float {
+    return try {
+        android.provider.Settings.System.getInt(
+            context.contentResolver,
+            android.provider.Settings.System.SCREEN_BRIGHTNESS
+        ) / 255f
+    } catch (e: Exception) {
+        0.5f
+    }
+}
+
 @AndroidOptIn(UnstableApi::class)
 @Composable
 fun ChannelInfoBar(
@@ -410,8 +421,6 @@ fun PlayerScreenContent(
     val scope = rememberCoroutineScope()
     val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
 
-    // Force Status Bar & Nav Bar to be TRANSPARENT and icons WHITE in Player
-    // Using DisposableEffect to ensure immediate change and clean restore
     DisposableEffect(Unit) {
         activity?.window?.let { window ->
             val controller = WindowCompat.getInsetsController(window, window.decorView)
@@ -559,13 +568,8 @@ fun PlayerScreenContent(
     }
 
     var brightness by remember {
-        val initialBrightness = activity?.window?.attributes?.screenBrightness ?: -1f
-        val startVal = if (initialBrightness < 0) {
-            try {
-                android.provider.Settings.System.getInt(context.contentResolver, android.provider.Settings.System.SCREEN_BRIGHTNESS) / 255f
-            } catch (e: Exception) { 0.5f }
-        } else initialBrightness
-        mutableFloatStateOf(startVal)
+        val initial = activity?.window?.attributes?.screenBrightness ?: -1f
+        mutableFloatStateOf(if (initial < 0) getSystemBrightness(context) else initial)
     }
     
     var volume by remember {
@@ -793,6 +797,7 @@ fun PlayerScreenContent(
             } else {
                 isClosing = true
                 exoPlayer?.stop()
+                viewModel.clearError()
                 onBack()
             }
         }
@@ -910,6 +915,7 @@ fun PlayerScreenContent(
 
 
     if (!isInPipMode) {
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -917,12 +923,18 @@ fun PlayerScreenContent(
                     if (isLocked || showChannelList) return@pointerInput
 
                     detectVerticalDragGestures(
+                        onDragStart = { offset ->
+                            val currentWinBrightness = activity?.window?.attributes?.screenBrightness ?: -1f
+                            if (currentWinBrightness < 0) {
+                                brightness = getSystemBrightness(context)
+                            }
+                        },
                         onDragEnd = { gestureType = null },
                         onDragCancel = { gestureType = null },
                         onVerticalDrag = { change, dragAmount ->
                             change.consume()
                             val delta = -dragAmount / size.height
-                            val third = size.width / 3f
+                            val half = size.width / 2f
 
                             val topThreshold = if (size.height > size.width) size.height * 0.30f else size.height * 0.15f
                             val bottomThreshold = if (size.height > size.width) size.height * 0.70f else size.height * 0.85f
@@ -932,7 +944,7 @@ fun PlayerScreenContent(
                                 return@detectVerticalDragGestures
                             }
 
-                            if (change.position.x < third) {
+                            if (change.position.x < half) {
                                 gestureType = "Brightness"
                                 brightness = (brightness + delta).coerceIn(0.01f, 1f)
                                 activity?.let {
@@ -940,14 +952,11 @@ fun PlayerScreenContent(
                                     lp.screenBrightness = brightness
                                     it.window.attributes = lp
                                 }
-                            } else if (change.position.x > (2 * third)) {
+                            } else {
                                 gestureType = "Volume"
                                 volume = (volume + delta).coerceIn(0f, 1f)
                                 val maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
                                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, (volume * maxVol).toInt(), 0)
-                            } else {
-
-                                gestureType = null
                             }
                         }
                     )
@@ -1111,12 +1120,10 @@ fun PlayerScreenContent(
 
             GestureHUD(gestureType, brightness, volume, seekPosition, seekTarget, seekDuration)
 
-            // Floating Menus (Audio, CC, Quality) positioned above buttons
             val menuModifier = Modifier
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal))
                 .padding(bottom = 80.dp)
 
-            // Tap background to dismiss
             if (showAudioDialog || showSubtitleDialog || showResolutionDialog) {
                 Box(
                     modifier = Modifier

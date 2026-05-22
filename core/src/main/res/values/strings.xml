@@ -45,4 +45,12 @@
     <string name="cast_notification_channel_description">Menampilkan status saat sedang cast ke TV</string>
     <string name="cast_notification_title">Sedang Cast ke TV</string>
     <string name="cast_notification_text">Video sedang diputar di perangkat lain</string>
+
+    <!-- AdMob Unit IDs -->
+    <string name="admob_banner_id" translatable="false">ca-app-pub-6382054054089294/8520054239</string>
+    <string name="admob_interstitial_id" translatable="false">ca-app-pub-6382054054089294/4580809228</string>
+    <string name="admob_rewarded_id" translatable="false">ca-app-pub-6382054054089294/9040140432</string>
+    <string name="admob_rewarded_interstitial_id" translatable="false">ca-app-pub-6382054054089294/1768155074</string>
+    <string name="admob_native_id" translatable="false">ca-app-pub-6382054054089294/9449992528</string>
+    <string name="admob_app_open_id" translatable="false">ca-app-pub-6382054054089294/1823012850</string>
 </resources>

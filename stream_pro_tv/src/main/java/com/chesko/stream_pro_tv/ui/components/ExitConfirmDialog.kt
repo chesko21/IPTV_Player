@@ -109,7 +109,6 @@ fun ExitConfirmDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Button Batal (Stay)
                 Surface(
                     onClick = onDismiss,
                     modifier = Modifier
@@ -129,8 +128,7 @@ fun ExitConfirmDialog(
                         Text(stringResource(R.string.exit_btn_stay), fontWeight = FontWeight.Black, fontSize = 15.sp, letterSpacing = 1.sp)
                     }
                 }
-                
-                // Button Keluar (Exit)
+
                 Surface(
                     onClick = onConfirm,
                     modifier = Modifier

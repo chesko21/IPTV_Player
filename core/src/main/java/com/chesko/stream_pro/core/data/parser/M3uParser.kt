@@ -101,12 +101,19 @@ object M3uParser {
                             }
                         }
 
+                        val rawGroup = currentGroup?.replace("kbtrtv", "", ignoreCase = true)?.trim()
+                        val decodedGroup = try {
+                            if (rawGroup?.contains("+") == true || rawGroup?.contains("%") == true) {
+                                java.net.URLDecoder.decode(rawGroup, "UTF-8")
+                            } else rawGroup
+                        } catch (_: Exception) { rawGroup }
+
                         channels.add(
                             IptvChannel(
                                 name = currentName!!,
                                 url = finalUrl,
                                 logo = currentLogo,
-                                group = currentGroup?.replace("kbtrtv", "", ignoreCase = true)?.trim()?.takeIf { it.isNotEmpty() },
+                                group = decodedGroup?.takeIf { it.isNotEmpty() },
                                 tvgId = currentTvgId,
                                 tvgName = currentTvgName,
                                 channelNumber = currentChannelNumber,
