@@ -18,7 +18,6 @@ class CastOptionsProvider : OptionsProvider {
                     MediaIntentReceiver.ACTION_STOP_CASTING
                 ), intArrayOf(0, 1)
             )
-            // Menambahkan ikon untuk status bar
             .setSmallIconDrawableResId(com.chesko.stream_pro.core.R.drawable.app_icon_android)
             .setTargetActivityClassName("com.chesko.stream_pro.MainActivity")
             .build()

@@ -21,10 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 
-/**
- * Universal Modern Shimmer Effect
- * Inspired by high-end glassmorphic designs with enhanced cinematic feel
- */
 fun Modifier.shimmerEffect(): Modifier = composed {
     val transition = rememberInfiniteTransition(label = "universe_shimmer")
 
@@ -190,7 +186,6 @@ fun ShimmerHomeScreen() {
             .statusBarsPadding()
             .height(64.dp))
 
-        // Large Modern Hero Shimmer
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -202,7 +197,6 @@ fun ShimmerHomeScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Futuristic Tab/Chip Shimmer
         Row(
             modifier = Modifier
                 .fillMaxWidth()

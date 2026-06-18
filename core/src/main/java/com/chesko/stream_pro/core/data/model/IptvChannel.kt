@@ -125,14 +125,12 @@ fun ChannelPosterItem(
                     }
                 }
 
-                // Gradient overlay
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.5f))
                 )
 
-                // Channel number badge
                 if (channel.channelNumber != null) {
                     Surface(
                         color = Color.Black.copy(alpha = 0.6f),
@@ -150,7 +148,6 @@ fun ChannelPosterItem(
                     }
                 }
 
-                // DRM Lock Indicator
                 if (!channel.drmConfig.isNullOrBlank()) {
                     Surface(
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
@@ -170,7 +167,6 @@ fun ChannelPosterItem(
                     }
                 }
 
-                // Selected overlay
                 if (isSelected) {
                     Box(
                         modifier = Modifier

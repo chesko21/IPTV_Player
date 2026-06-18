@@ -50,7 +50,6 @@ fun ShimmerHomeScreen(showBackground: Boolean = true) {
     
     Box(modifier = Modifier.fillMaxSize()) {
         if (showBackground) {
-            // Use UniverseBackground to match the theme
             com.chesko.stream_pro_tv.ui.screens.UniverseBackground(
                 primaryColor = MaterialTheme.colorScheme.primary,
                 glowAlpha = if (isLowEnd) 0.3f else 0.6f
@@ -62,7 +61,6 @@ fun ShimmerHomeScreen(showBackground: Boolean = true) {
                 .fillMaxSize()
                 .padding(horizontal = 48.dp, vertical = 32.dp)
         ) {
-            // Shimmer untuk Group Selector
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 repeat(if (isLowEnd) 3 else 5) {
                     Box(
@@ -77,11 +75,10 @@ fun ShimmerHomeScreen(showBackground: Boolean = true) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Shimmer untuk Channel Grid (6 Kolom agar sinkron)
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                repeat(if (isLowEnd) 2 else 3) { // Tampilkan lebih sedikit baris pada low end
+                repeat(if (isLowEnd) 2 else 3) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        repeat(6) { // 6 Kolom
+                        repeat(6) {
                             Box(
                                 modifier = Modifier
                                     .weight(1f)

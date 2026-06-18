@@ -131,7 +131,6 @@ class ChannelRepository(
         channelDao.clearFavorites()
     }
 
-    // EPG Logic
     @OptIn(ExperimentalCoroutinesApi::class)
     fun getProgramsForChannel(tvgId: String?, name: String? = null): Flow<List<EpgProgram>> {
         val currentTime = System.currentTimeMillis()
@@ -191,7 +190,6 @@ class ChannelRepository(
 
     suspend fun syncEpg(programs: List<EpgProgram>) {
         epgDao.insertPrograms(programs)
-        // Cleanup data lama yang sudah lewat lebih dari 24 jam
         epgDao.deleteOldPrograms(System.currentTimeMillis() - (24 * 60 * 60 * 1000))
     }
 

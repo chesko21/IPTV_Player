@@ -220,7 +220,7 @@ fun TvVideoPlayer(
         try {
             loudnessEnhancer?.let { enhancer ->
                 if (audioBoost) {
-                    enhancer.setTargetGain(3000) // 30dB boost
+                    enhancer.setTargetGain(3000)
                     enhancer.enabled = true
                 } else {
                     enhancer.enabled = false
@@ -303,6 +303,7 @@ fun TvVideoPlayer(
                     useController = false
                     this.resizeMode = resizeMode
                     keepScreenOn = true
+                    subtitleView?.visibility = android.view.View.GONE
                     layoutParams = FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
@@ -319,7 +320,7 @@ fun TvVideoPlayer(
         )
 
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            // Error State
+
             errorMessage?.let { msg ->
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     UniverseBackground(

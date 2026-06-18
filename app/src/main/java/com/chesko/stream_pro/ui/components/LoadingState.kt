@@ -23,15 +23,10 @@ import com.chesko.stream_pro.R
 import kotlin.math.cos
 import kotlin.math.sin
 
-/**
- * Universal Cosmic Loading State
- * A high-end cinematic loading experience
- */
 @Composable
 fun LoadingState(message: String = stringResource(R.string.loading_message)) {
     val infiniteTransition = rememberInfiniteTransition(label = "universe_loading")
 
-    // Background cosmic pulse
     val bgPulse by infiniteTransition.animateFloat(
         initialValue = 0.4f,
         targetValue = 0.7f,
@@ -62,8 +57,7 @@ fun LoadingState(message: String = stringResource(R.string.loading_message)) {
             CosmicOrbitalLoader()
             
             Spacer(modifier = Modifier.height(48.dp))
-            
-            // Glowing Breathing Text
+
             val textAlpha by infiniteTransition.animateFloat(
                 initialValue = 0.5f,
                 targetValue = 1f,
@@ -90,8 +84,7 @@ fun LoadingState(message: String = stringResource(R.string.loading_message)) {
 @Composable
 fun CosmicOrbitalLoader() {
     val infiniteTransition = rememberInfiniteTransition(label = "orbital")
-    
-    // Rotation of different orbits
+
     val rotationInner by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
@@ -119,8 +112,7 @@ fun CosmicOrbitalLoader() {
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val center = Offset(size.width / 2, size.height / 2)
-            
-            // Outer Glowing Ring
+
             drawArc(
                 color = primaryColor.copy(alpha = 0.2f),
                 startAngle = 0f,
@@ -129,7 +121,6 @@ fun CosmicOrbitalLoader() {
                 style = Stroke(width = 1.dp.toPx())
             )
 
-            // Dynamic Outer Orbit
             drawArc(
                 brush = Brush.sweepGradient(
                     0f to Color.Transparent,

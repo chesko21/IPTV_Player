@@ -83,7 +83,6 @@ fun TvSearchScreen(
                 }
             }
     ) {
-        // Immersive Background
         UniverseBackground(
             primaryColor = MaterialTheme.colorScheme.primary,
             glowAlpha = 0.6f

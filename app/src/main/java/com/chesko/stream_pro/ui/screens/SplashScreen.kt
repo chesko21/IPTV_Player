@@ -56,14 +56,12 @@ fun SplashScreen(
         label = "pulse"
     )
 
-    // NEW: starfield parallax
     val starOffset by infiniteTransition.animateFloat(
         0f, 1f,
         infiniteRepeatable(tween(12000, easing = LinearEasing)),
         label = "starMove"
     )
 
-    // Animations
     val logoScale = remember { Animatable(0.5f) }
     val logoAlpha = remember { Animatable(0f) }
     val logoRotation = remember { Animatable(-10f) }
@@ -103,7 +101,6 @@ fun SplashScreen(
         contentAlignment = Alignment.Center
     ) {
 
-        // Nebula
         Canvas(modifier = Modifier.fillMaxSize().blur(60.dp)) {
             val angleRad = Math.toRadians(nebulaRotate.toDouble())
 
@@ -119,7 +116,6 @@ fun SplashScreen(
             )
         }
 
-        // UPDATED Starfield
         MinimalStarField(starOffset)
 
         Column(
@@ -128,7 +124,6 @@ fun SplashScreen(
             modifier = Modifier.fillMaxSize()
         ) {
 
-            // LOGO
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.graphicsLayer {
@@ -139,7 +134,6 @@ fun SplashScreen(
                 }
             ) {
 
-                // Glow aura
                 Box(
                     modifier = Modifier
                         .size(110.dp * cosmicPulse)
@@ -170,7 +164,6 @@ fun SplashScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // TEXT
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.graphicsLayer { alpha = contentAlpha.value }
@@ -203,7 +196,6 @@ fun SplashScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // LOADING
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
@@ -220,7 +212,6 @@ fun SplashScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // IMPROVED PROGRESS BAR
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -254,7 +245,6 @@ fun SplashScreen(
             }
         }
 
-        // FOOTER
         Text(
             text = stringResource(R.string.splash_designed_by),
             modifier = Modifier
@@ -284,7 +274,6 @@ fun MinimalStarField(offset: Float) {
         }
     }
 
-    // ✅ Buat list animasi di luar Canvas
     val twinkles = stars.map { star ->
         infiniteTransition.animateFloat(
             initialValue = star.alpha,

@@ -35,13 +35,13 @@ fun ExitConfirmDialog(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.85f)),
+            .background(Color.Black.copy(alpha = 0.8f)),
         contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
-                .width(360.dp)
-                .clip(RoundedCornerShape(24.dp))
+                .width(310.dp)
+                .clip(RoundedCornerShape(20.dp))
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
@@ -58,64 +58,64 @@ fun ExitConfirmDialog(
                             Color(0xFFBB86FC).copy(alpha = 0.05f)
                         )
                     ), 
-                    RoundedCornerShape(24.dp)
+                    RoundedCornerShape(20.dp)
                 )
-                .padding(28.dp),
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Icon Section with Cosmic Glow
             Box(contentAlignment = Alignment.Center) {
                 Surface(
                     onClick = {},
-                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
+                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
                     colors = ClickableSurfaceDefaults.colors(
-                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                         contentColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Box(modifier = Modifier.size(60.dp), contentAlignment = Alignment.Center) {
+                    Box(modifier = Modifier.size(52.dp), contentAlignment = Alignment.Center) {
                         Icon(
                             Icons.AutoMirrored.Filled.ExitToApp, 
                             contentDescription = null, 
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
             }
             
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
             Text(
                 text = stringResource(R.string.exit_title),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 color = Color.White,
                 fontWeight = FontWeight.Black,
-                letterSpacing = 2.sp
+                letterSpacing = 1.5.sp
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             
             Text(
                 text = stringResource(R.string.exit_msg),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
-                lineHeight = 20.sp
+                lineHeight = 18.sp
             )
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Surface(
                     onClick = onDismiss,
                     modifier = Modifier
                         .weight(1f)
-                        .height(48.dp)
+                        .height(42.dp)
                         .focusRequester(cancelFocusRequester),
-                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
+                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
                     scale = ClickableSurfaceDefaults.scale(focusedScale = 1.08f),
                     colors = ClickableSurfaceDefaults.colors(
                         containerColor = Color.White.copy(alpha = 0.05f),
@@ -125,7 +125,7 @@ fun ExitConfirmDialog(
                     )
                 ) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(stringResource(R.string.exit_btn_stay), fontWeight = FontWeight.Black, fontSize = 15.sp, letterSpacing = 1.sp)
+                        Text(stringResource(R.string.exit_btn_stay), fontWeight = FontWeight.Black, fontSize = 13.sp, letterSpacing = 0.5.sp)
                     }
                 }
 
@@ -133,8 +133,8 @@ fun ExitConfirmDialog(
                     onClick = onConfirm,
                     modifier = Modifier
                         .weight(1f)
-                        .height(48.dp),
-                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
+                        .height(42.dp),
+                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
                     scale = ClickableSurfaceDefaults.scale(focusedScale = 1.08f),
                     colors = ClickableSurfaceDefaults.colors(
                         containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
@@ -147,7 +147,7 @@ fun ExitConfirmDialog(
                     )
                 ) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(stringResource(R.string.exit_btn_exit), fontWeight = FontWeight.Black, fontSize = 14.sp, letterSpacing = 1.sp)
+                        Text(stringResource(R.string.exit_btn_exit), fontWeight = FontWeight.Black, fontSize = 13.sp, letterSpacing = 0.5.sp)
                     }
                 }
             }

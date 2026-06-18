@@ -35,25 +35,22 @@ object M3uParser {
 
             when {
                 trimmedLine.startsWith("#EXTM3U") -> {
-                    // Check for global attributes if needed
+
                 }
 
                 trimmedLine.startsWith("#EXTINF:") -> {
-                    // 1. Tangani jika ada tag lain yang menempel di baris yang sama (inline tags)
                     val infPart = trimmedLine
 
-                    // 2. Ekstraksi atribut standard
                     currentLogo = findValue(infPart, LOGO_PATTERN) ?: currentLogo
                     currentGroup = findValue(infPart, GROUP_PATTERN) ?: currentGroup
                     currentTvgId = findValue(infPart, ID_PATTERN) ?: currentTvgId
                     currentTvgName = findValue(infPart, NAME_PATTERN) ?: currentTvgName
                     currentChannelNumber = findValue(infPart, CHNO_PATTERN) ?: currentChannelNumber
                     
-                    // 3. Ekstraksi nama (setelah koma terakhir)
+
                     val lastCommaIndex = infPart.lastIndexOf(",")
                     if (lastCommaIndex != -1) {
                         var name = infPart.substring(lastCommaIndex + 1).trim()
-                        // Bersihkan nama jika masih mengandung sisa-sisa tag atau separator
                         if (name.contains("#EXT")) name = name.substringBefore("#EXT").trim()
                         currentName = name
                     }

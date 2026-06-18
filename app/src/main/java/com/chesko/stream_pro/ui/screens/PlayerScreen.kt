@@ -168,7 +168,7 @@ fun ChannelInfoBar(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = if (showFullControls) (if (isFullscreen) 44.dp else 54.dp) else 24.dp)
+            .padding(bottom = if (showFullControls) (if (isFullscreen) 78.dp else 88.dp) else 24.dp)
             .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)),
         color = Color.Transparent
     ) {
@@ -594,7 +594,6 @@ fun PlayerScreenContent(
     val currentGroupChannels = allChannels
 
     var showAudioDialog by remember { mutableStateOf(false) }
-    var showSubtitleDialog by remember { mutableStateOf(false) }
     var showResolutionDialog by remember { mutableStateOf(false) }
     var showDebugDialog by remember { mutableStateOf(false) }
     var showChannelInfo by remember { mutableStateOf(false) }
@@ -604,7 +603,6 @@ fun PlayerScreenContent(
             showControls = false
             showChannelList = false
             showAudioDialog = false
-            showSubtitleDialog = false
             showResolutionDialog = false
             showDebugDialog = false
             showChannelInfo = false
@@ -831,8 +829,8 @@ fun PlayerScreenContent(
         }
     }
 
-    LaunchedEffect(showControls, isLocked, isBuffering, loadingStatus, isPlaybackStuck, showChannelList, showAudioDialog, showSubtitleDialog, showResolutionDialog, showDebugDialog) {
-        if (showControls && !isLocked && !isBuffering && loadingStatus.isEmpty() && !isPlaybackStuck && !showChannelList && !showAudioDialog && !showSubtitleDialog && !showResolutionDialog && !showDebugDialog) {
+    LaunchedEffect(showControls, isLocked, isBuffering, loadingStatus, isPlaybackStuck, showChannelList, showAudioDialog, showResolutionDialog, showDebugDialog) {
+        if (showControls && !isLocked && !isBuffering && loadingStatus.isEmpty() && !isPlaybackStuck && !showChannelList && !showAudioDialog && !showResolutionDialog && !showDebugDialog) {
             delay(5000)
             showControls = false
         }
@@ -853,6 +851,7 @@ fun PlayerScreenContent(
                 hwAcceleration = hwAcceleration,
                 bufferSize = bufferSize,
                 maxVideoHeight = maxVideoHeight,
+                isInPipMode = isInPipMode,
                 onPlayerInit = { player ->
                     if (player != null) exoPlayer = player
                 },
@@ -1091,7 +1090,6 @@ fun PlayerScreenContent(
                     onFullscreenToggle = toggleFullscreen,
                     isFullscreen = isFullscreen,
                     onShowAudio = { showAudioDialog = true },
-                    onShowSubtitle = { showSubtitleDialog = true },
                     onShowResolution = { showResolutionDialog = true },
                     onShowDebug = { if (isDebug) showDebugDialog = true },
                     onShowCast = { 
@@ -1111,9 +1109,25 @@ fun PlayerScreenContent(
                     onReload = reloadVideo,
                     loadingStatus = loadingStatus,
                     onEnterPip = {
-                        activity?.enterPictureInPictureMode(
-                            android.app.PictureInPictureParams.Builder().build()
-                        )
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                            val builder = android.app.PictureInPictureParams.Builder()
+                            exoPlayer?.let { player ->
+                                val videoSize = player.videoSize
+                                if (videoSize.width > 0 && videoSize.height > 0) {
+                                    val rational = android.util.Rational(videoSize.width, videoSize.height)
+                                    val finalRatio = if (rational.toFloat() < 0.418f) android.util.Rational(418, 1000)
+                                    else if (rational.toFloat() > 2.39f) android.util.Rational(2390, 1000)
+                                    else rational
+                                    builder.setAspectRatio(finalRatio)
+                                } else {
+                                    builder.setAspectRatio(android.util.Rational(16, 9))
+                                }
+                            } ?: builder.setAspectRatio(android.util.Rational(16, 9))
+                            activity?.enterPictureInPictureMode(builder.build())
+                        } else {
+                            @Suppress("DEPRECATION")
+                            activity?.enterPictureInPictureMode()
+                        }
                     }
                 )
             }
@@ -1124,7 +1138,7 @@ fun PlayerScreenContent(
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal))
                 .padding(bottom = 80.dp)
 
-            if (showAudioDialog || showSubtitleDialog || showResolutionDialog) {
+            if (showAudioDialog || showResolutionDialog) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -1133,7 +1147,6 @@ fun PlayerScreenContent(
                             indication = null,
                             onClick = {
                                 showAudioDialog = false
-                                showSubtitleDialog = false
                                 showResolutionDialog = false
                             }
                         )
@@ -1154,20 +1167,6 @@ fun PlayerScreenContent(
                     showAudioBoost = true,
                     audioBoost = audioBoost,
                     onAudioBoostToggle = { viewModel.setAudioBoost(it) }
-                )
-            }
-
-            AnimatedVisibility(
-                visible = showSubtitleDialog,
-                enter = slideInVertically { it } + fadeIn(),
-                exit = slideOutVertically { it } + fadeOut(),
-                modifier = Modifier.align(Alignment.BottomStart).then(menuModifier).padding(start = 24.dp)
-            ) {
-                TrackSelectionMenu(
-                    title = stringResource(R.string.player_menu_subtitle),
-                    exoPlayer = exoPlayer,
-                    trackType = C.TRACK_TYPE_TEXT,
-                    onDismiss = { showSubtitleDialog = false }
                 )
             }
 
@@ -1292,7 +1291,6 @@ fun CastDiscoveryOverlay(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    // Prevent accidental exit during active search
                     if (!isSearching) onDismiss()
                 }
             ),
@@ -1302,7 +1300,7 @@ fun CastDiscoveryOverlay(
             modifier = Modifier
                 .width(170.dp)
                 .padding(6.dp)
-                .clickable(enabled = false) {}, // Prevent tap propagation to background
+                .clickable(enabled = false) {},
             shape = RoundedCornerShape(12.dp),
             color = Color(0xFF121212),
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
@@ -1312,7 +1310,6 @@ fun CastDiscoveryOverlay(
                 modifier = Modifier.padding(vertical = 8.dp, horizontal = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Header with Pulse Effect - Smaller
                 Box(
                     modifier = Modifier
                         .size(26.dp)
@@ -1593,7 +1590,6 @@ fun TrackSelectionMenu(
     audioBoost: Boolean = false,
     onAudioBoostToggle: ((Boolean) -> Unit)? = null
 ) {
-    // Logic for ExoPlayer
     val tracks = exoPlayer?.currentTracks ?: Tracks.EMPTY
     val trackGroups = tracks.groups.filter { it.type == trackType }
 
@@ -1666,7 +1662,6 @@ fun TrackSelectionMenu(
             }
 
             LazyColumn(modifier = Modifier.heightIn(max = 180.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                // ExoPlayer Track List
                 item {
                     val isAuto = exoPlayer?.trackSelectionParameters?.overrides?.values?.none {
                         it.type == trackType
@@ -1854,7 +1849,6 @@ fun ControlOverlay(
     isFullscreen: Boolean,
     onFullscreenToggle: () -> Unit = {},
     onShowAudio: () -> Unit,
-    onShowSubtitle: () -> Unit = {},
     onShowResolution: () -> Unit,
     onShowDebug: () -> Unit,
     onShowCast: () -> Unit = {},
@@ -1870,7 +1864,6 @@ fun ControlOverlay(
     onEnterPip: () -> Unit = {}
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-        // Top Navigation Bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1883,7 +1876,6 @@ fun ControlOverlay(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // PiP Button
             PlayerControlAction(
                 icon = Icons.Default.PictureInPicture,
                 onClick = onEnterPip
@@ -1891,7 +1883,6 @@ fun ControlOverlay(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Cast Button
             PlayerControlAction(
                 icon = if (isCasting) Icons.Default.CastConnected else Icons.Default.Cast,
                 tint = if (isCasting) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
@@ -1902,7 +1893,6 @@ fun ControlOverlay(
             PlayerControlAction(icon = Icons.AutoMirrored.Filled.FormatListBulleted, onClick = onShowChannels)
         }
 
-        // Center Controls (Skip/Play/Forward)
         Row(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -1912,7 +1902,6 @@ fun ControlOverlay(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Previous Button
             IconButton(
                 onClick = onPrev,
                 modifier = Modifier
@@ -1923,7 +1912,6 @@ fun ControlOverlay(
                 Icon(Icons.Default.SkipPrevious, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(22.dp))
             }
 
-            // Play/Pause Center Action & Loading Status
             Box(
                 modifier = Modifier.height(110.dp),
                 contentAlignment = Alignment.Center
@@ -1934,7 +1922,6 @@ fun ControlOverlay(
                              loadingStatus == stringResource(R.string.player_ended)
 
                 Box(contentAlignment = Alignment.Center) {
-                    // Reduced glow size
                     if (isPlayingState && !isBuffering) {
                         Box(
                             modifier = Modifier
@@ -1997,7 +1984,6 @@ fun ControlOverlay(
                 }
             }
 
-            // Next Button
             IconButton(
                 onClick = onNext,
                 modifier = Modifier
@@ -2009,29 +1995,57 @@ fun ControlOverlay(
             }
         }
 
-        // Bottom Actions
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal))
-                .padding(bottom = 12.dp)
+                .padding(bottom = 20.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Surface(
+                color = Color.Black.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(24.dp),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
+                modifier = Modifier.padding(horizontal = 16.dp)
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    PlayerControlAction(icon = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder, tint = if (isFavorite) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurface, onClick = onToggleFavorite)
-                    PlayerControlAction(icon = Icons.Default.ClosedCaption, onClick = onShowSubtitle)
-                    PlayerControlAction(icon = Icons.AutoMirrored.Filled.VolumeUp, onClick = onShowAudio)
-                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        PlayerControlAction(
+                            icon = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
+                            tint = if (isFavorite) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurface,
+                            onClick = onToggleFavorite
+                        )
+                        PlayerControlAction(
+                            icon = Icons.AutoMirrored.Filled.VolumeUp,
+                            onClick = onShowAudio
+                        )
+                    }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    PlayerControlAction(icon = Icons.Default.HighQuality, onClick = onShowResolution)
-                    if (isDebug) PlayerControlAction(icon = Icons.Default.BugReport, onClick = onShowDebug)
-                    PlayerControlAction(icon = Icons.Default.LockOpen, onClick = onLock)
-                    PlayerControlAction(icon = if (isFullscreen) Icons.Default.FullscreenExit else Icons.Default.Fullscreen, onClick = onFullscreenToggle)
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        PlayerControlAction(
+                            icon = Icons.Default.HighQuality,
+                            onClick = onShowResolution
+                        )
+                        if (isDebug) {
+                            PlayerControlAction(
+                                icon = Icons.Default.BugReport,
+                                onClick = onShowDebug
+                            )
+                        }
+                        PlayerControlAction(
+                            icon = Icons.Default.LockOpen,
+                            onClick = onLock
+                        )
+                        PlayerControlAction(
+                            icon = if (isFullscreen) Icons.Default.FullscreenExit else Icons.Default.Fullscreen,
+                            onClick = onFullscreenToggle
+                        )
+                    }
                 }
             }
         }
@@ -2076,21 +2090,18 @@ fun QuickChannelList(
     val selectedGroup by viewModel.selectedGroup.collectAsState()
     val groupListState = rememberLazyListState()
 
-    // Optimized auto-scroll: Delay scroll until after the opening animation finishes
     LaunchedEffect(currentChannel) {
         val index = allChannels.indexOfFirst { it.url == currentChannel.url }
         if (index >= 0) {
-            delay(300) // Wait for side-menu animation to settle
+            delay(300)
             listState.animateScrollToItem(index)
         }
     }
 
-    // Auto-scroll to selected group chip in Quick List
     LaunchedEffect(selectedGroup, groups) {
         if (groups.isNotEmpty()) {
             val index = if (selectedGroup == null) 0 else groups.indexOf(selectedGroup)
             if (index >= 0) {
-                // Gunakan animateScrollToItem dengan offset agar berada di tengah atau terlihat lebih baik
                 groupListState.animateScrollToItem(index)
             }
         }
@@ -2109,7 +2120,7 @@ fun QuickChannelList(
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Vertical + WindowInsetsSides.End))
         ) {
-            // Header
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -2144,8 +2155,6 @@ fun QuickChannelList(
                     Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                 }
             }
-
-            // Group Selector in Quick List
             LazyRow(
                 state = groupListState,
                 contentPadding = PaddingValues(horizontal = 12.dp),
@@ -2163,7 +2172,6 @@ fun QuickChannelList(
 
             HorizontalDivider(color = Color.White.copy(alpha = 0.05f))
 
-            // Channel List
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
@@ -2171,7 +2179,7 @@ fun QuickChannelList(
             ) {
                 items(
                     items = allChannels,
-                    key = { it.url } // Important for performance
+                    key = { it.url }
                 ) { channel ->
                     val isSelected = channel.url == currentChannel.url
                     ChannelListItem(

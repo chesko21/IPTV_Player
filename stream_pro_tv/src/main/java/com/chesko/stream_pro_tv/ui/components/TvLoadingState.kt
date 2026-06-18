@@ -38,7 +38,6 @@ fun LoadingState(message: String? = null) {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        // Universe Background
         UniverseBackground(
             primaryColor = MaterialTheme.colorScheme.primary,
             glowAlpha = glowAlpha

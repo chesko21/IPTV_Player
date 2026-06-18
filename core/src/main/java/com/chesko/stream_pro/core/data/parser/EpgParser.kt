@@ -8,12 +8,8 @@ import java.util.*
 
 object EpgParser {
 
-    /**
-     * Parse EPG XML stream and process in batches to save memory.
-     * Optimized for speed and memory efficiency.
-     */
+
     suspend fun parse(inputStream: InputStream, onBatchParsed: suspend (List<EpgProgram>) -> Unit) {
-        // Larger buffer for faster I/O
         val bis = java.io.BufferedInputStream(inputStream, 32 * 1024)
         bis.mark(1024)
         val head = ByteArray(2)
@@ -31,7 +27,6 @@ object EpgParser {
         parser.setInput(actualStream, "UTF-8")
 
         val batch = ArrayList<EpgProgram>(500)
-        // Memory optimization: reuse existing string instances for channel IDs which repeat thousands of times
         val channelIdCache = HashMap<String, String>()
         
         var eventType = parser.eventType
@@ -88,10 +83,6 @@ object EpgParser {
         )
     }
 
-    /**
-     * Highly optimized date parsing for common EPG formats (yyyyMMddHHmmss Z).
-     * Avoids slow SimpleDateFormat overhead and synchronization bottlenecks.
-     */
     private fun parseEpgDate(dateStr: String?): Long {
         if (dateStr == null || dateStr.length < 14) return 0L
         
@@ -108,8 +99,7 @@ object EpgParser {
             calendar.set(Calendar.MILLISECOND, 0)
             
             var timeMillis = calendar.timeInMillis
-            
-            // Handle timezone offset (e.g., " +0700" or "-0500")
+
             val spaceIndex = dateStr.indexOf(' ')
             if (spaceIndex != -1 && dateStr.length >= spaceIndex + 6) {
                 val tzStr = dateStr.substring(spaceIndex + 1).trim()

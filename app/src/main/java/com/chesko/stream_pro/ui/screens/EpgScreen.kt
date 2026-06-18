@@ -61,14 +61,11 @@ fun EpgScreen(
     var isSearchActive by remember { mutableStateOf(false) }
     var isBackInvoked by remember { mutableStateOf(false) }
     val context = LocalContext.current
-
-    // Optimized: Cache filtered channels
     val filteredAllChannels = remember(allChannels, searchQuery) {
         if (searchQuery.isBlank()) allChannels
         else allChannels.filter { it.name.contains(searchQuery, ignoreCase = true) }
     }
 
-    // Optimized: Use single formatter instance
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
     val currentTime = remember { System.currentTimeMillis() }
 
@@ -79,7 +76,6 @@ fun EpgScreen(
     val scope = rememberCoroutineScope()
     val horizontalScrollState = rememberScrollState()
 
-    // Optimized: Only prefetch visible channels
     LaunchedEffect(pagerState.currentPage, groups) {
         if (groups.isNotEmpty()) {
             val group = groups[pagerState.currentPage]
@@ -88,12 +84,10 @@ fun EpgScreen(
             } else {
                 allChannels.filter { it.group == group }
             }
-            // Prefetch more channels for smoother scrolling
             viewModel.prefetchEpgForChannels(filteredChannels.take(50))
         }
     }
 
-    // Optimized: Time calculation with caching
     val timeData = remember {
         val startTime = currentTime - (2 * 60 * 60 * 1000)
         val endTime = startTime + (24 * 60 * 60 * 1000)
@@ -119,7 +113,6 @@ fun EpgScreen(
     }
     val density = androidx.compose.ui.platform.LocalDensity.current.density
 
-    // Optimized: Smoother scroll positioning
     LaunchedEffect(timeSlots, currentTime) {
         val firstSlot = timeSlots.firstOrNull() ?: return@LaunchedEffect
         val timeDiff = currentTime - firstSlot
@@ -215,7 +208,6 @@ fun EpgScreen(
                     )
                 }
 
-                // Optimized: Only show tabs when not searching and groups exist
                 if (groups.isNotEmpty() && !isSearchActive) {
                     SecondaryScrollableTabRow(
                         selectedTabIndex = pagerState.currentPage,
@@ -241,7 +233,6 @@ fun EpgScreen(
                                 onClick = {
                                     scope.launch {
                                         pagerState.animateScrollToPage(index)
-                                        // Reset scroll position on tab change
                                         horizontalScrollState.scrollTo(0)
                                     }
                                 },
@@ -270,7 +261,6 @@ fun EpgScreen(
             .padding(padding)
         ) {
             Column {
-                // Time Header with improved performance
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -305,7 +295,6 @@ fun EpgScreen(
                     }
                 }
 
-                // Optimized: Show loading only when necessary
                 if (groups.isEmpty() && allChannels.isEmpty()) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(
@@ -315,7 +304,6 @@ fun EpgScreen(
                         )
                     }
                 } else {
-                    // Optimized: Use remember for list state
                     val listState = rememberLazyListState()
 
                     if (isSearchActive) {
@@ -350,7 +338,6 @@ fun EpgScreen(
                         ) { pageIndex ->
                             val group = groups.getOrNull(pageIndex) ?: return@HorizontalPager
 
-                            // Optimized: Cache filtered channels per group
                             val filteredChannels = remember(allChannels, group) {
                                 if (group == "Other")
                                     allChannels.filter { it.group.isNullOrBlank() }
@@ -405,14 +392,12 @@ fun EpgChannelRow(
 ) {
     val context = LocalContext.current
 
-    // Trigger prefetch if missing
     LaunchedEffect(channel.url) {
         if (programs.isEmpty()) {
             viewModel.prefetchEpgForChannels(listOf(channel))
         }
     }
 
-    // Optimized: Cache filtered programs
     val filteredPrograms = remember(programs, startTime, endTime) {
         programs.filter { it.endTime > startTime && it.startTime < endTime }
     }
@@ -423,7 +408,6 @@ fun EpgChannelRow(
             .height(68.dp)
             .border(0.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
     ) {
-        // Channel Column - Optimized
         Column(
             modifier = Modifier
                 .width(channelColumnWidth)
@@ -434,7 +418,6 @@ fun EpgChannelRow(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Optimized: Use Surface dengan fixed size
             Surface(
                 shape = RoundedCornerShape(6.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(0.5f),
@@ -465,7 +448,6 @@ fun EpgChannelRow(
             )
         }
 
-        // Programs Row - Optimized
         Box(
             modifier = Modifier
                 .fillMaxHeight()
@@ -507,8 +489,8 @@ fun EpgChannelRow(
                                 else
                                     MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
                             ),
-                            border = null, // Remove border for performance
-                            elevation = CardDefaults.cardElevation(0.dp) // No elevation
+                            border = null,
+                            elevation = CardDefaults.cardElevation(0.dp)
                         ) {
                             Column(
                                 modifier = Modifier

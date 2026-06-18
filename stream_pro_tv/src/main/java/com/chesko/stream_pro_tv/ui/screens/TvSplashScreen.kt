@@ -34,12 +34,10 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun UniverseBackground(primaryColor: Color, glowAlpha: Float) {
-    // Only run animations if it's not a super old device or keep it simple
     val isLowEnd = android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.M
     
     val infiniteTransition = rememberInfiniteTransition(label = "universe")
-    
-    // Stars animation - static for low end
+
     val starAlpha by if (isLowEnd) {
         mutableStateOf(0.7f)
     } else {
@@ -54,7 +52,6 @@ fun UniverseBackground(primaryColor: Color, glowAlpha: Float) {
         )
     }
 
-    // Nebula movement - slower or static for low end
     val nebulaOffset by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1000f,
@@ -66,10 +63,8 @@ fun UniverseBackground(primaryColor: Color, glowAlpha: Float) {
     )
 
     Canvas(modifier = Modifier.fillMaxSize()) {
-        // Deep Space Background
         drawRect(Color(0xFF00020A))
 
-        // Drawing stars - fewer for low end
         val starCount = if (isLowEnd) 50 else 150
         val random = java.util.Random(42)
         repeat(starCount) {
@@ -85,7 +80,6 @@ fun UniverseBackground(primaryColor: Color, glowAlpha: Float) {
             )
         }
 
-        // Cosmic Nebulas - Only 1 or 2 for low end
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(primaryColor.copy(alpha = 0.12f * glowAlpha), Color.Transparent),
@@ -176,27 +170,27 @@ fun TvSplashScreen(onNextScreen: () -> Unit) {
         onNextScreen()
     }
 
-    // Standardized Branding Sizes (Uniform across all devices)
-    val logoSize = 110.dp
-    val logoPadding = 22.dp
-    val titleSize = 48.sp
-    val subtitleSize = 11.sp
-    val subtitleSpacing = 4.sp
+    val configuration = LocalConfiguration.current
+    val isSmallHeight = configuration.screenHeightDp < 500
+    
+    val logoSize = if (isSmallHeight) 80.dp else 110.dp
+    val titleSize = if (isSmallHeight) 32.sp else 48.sp
+    val subtitleSize = if (isSmallHeight) 9.sp else 11.sp
+    val subtitleSpacing = if (isSmallHeight) 2.sp else 4.sp
+    val mainSpacerHeight = if (isSmallHeight) 16.dp else 24.dp
+    val bottomSpacerHeight = if (isSmallHeight) 24.dp else 40.dp
 
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        // 1. UNIVERSE THEMED BACKGROUND
         UniverseBackground(primaryColor, glowAlpha.value)
 
-        // 2. MAIN CONTENT (Logo + Branding + Loading)
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            // Logo Container with Outer Glow
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.graphicsLayer(
@@ -229,7 +223,6 @@ fun TvSplashScreen(onNextScreen: () -> Unit) {
                     )
                 }
 
-                // The actual Logo
                 Image(
                     painter = painterResource(R.drawable.app_icon_androidtv),
                     contentDescription = null,
@@ -237,9 +230,8 @@ fun TvSplashScreen(onNextScreen: () -> Unit) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(mainSpacerHeight))
 
-            // Text Branding Section
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.graphicsLayer(alpha = textAlpha.value)
@@ -250,7 +242,7 @@ fun TvSplashScreen(onNextScreen: () -> Unit) {
                         style = MaterialTheme.typography.displayMedium.copy(
                             fontSize = titleSize,
                             fontWeight = FontWeight.Black,
-                            letterSpacing = (-2).sp
+                            letterSpacing = if (isSmallHeight) (-1).sp else (-2).sp
                         ),
                         color = Color.White
                     )
@@ -259,19 +251,19 @@ fun TvSplashScreen(onNextScreen: () -> Unit) {
                         style = MaterialTheme.typography.displayMedium.copy(
                             fontSize = titleSize,
                             fontWeight = FontWeight.Black,
-                            letterSpacing = (-2).sp
+                            letterSpacing = if (isSmallHeight) (-1).sp else (-2).sp
                         ),
                         color = primaryColor
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(if (isSmallHeight) 6.dp else 12.dp))
                 
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(4.dp))
                         .background(Color.White.copy(alpha = 0.05f))
-                        .padding(horizontal = 12.dp, vertical = 4.dp)
+                        .padding(horizontal = if (isSmallHeight) 8.dp else 12.dp, vertical = if (isSmallHeight) 2.dp else 4.dp)
                 ) {
                     Text(
                         text = stringResource(R.string.branding_explore),
@@ -286,9 +278,8 @@ fun TvSplashScreen(onNextScreen: () -> Unit) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(bottomSpacerHeight))
 
-            // 3. LOADING INDICATOR (Stardust Path style)
             Box(contentAlignment = Alignment.Center) {
                 LinearProgressIndicator(
                     progress = { barWidth.value },
@@ -302,8 +293,6 @@ fun TvSplashScreen(onNextScreen: () -> Unit) {
                 )
             }
         }
-
-        // 4. FOOTER (Credit)
         Text(
             text = stringResource(R.string.branding_developed),
             modifier = Modifier

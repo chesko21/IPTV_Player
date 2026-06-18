@@ -112,6 +112,7 @@ class MainActivity : FragmentActivity() {
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                     try {
                         val params = android.app.PictureInPictureParams.Builder()
+                            .setAspectRatio(android.util.Rational(16, 9))
                             .setActions(emptyList())
                             .build()
                         enterPictureInPictureMode(params)
@@ -129,17 +130,17 @@ class MainActivity : FragmentActivity() {
         viewModel.setInPipMode(isInPictureInPictureMode)
         
         if (isInPictureInPictureMode) {
-            // Update PiP params to ensure no actions/buttons are shown
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 val params = android.app.PictureInPictureParams.Builder()
+                    .setAspectRatio(android.util.Rational(16, 9))
                     .setActions(emptyList())
                     .build()
                 setPictureInPictureParams(params)
             }
         } else {
-            // Jika keluar dari mode PiP
-            if (lifecycle.currentState == androidx.lifecycle.Lifecycle.State.CREATED || isFinishing) {
-                // PiP ditutup melalui tombol 'X'
+            // When exiting PiP, we don't necessarily want to finish the task.
+            // Only finish if the activity was already finishing or if it's in a state where it shouldn't be resumed.
+            if (isFinishing) {
                 finishAndRemoveTask()
             }
         }
@@ -150,7 +151,6 @@ class MainActivity : FragmentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        // Konfigurasi Edge-to-Edge murni tanpa scrim
         enableEdgeToEdge(
             statusBarStyle = androidx.activity.SystemBarStyle.auto(
                 android.graphics.Color.TRANSPARENT,
@@ -183,8 +183,7 @@ class MainActivity : FragmentActivity() {
                 backgroundOverride = backgroundOverride
             ) {
                 val context = LocalContext.current
-                
-                // Request Notification Permission for Android 13+
+
                 val permissionLauncher = rememberLauncherForActivityResult(
                     ActivityResultContracts.RequestPermission()
                 ) { _ -> }
@@ -271,8 +270,7 @@ class MainActivity : FragmentActivity() {
                 LaunchedEffect(errorMessage) {
                     errorMessage?.let { message ->
                         val currentRoute = navController.currentDestination?.route
-                        // Don't show global snackbar on login/settings screen as they have their own top popup
-                        if (currentRoute != "login" && currentRoute != "settings") {
+                         if (currentRoute != "login" && currentRoute != "settings") {
                             scope.launch {
                                 snackbarHostState.showSnackbar(message)
                                 viewModel.clearError()
@@ -295,7 +293,6 @@ class MainActivity : FragmentActivity() {
                                 startDestination = "splash",
                                 modifier = Modifier.fillMaxSize()
                             ) {
-                                // ... (rest of NavHost remains the same)
                                 composable("splash") {
                                     SplashScreen(
                                         viewModel = viewModel,
@@ -445,7 +442,6 @@ class MainActivity : FragmentActivity() {
                                 }
                             }
 
-                            // Top Notification Overlay
                             AnimatedVisibility(
                                 visible = isTopNotifVisible,
                                 enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),

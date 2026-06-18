@@ -67,17 +67,13 @@ fun VideoPlayer(
     hwAcceleration: Boolean = true,
     bufferSize: Int = 15,
     maxVideoHeight: Int = 0,
+    isInPipMode: Boolean = false,
     onPlayerInit: ((ExoPlayer?) -> Unit)? = null,
     onSuccess: (() -> Unit)? = null,
     onError: ((String) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-
-    val activity = context as? android.app.Activity
-    val isInPipMode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-        activity?.isInPictureInPictureMode == true
-    } else false
 
     val currentOnPlayerInit by rememberUpdatedState(onPlayerInit)
     val currentOnSuccess by rememberUpdatedState(onSuccess)
@@ -180,7 +176,6 @@ fun VideoPlayer(
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_PAUSE -> {
-                    // Hanya pause jika tidak sedang dalam mode PiP (IPTV tetap jalan di PiP)
                     val activity = context as? android.app.Activity
                     val inPip = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                         activity?.isInPictureInPictureMode == true
@@ -195,8 +190,7 @@ fun VideoPlayer(
                     val inPip = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                         activity?.isInPictureInPictureMode == true
                     } else false
-                    
-                    // Stop player if not in PiP or if activity is finishing (clicked X in PiP)
+
                     if (!inPip || activity?.isFinishing == true) {
                         exoPlayer.stop()
                     }
@@ -308,7 +302,7 @@ fun VideoPlayer(
                     player = exoPlayer
                     useController = false
                     this.resizeMode = resizeMode
-                    subtitleView?.visibility = android.view.View.VISIBLE
+                    subtitleView?.visibility = android.view.View.GONE
                     layoutParams = FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
@@ -327,26 +321,27 @@ fun VideoPlayer(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Watermark - Hidden during PiP
-        Row(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(start = 24.dp, top = 48.dp)
-                .alpha(if (isInPipMode) 0f else 0.5f),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.app_icon_android),
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = stringResource(R.string.brand_name),
-                color = Color.White,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold
-            )
+        if (!isInPipMode) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 24.dp, top = 120.dp)
+                    .alpha(0.5f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.app_icon_android),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = stringResource(R.string.brand_name),
+                    color = Color.White,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }

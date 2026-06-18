@@ -42,7 +42,7 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = LightPrimaryNavy, // Menggunakan Navy #124170 sebagai aksen utama
+    primary = LightPrimaryNavy,
     onPrimary = Color.White,
     primaryContainer = LightSurface,
     onPrimaryContainer = LightPrimaryNavy,
@@ -69,10 +69,6 @@ private val LightColorScheme = lightColorScheme(
     scrim = ScrimColor
 )
 
-/**
- * Universal IPTV Player Theme
- * Optimized for cinematic media consumption and interactive browsing
- */
 @Suppress("DEPRECATION")
 @Composable
 fun IPTV_PlayerTheme(
@@ -81,10 +77,8 @@ fun IPTV_PlayerTheme(
     backgroundOverride: Color? = null,
     content: @Composable () -> Unit
 ) {
-    // Choose base color scheme
     val baseColorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-    
-    // Apply dynamic branding (Accent Color) with contrast checking
+
     val colorScheme = if (accentColor != null || backgroundOverride != null) {
         val isLightAccent = (accentColor ?: baseColorScheme.primary).luminance() > 0.5f
         baseColorScheme.copy(
@@ -111,8 +105,7 @@ fun IPTV_PlayerTheme(
         SideEffect {
             val window = (view.context as Activity).window
             val insetsController = WindowCompat.getInsetsController(window, view)
-            
-            // Selalu buat bar sistem transparan secara global untuk transisi mulus
+
             window.statusBarColor = android.graphics.Color.TRANSPARENT
             window.navigationBarColor = android.graphics.Color.TRANSPARENT
 
@@ -120,8 +113,7 @@ fun IPTV_PlayerTheme(
                 window.isStatusBarContrastEnforced = false
                 window.isNavigationBarContrastEnforced = false
             }
-            
-            // Atur kontras ikon tetap adaptif
+
             val isLightBackground = colorScheme.background.luminance() > 0.5f
             insetsController.isAppearanceLightStatusBars = isLightBackground
             insetsController.isAppearanceLightNavigationBars = isLightBackground

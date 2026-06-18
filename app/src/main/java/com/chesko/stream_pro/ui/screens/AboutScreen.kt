@@ -98,7 +98,6 @@ fun AboutScreen(
                     .padding(top = 8.dp, bottom = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-            // App Logo - More Compact
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Image(
                     painter = painterResource(id = R.drawable.app_icon_android),
@@ -127,7 +126,6 @@ fun AboutScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Version - Smaller
             val versionName = BuildConfig.VERSION_NAME
             Surface(
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
@@ -143,7 +141,6 @@ fun AboutScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Description - More Compact
             Text(
                 stringResource(R.string.about_description),
                 fontSize = 13.sp,
@@ -155,7 +152,6 @@ fun AboutScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // Info Section - More Minimalist
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -180,12 +176,10 @@ fun AboutScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Donation Section - More Compact & Clean
             DonationSection()
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Footer - More Subtle
             Text(
                 stringResource(R.string.about_footer_rights, currentYear),
                 fontSize = 10.sp,
@@ -215,7 +209,6 @@ fun DonationSection() {
             modifier = Modifier.padding(14.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Support Title - More Minimal
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -247,7 +240,6 @@ fun DonationSection() {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Dana Card - More Minimal
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -263,7 +255,6 @@ fun DonationSection() {
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // DANA Logo
                     Image(
                         painter = painterResource(id = R.drawable.dana),
                         contentDescription = null,
@@ -304,7 +295,6 @@ fun DonationSection() {
                 }
             }
 
-            // Optional: Snackbar feedback
             if (showSnackbar) {
                 LaunchedEffect(Unit) {
                     kotlinx.coroutines.delay(1500)

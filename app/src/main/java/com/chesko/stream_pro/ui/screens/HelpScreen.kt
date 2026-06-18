@@ -106,7 +106,6 @@ fun HelpScreen(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-            // Header Section - More Compact
             item {
                 Column(
                     modifier = Modifier
@@ -135,13 +134,10 @@ fun HelpScreen(
                     )
                 }
             }
-
-            // FAQ Items - More Compact
             items(faqList) { faq ->
                 FaqExpandableItem(faq)
             }
 
-            // Footer Card - More Minimal
             item {
                 Spacer(modifier = Modifier.height(16.dp))
                 Card(

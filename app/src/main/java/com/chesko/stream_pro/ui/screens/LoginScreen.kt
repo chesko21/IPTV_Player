@@ -103,7 +103,6 @@ fun LoginScreen(
 
     val scope = rememberCoroutineScope()
 
-    // Cinematic Entrance state
     val entranceAlpha = remember { Animatable(0f) }
     val entranceScale = remember { Animatable(0.95f) }
 
@@ -151,7 +150,6 @@ fun LoginScreen(
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             MovingPosterWall()
 
-            // Top Error/Notification Popup
             AnimatedVisibility(
                 visible = errorMessage != null,
                 enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
@@ -255,7 +253,6 @@ fun LoginScreen(
                                         .blur(if (isLoading) 2.dp else 0.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    // Custom Tab Switcher
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -644,7 +641,7 @@ fun MovingPosterWall() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(0.7f)
-                        .alpha(0.12f) // Increased from 0.05f for better visibility
+                        .alpha(0.12f)
                         .clip(RoundedCornerShape(12.dp))
                         .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)),
                     contentScale = ContentScale.Crop

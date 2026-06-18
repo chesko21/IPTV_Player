@@ -275,16 +275,13 @@ fun SettingsScreen(
                 }
             }
         }
-
-        // Notifikasi diletakkan di luar Scaffold agar bisa menutupi TopAppBar (lebih ke atas)
-        AnimatedVisibility(
+         AnimatedVisibility(
             visible = errorMessage != null,
             enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = 80.dp) // Posisi sedikit lebih rendah agar tidak menempel ke atas sekali
-                .zIndex(100f)
+                .padding(top = 80.dp) .zIndex(100f)
         ) {
             errorMessage?.let { message ->
                 Surface(
@@ -764,7 +761,6 @@ fun ColorPickerDialog(
                 modifier = Modifier.padding(14.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Header
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -787,7 +783,6 @@ fun ColorPickerDialog(
                     ) {}
                 }
 
-                // Custom Pickers
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SaturationValuePicker(
                         hue = hsv[0],
@@ -802,7 +797,6 @@ fun ColorPickerDialog(
                     )
                 }
 
-                // Actions
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
@@ -882,7 +876,6 @@ fun SaturationValuePicker(
             )
             drawRect(brush = valueGradient)
 
-            // Selector
             val posX = saturation * width
             val posY = (1f - value) * height
             drawCircle(
@@ -928,7 +921,6 @@ fun HuePicker(
             val hueGradient = Brush.horizontalGradient(colors = hues)
             drawRect(brush = hueGradient)
 
-            // Selector
             val posX = (hue / 360f) * width
             drawCircle(
                 color = Color.White,

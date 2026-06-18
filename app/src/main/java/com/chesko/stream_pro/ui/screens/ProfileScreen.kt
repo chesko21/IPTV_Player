@@ -449,7 +449,7 @@ fun ProfileDetails(
 @Composable
 fun LogoutButton() {
     OutlinedButton(
-        onClick = { /* viewModel.logout() */ },
+        onClick = {},
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
         colors = ButtonDefaults.outlinedButtonColors(
@@ -486,13 +486,6 @@ fun AnimatedEditDialog(
 ) {
     var showDialog by remember { mutableStateOf(true) }
     var textValue by remember { mutableStateOf(currentValue) }
-    var isFieldFocused by remember { mutableStateOf(false) }
-
-    val scale by animateFloatAsState(
-        targetValue = if (isFieldFocused) 1.02f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy),
-        label = "scale"
-    )
 
     LaunchedEffect(textValue) {
         onValueChange(textValue)
@@ -506,73 +499,30 @@ fun AnimatedEditDialog(
             },
             properties = DialogProperties(usePlatformDefaultWidth = false)
         ) {
-            AnimatedVisibility(
-                visible = showDialog,
-                enter = fadeIn(animationSpec = tween(300)) +
-                        slideInVertically(initialOffsetY = { -it }, animationSpec = tween(400, easing = EaseOutBack)),
-                exit = fadeOut(animationSpec = tween(250)) +
-                        slideOutVertically(targetOffsetY = { -it }, animationSpec = tween(300, easing = EaseInCubic))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                        .scale(scale),
-                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surface
                     ),
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation = 8.dp,
-                        focusedElevation = 12.dp
-                    )
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        modifier = Modifier.padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    Brush.linearGradient(
-                                        colors = listOf(
-                                            accentColor.copy(alpha = 0.1f),
-                                            accentColor.copy(alpha = 0.05f)
-                                        )
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                icon,
-                                contentDescription = null,
-                                modifier = Modifier.size(28.dp),
-                                tint = accentColor
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
                         Text(
-                            title,
-                            fontSize = 20.sp,
+                            text = title,
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            color = MaterialTheme.colorScheme.onSurface
                         )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            stringResource(if (isEmail) R.string.dialog_update_email else R.string.dialog_update_name),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
-
-                        Spacer(modifier = Modifier.height(24.dp))
 
                         OutlinedTextField(
                             value = textValue,
@@ -580,106 +530,65 @@ fun AnimatedEditDialog(
                             placeholder = {
                                 Text(
                                     placeholder,
-                                    fontSize = 13.sp,
+                                    fontSize = 14.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                                 )
                             },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .onFocusChanged { focusState ->
-                                    isFieldFocused = focusState.isFocused
-                                },
+                            modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = accentColor,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                                 cursorColor = accentColor,
-                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f)
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent
                             ),
-                            textStyle = LocalTextStyle.current.copy(
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Medium
+                            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                                color = MaterialTheme.colorScheme.onSurface
                             ),
                             leadingIcon = {
                                 Icon(
-                                    if (isEmail) Icons.Default.Email else Icons.Default.Person,
+                                    icon,
                                     contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
-                                    tint = if (isFieldFocused) accentColor else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                    modifier = Modifier.size(20.dp),
+                                    tint = accentColor.copy(alpha = 0.7f)
                                 )
-                            },
-                            trailingIcon = {
-                                if (textValue.isNotEmpty()) {
-                                    IconButton(
-                                        onClick = { textValue = "" },
-                                        modifier = Modifier.size(24.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Close,
-                                            contentDescription = "Clear",
-                                            modifier = Modifier.size(14.dp),
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                        )
-                                    }
-                                }
                             }
                         )
 
-                        Spacer(modifier = Modifier.height(24.dp))
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            OutlinedButton(
+                            TextButton(
                                 onClick = {
                                     showDialog = false
                                     onDismiss()
-                                },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(44.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                ),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+                                }
                             ) {
                                 Text(
                                     stringResource(R.string.btn_cancel),
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-
+                            Spacer(modifier = Modifier.width(8.dp))
                             Button(
                                 onClick = {
                                     showDialog = false
                                     onSave()
                                 },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(44.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = accentColor
-                                ),
-                                enabled = textValue.isNotBlank() &&
-                                        if (isEmail) textValue.contains("@") else true
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = accentColor),
+                                enabled = textValue.isNotBlank() && (!isEmail || textValue.contains("@")),
+                                contentPadding = PaddingValues(horizontal = 20.dp)
                             ) {
-                                Icon(
-                                    Icons.Default.Check,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     stringResource(R.string.btn_save),
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.SemiBold
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }

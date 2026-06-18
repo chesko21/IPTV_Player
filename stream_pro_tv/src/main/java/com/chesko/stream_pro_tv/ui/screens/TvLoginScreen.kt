@@ -70,6 +70,7 @@ fun TvLoginScreen(
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
+    val isSmallHeight = configuration.screenHeightDp < 580
 
     val isLoading by viewModel.isLoading.collectAsState()
     val lastUrl by viewModel.lastUrl.collectAsState()
@@ -91,6 +92,7 @@ fun TvLoginScreen(
     var showFilePicker by remember { mutableStateOf(false) }
 
     val buttonFocusRequester = remember { FocusRequester() }
+    val firstServerFocusRequester = remember { FocusRequester() }
     val urlSurfaceFocusRequester = remember { FocusRequester() }
     var isEditingUrl by remember { mutableStateOf(false) }
 
@@ -101,7 +103,11 @@ fun TvLoginScreen(
 
     LaunchedEffect(Unit) {
         delay(300)
-        buttonFocusRequester.requestFocus()
+        if (dynamicDemoUrls.isNotEmpty()) {
+            firstServerFocusRequester.requestFocus()
+        } else {
+            buttonFocusRequester.requestFocus()
+        }
     }
 
     Box(
@@ -110,7 +116,6 @@ fun TvLoginScreen(
     ) {
         UniverseBackground(MaterialTheme.colorScheme.primary, glowAlpha.value)
 
-        // Error Message Overlay
         errorMessage?.let { message ->
             LaunchedEffect(message) {
                 delay(3000)
@@ -155,12 +160,12 @@ fun TvLoginScreen(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(48.dp),
+                .padding(if (isSmallHeight) 24.dp else 48.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                BrandingSection()
+                BrandingSection(isSmallHeight = isSmallHeight)
             }
 
             LoginFormSection(
@@ -174,6 +179,7 @@ fun TvLoginScreen(
                 isLoading = isLoading,
                 onConnect = { viewModel.loadPlaylist(url, onSuccess = onNavigateToHome) },
                 buttonFocusRequester = buttonFocusRequester,
+                firstServerFocusRequester = firstServerFocusRequester,
                 selectedFileName = displayFileName,
                 hasSelectedFile = selectedFilePath != null,
                 onPickFile = { showFilePicker = true },
@@ -184,8 +190,9 @@ fun TvLoginScreen(
                     }
                 },
                 lastUrl = lastUrl,
-                modifier = Modifier.width(440.dp),
-                dynamicDemoUrls = dynamicDemoUrls
+                modifier = Modifier.width(if (isSmallHeight) 380.dp else 440.dp),
+                dynamicDemoUrls = dynamicDemoUrls,
+                isSmallHeight = isSmallHeight
             )
         }
 
@@ -209,7 +216,7 @@ fun TvLoginScreen(
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun BrandingSection() {
+fun BrandingSection(isSmallHeight: Boolean = false) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -224,11 +231,14 @@ fun BrandingSection() {
             label = "glow"
         )
 
+        val logoBoxSize = if (isSmallHeight) 100.dp else 140.dp
+        val logoSize = if (isSmallHeight) 80.dp else 110.dp
+
         Box(
-            modifier = Modifier.size(140.dp),
+            modifier = Modifier.size(logoBoxSize),
             contentAlignment = Alignment.Center
         ) {
-            Canvas(modifier = Modifier.size(140.dp * glowScale)) {
+            Canvas(modifier = Modifier.size(logoBoxSize * glowScale)) {
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(
@@ -242,24 +252,25 @@ fun BrandingSection() {
             Image(
                 painter = painterResource(com.chesko.stream_pro_tv.R.drawable.app_icon_androidtv),
                 contentDescription = "Logo",
-                modifier = Modifier.size(110.dp)
+                modifier = Modifier.size(logoSize)
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(if (isSmallHeight) 16.dp else 32.dp))
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                val textStyle = if (isSmallHeight) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.displaySmall
                 TvText(
                     text = "STREAM",
-                    style = MaterialTheme.typography.displaySmall,
+                    style = textStyle,
                     color = Color.White,
                     fontWeight = FontWeight.Black,
                     letterSpacing = (-1).sp
                 )
                 TvText(
                     text = "PRO",
-                    style = MaterialTheme.typography.displaySmall,
+                    style = textStyle,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Black,
                     letterSpacing = (-1).sp
@@ -268,14 +279,14 @@ fun BrandingSection() {
             
             TvText(
                 text = stringResource(R.string.branding_explore),
-                style = MaterialTheme.typography.labelLarge,
+                style = if (isSmallHeight) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
                 color = Color.White.copy(alpha = 0.5f),
                 fontWeight = FontWeight.Bold,
-                letterSpacing = 4.sp
+                letterSpacing = if (isSmallHeight) 2.sp else 4.sp
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(if (isSmallHeight) 12.dp else 24.dp))
 
         Box(
             modifier = Modifier
@@ -306,13 +317,15 @@ fun LoginFormSection(
     isLoading: Boolean,
     onConnect: () -> Unit,
     buttonFocusRequester: FocusRequester,
+    firstServerFocusRequester: FocusRequester = remember { FocusRequester() },
     selectedFileName: String,
     hasSelectedFile: Boolean,
     onPickFile: () -> Unit,
     onFileConnect: () -> Unit,
     lastUrl: String = "",
     modifier: Modifier = Modifier,
-    dynamicDemoUrls: List<String> = emptyList()
+    dynamicDemoUrls: List<String> = emptyList(),
+    isSmallHeight: Boolean = false
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -324,7 +337,8 @@ fun LoginFormSection(
                 Brush.linearGradient(listOf(Color.White.copy(alpha = 0.2f), Color(0xFFBB86FC).copy(alpha = 0.1f))), 
                 RoundedCornerShape(24.dp)
             )
-            .padding(if (modifier == Modifier.fillMaxWidth()) 24.dp else 36.dp)
+            .padding(if (isSmallHeight) 20.dp else 36.dp)
+            .verticalScroll(rememberScrollState())
     ) {
         Row(
             modifier = Modifier
@@ -346,7 +360,7 @@ fun LoginFormSection(
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(if (isSmallHeight) 20.dp else 32.dp))
 
         AnimatedContent(
             targetState = selectedTab,
@@ -367,8 +381,10 @@ fun LoginFormSection(
                         isLoading = isLoading,
                         onConnect = onConnect,
                         buttonFocusRequester = buttonFocusRequester,
+                        firstServerFocusRequester = firstServerFocusRequester,
                         lastUrl = lastUrl,
-                        dynamicDemoUrls = dynamicDemoUrls
+                        dynamicDemoUrls = dynamicDemoUrls,
+                        isSmallHeight = isSmallHeight
                     )
                 } else {
                     FileInputSection(
@@ -376,7 +392,8 @@ fun LoginFormSection(
                         hasSelectedFile = hasSelectedFile,
                         isLoading = isLoading,
                         onPickFile = onPickFile,
-                        onConnect = onFileConnect
+                        onConnect = onFileConnect,
+                        isSmallHeight = isSmallHeight
                     )
                 }
             }
@@ -475,9 +492,15 @@ fun UrlInputSection(
     isLoading: Boolean,
     onConnect: () -> Unit,
     buttonFocusRequester: FocusRequester,
+    firstServerFocusRequester: FocusRequester = remember { FocusRequester() },
     lastUrl: String = "",
-    dynamicDemoUrls: List<String> = emptyList()
+    dynamicDemoUrls: List<String> = emptyList(),
+    isSmallHeight: Boolean = false
 ) {
+    val inputHeight = if (isSmallHeight) 56.dp else 68.dp
+    val buttonHeight = if (isSmallHeight) 48.dp else 56.dp
+    val spacerHeight = if (isSmallHeight) 24.dp else 32.dp
+
     Column(modifier = Modifier.fillMaxWidth()) {
         TvText(
             text = stringResource(R.string.login_source_config),
@@ -487,8 +510,7 @@ fun UrlInputSection(
             modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
         )
 
-        // Preset Demo URLs Section
-        Column(modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().padding(bottom = if (isSmallHeight) 12.dp else 20.dp)) {
             TvText(
                 text = stringResource(R.string.login_preset_demos),
                 style = MaterialTheme.typography.labelSmall,
@@ -513,7 +535,8 @@ fun UrlInputSection(
                         },
                         modifier = Modifier
                             .weight(1f)
-                            .height(38.dp),
+                            .height(if (isSmallHeight) 34.dp else 38.dp)
+                            .then(if (index == 0) Modifier.focusRequester(firstServerFocusRequester) else Modifier),
                         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(10.dp)),
                         colors = ClickableSurfaceDefaults.colors(
                             containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.05f),
@@ -545,7 +568,7 @@ fun UrlInputSection(
                 onClick = { onEditingChange(true) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(68.dp)
+                    .height(inputHeight)
                     .focusRequester(urlSurfaceFocusRequester),
                 shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
                 colors = ClickableSurfaceDefaults.colors(
@@ -589,7 +612,7 @@ fun UrlInputSection(
             OutlinedTextField(
                 value = url,
                 onValueChange = onUrlChange,
-                modifier = Modifier.fillMaxWidth().height(68.dp).focusRequester(textFieldFocusRequester),
+                modifier = Modifier.fillMaxWidth().height(inputHeight).focusRequester(textFieldFocusRequester),
                 placeholder = { Material3Text(stringResource(R.string.login_url_placeholder_example), color = Color.Gray, fontSize = 14.sp) },
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
@@ -609,15 +632,14 @@ fun UrlInputSection(
             LaunchedEffect(Unit) { textFieldFocusRequester.requestFocus() }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(spacerHeight))
 
-        // LOGIN BUTTON
         Surface(
             onClick = onConnect,
             enabled = !isLoading && url.isNotBlank(),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .height(buttonHeight)
                 .focusRequester(buttonFocusRequester),
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
             colors = ClickableSurfaceDefaults.colors(
@@ -651,8 +673,13 @@ fun FileInputSection(
     hasSelectedFile: Boolean,
     isLoading: Boolean,
     onPickFile: () -> Unit,
-    onConnect: () -> Unit
+    onConnect: () -> Unit,
+    isSmallHeight: Boolean = false
 ) {
+    val inputHeight = if (isSmallHeight) 56.dp else 68.dp
+    val buttonHeight = if (isSmallHeight) 48.dp else 56.dp
+    val spacerHeight = if (isSmallHeight) 24.dp else 32.dp
+
     Column(modifier = Modifier.fillMaxWidth()) {
         TvText(
             text = stringResource(R.string.login_file_config),
@@ -664,7 +691,7 @@ fun FileInputSection(
 
         Surface(
             onClick = onPickFile,
-            modifier = Modifier.fillMaxWidth().height(68.dp),
+            modifier = Modifier.fillMaxWidth().height(inputHeight),
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = Color.White.copy(alpha = 0.03f),
@@ -700,12 +727,12 @@ fun FileInputSection(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(spacerHeight))
 
         Surface(
             onClick = onConnect,
             enabled = hasSelectedFile && !isLoading,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
+            modifier = Modifier.fillMaxWidth().height(buttonHeight),
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = MaterialTheme.colorScheme.primary,

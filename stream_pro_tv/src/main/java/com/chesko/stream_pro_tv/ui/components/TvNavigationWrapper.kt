@@ -6,6 +6,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -70,12 +72,13 @@ fun TvNavigationWrapper(
             ) {
                 Column(
                     modifier = Modifier
-                        .fillMaxHeight(),
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.Start
                 ) {
                     BrandingSection(isExpanded)
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     SidebarItem(
                         label = stringResource(R.string.nav_home), icon = Icons.Default.Home, isSelected = selectedRoute == "home", isExpanded = isExpanded,
@@ -104,17 +107,17 @@ fun TvNavigationWrapper(
                     )
                     SidebarItem(
                         label = stringResource(R.string.nav_favorites), icon = Icons.Default.Favorite, isSelected = selectedRoute == "favorites", isExpanded = isExpanded,
-                        modifier = Modifier.focusRequester(favFR).focusProperties { up = sportFR; down = settingsFR; next = settingsFR },
+                        modifier = Modifier.focusRequester(favFR).focusProperties { up = sportFR; down = settingsFR },
                         onClick = { onRouteSelected("favorites") }
                     )
 
-                    Spacer(modifier = Modifier.weight(1f))
-
                     SidebarItem(
                         label = stringResource(R.string.nav_settings), icon = Icons.Default.Settings, isSelected = selectedRoute == "settings", isExpanded = isExpanded,
-                        modifier = Modifier.focusRequester(settingsFR).focusProperties { up = favFR; previous = favFR },
+                        modifier = Modifier.focusRequester(settingsFR).focusProperties { up = favFR },
                         onClick = { onRouteSelected("settings") }
                     )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
                 
                 // Subtle divider between sidebar and content
@@ -147,7 +150,7 @@ private fun BrandingSection(isExpanded: Boolean) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)
+            .height(if (isExpanded) 70.dp else 60.dp)
             .padding(start = 16.dp, end = 16.dp),
         contentAlignment = Alignment.CenterStart
     ) {
@@ -212,8 +215,8 @@ fun SidebarItem(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(52.dp)
-            .padding(vertical = 2.dp)
+            .height(48.dp)
+            .padding(vertical = 1.dp)
             .onFocusChanged { isFocused = it.isFocused },
         shape = ClickableSurfaceDefaults.shape(RectangleShape),
         colors = ClickableSurfaceDefaults.colors(

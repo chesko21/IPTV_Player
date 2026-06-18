@@ -107,31 +107,23 @@ fun PositionFocusedItemInLazyLayout(
     val bringIntoViewSpec = remember(parentFraction, childFraction) {
         object : BringIntoViewSpec {
             override fun calculateScrollDistance(
-                offset: Float,       // Item's initial position
-                size: Float,         // Item's size
-                containerSize: Float // Container's size
+                offset: Float,
+                size: Float,
+                containerSize: Float
             ): Float {
-                // Calculate the offset position of the item's leading edge.
                 val initialTargetForLeadingEdge =
                     parentFraction * containerSize - (childFraction * size)
-                // If the item fits in the container, and scrolling would cause
-                // its trailing edge to be clipped, adjust targetForLeadingEdge
-                // to prevent over-scrolling near the end of list.
                 val targetForLeadingEdge = if (size <= containerSize &&
                     (containerSize - initialTargetForLeadingEdge) < size) {
-                    // If clipped, align the item's trailing edge with the
-                    // container's trailing edge.
                     containerSize - size
                 } else {
                     initialTargetForLeadingEdge
                 }
-                // Return scroll distance relative to initial item position.
                 return offset - targetForLeadingEdge
             }
         }
     }
 
-    // Apply the spec to all scrollables in the hierarchy
     CompositionLocalProvider(
         LocalBringIntoViewSpec provides bringIntoViewSpec,
         content = content,
@@ -220,7 +212,6 @@ fun ChannelTvGridItem(
                 }
             }
 
-            // DRM Lock Indicator
             if (!channel.drmConfig.isNullOrEmpty()) {
                 Icon(
                     imageVector = Icons.Default.Lock,

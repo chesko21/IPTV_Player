@@ -47,7 +47,9 @@ fun HomeScreen(
     showGroupSelector: Boolean = true,
     onChannelClick: (IptvChannel) -> Unit
 ) {
-    val columns = 6
+    val configuration = LocalConfiguration.current
+    val isSmallHeight = configuration.screenHeightDp < 580
+    val columns = if (isSmallHeight) 7 else 6
 
     val channels by viewModel.filteredChannels.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -57,7 +59,6 @@ fun HomeScreen(
 
     val lastFocusedChannelRequester = remember { FocusRequester() }
 
-    // Restore focus to last channel when returning from player
     LaunchedEffect(channels) {
         if (selectedChannel != null && channels.any { it.url == selectedChannel?.url }) {
             try {
@@ -78,27 +79,36 @@ fun HomeScreen(
             } else {
                 Box(modifier = Modifier.fillMaxSize()) {
                     TvClock(
+                        isSmallHeight = isSmallHeight,
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(end = 48.dp, top = 32.dp)
+                            .padding(
+                                end = if (isSmallHeight) 24.dp else 48.dp, 
+                                top = if (isSmallHeight) 16.dp else 32.dp
+                            )
                     )
 
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(start = 32.dp, end = 48.dp, top = 32.dp, bottom = 32.dp)
+                            .padding(
+                                start = if (isSmallHeight) 24.dp else 32.dp, 
+                                end = if (isSmallHeight) 24.dp else 48.dp, 
+                                top = if (isSmallHeight) 16.dp else 32.dp, 
+                                bottom = if (isSmallHeight) 16.dp else 32.dp
+                            )
                     ) {
-                        Column(modifier = Modifier.padding(bottom = 24.dp)) {
+                        Column(modifier = Modifier.padding(bottom = if (isSmallHeight) 12.dp else 24.dp)) {
                             Text(
                                 text = stringResource(R.string.app_name),
-                                style = MaterialTheme.typography.labelMedium,
+                                style = if (isSmallHeight) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Black,
-                                letterSpacing = 4.sp
+                                letterSpacing = if (isSmallHeight) 2.sp else 4.sp
                             )
                             Text(
                                 text = if (selectedGroup == null) stringResource(R.string.home_explore) else selectedGroup!!.uppercase(),
-                                style = MaterialTheme.typography.headlineSmall,
+                                style = if (isSmallHeight) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineSmall,
                                 color = Color.White,
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = (-1).sp
@@ -109,9 +119,10 @@ fun HomeScreen(
                             TvGroupSelector(
                                 groups = groups,
                                 selectedGroup = selectedGroup,
-                                onGroupSelected = { viewModel.setSelectedGroup(it) }
+                                onGroupSelected = { viewModel.setSelectedGroup(it) },
+                                isSmallHeight = isSmallHeight
                             )
-                            Spacer(modifier = Modifier.height(24.dp))
+                            Spacer(modifier = Modifier.height(if (isSmallHeight) 12.dp else 24.dp))
                         }
 
                         Box(modifier = Modifier.weight(1f)) {
@@ -130,11 +141,11 @@ fun HomeScreen(
                                                 Icons.Default.Search, 
                                                 contentDescription = null, 
                                                 tint = Color.White.copy(alpha = 0.1f),
-                                                modifier = Modifier.size(100.dp)
+                                                modifier = Modifier.size(if (isSmallHeight) 60.dp else 100.dp)
                                             )
                                             Text(
                                                 stringResource(R.string.home_no_charts), 
-                                                style = MaterialTheme.typography.bodyLarge,
+                                                style = if (isSmallHeight) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge,
                                                 color = Color.White.copy(alpha = 0.3f),
                                                 fontWeight = FontWeight.Medium
                                             )
@@ -160,7 +171,10 @@ fun HomeScreen(
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun TvClock(modifier: Modifier = Modifier) {
+fun TvClock(
+    isSmallHeight: Boolean = false,
+    modifier: Modifier = Modifier
+) {
     var currentTime by remember { mutableStateOf(Calendar.getInstance()) }
     
     LaunchedEffect(Unit) {
@@ -179,17 +193,17 @@ fun TvClock(modifier: Modifier = Modifier) {
     ) {
         Text(
             text = timeFormatter.format(currentTime.time),
-            style = MaterialTheme.typography.headlineLarge,
+            style = if (isSmallHeight) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineLarge,
             color = Color.White,
             fontWeight = FontWeight.Black,
-            letterSpacing = (-2).sp
+            letterSpacing = if (isSmallHeight) (-1).sp else (-2).sp
         )
         Text(
             text = dateFormatter.format(currentTime.time).uppercase(),
-            style = MaterialTheme.typography.labelMedium,
+            style = if (isSmallHeight) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
-            letterSpacing = 2.sp
+            letterSpacing = if (isSmallHeight) 1.sp else 2.sp
         )
     }
 }
@@ -200,11 +214,12 @@ fun TvGroupSelector(
     groups: List<String>,
     selectedGroup: String?,
     onGroupSelected: (String?) -> Unit,
+    isSmallHeight: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     PositionFocusedItemInLazyLayout(parentFraction = 0.1f) {
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(if (isSmallHeight) 8.dp else 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             modifier = modifier.fillMaxWidth()
         ) {
@@ -249,8 +264,7 @@ fun TvChannelGrid(
             modifier = modifier
                 .fillMaxSize()
                 .focusProperties {
-                    // Prevent focus from leaving the grid accidentally when moving fast
-                    onExit = { FocusRequester.Default }
+                   onExit = { FocusRequester.Default }
                 }
         ) {
             items(channels, key = { it.url }) { channel ->

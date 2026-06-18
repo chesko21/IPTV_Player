@@ -63,8 +63,10 @@
 
     <!-- Home Screen -->
     <string name="exit_confirm_title">Konfirmasi Keluar</string>
-    <string name="exit_confirm_msg">Yakin ingin keluar?</string>
+    <string name="exit_confirm_msg">Yakin ingin keluar dari aplikasi?</string>
+    <string name="logout_confirm_msg">Yakin ingin keluar dari akun ini? Anda harus memasukkan URL playlist lagi untuk masuk.</string>
     <string name="btn_exit">KELUAR</string>
+    <string name="btn_logout">LOGOUT</string>
     <string name="premium_badge">PREMIUM</string>
     <string name="drawer_group_playlists">PLAYLIST</string>
     <string name="drawer_group_main">UTAMA</string>
@@ -80,9 +82,6 @@
     <string name="carousel_rec">REKOMENDASI</string>
     <string name="carousel_watch_now">TONTON SEKARANG</string>
     <string name="group_all">Semua</string>
-    <string name="filter_live">Live TV</string>
-    <string name="filter_movies">Film</string>
-    <string name="filter_sport">Olahraga</string>
     <string name="search_results">Hasil Pencarian</string>
     <string name="search_not_found_title">Oops! Saluran tidak ditemukan</string>
     <string name="search_not_found_msg">Coba kata kunci lain atau periksa koneksi Anda</string>

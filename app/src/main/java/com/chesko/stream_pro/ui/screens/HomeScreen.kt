@@ -4,13 +4,8 @@ import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -53,6 +48,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asComposeRenderEffect
@@ -66,6 +63,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -115,9 +113,6 @@ fun HomeScreen(
     val randomCarousel by viewModel.randomCarouselChannels.collectAsState()
     val channelsByGroup by viewModel.channelsByGroup.collectAsState()
 
-    val categoryFilter by viewModel.categoryFilter.collectAsState()
-    val nameFilter by viewModel.nameFilter.collectAsState()
-
     val backgroundType by viewModel.backgroundType.collectAsState()
     val backgroundColorInt by viewModel.backgroundColor.collectAsState()
     val backgroundImageUri by viewModel.backgroundImageUri.collectAsState()
@@ -148,6 +143,116 @@ fun HomeScreen(
             selectedGroup != null -> viewModel.setSelectedGroup(null)
             isGroupsExpanded -> isGroupsExpanded = false
             else -> showExitDialog = true
+        }
+    }
+
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
+    if (showLogoutDialog) {
+        Dialog(
+            onDismissRequest = { showLogoutDialog = false }
+        ) {
+            Surface(
+                modifier = Modifier
+                    .width(280.dp)
+                    .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(28.dp)),
+                shape = RoundedCornerShape(28.dp),
+                color = Color(0xFF0F0F0F),
+                tonalElevation = 8.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(28.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Surface(
+                        modifier = Modifier.size(64.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Logout,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Text(
+                        text = stringResource(R.string.menu_logout),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = stringResource(R.string.exit_confirm_msg),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.7f),
+                        textAlign = TextAlign.Center,
+                        lineHeight = 20.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Button(
+                            onClick = { showLogoutDialog = false },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text(
+                                text = stringResource(R.string.btn_cancel),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                showLogoutDialog = false
+                                scope.launch {
+                                    isShuttingDown = true
+                                    shutdownProgress.animateTo(
+                                        targetValue = 1f,
+                                        animationSpec = tween(600, easing = FastOutSlowInEasing)
+                                    )
+                                    delay(150)
+                                    onLogout()
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text(
+                                text = stringResource(R.string.menu_logout).uppercase(),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -528,13 +633,7 @@ fun HomeScreen(
                                 .clickable {
                                     scope.launch {
                                         drawerState.close()
-                                        isShuttingDown = true
-                                        shutdownProgress.animateTo(
-                                            targetValue = 1f,
-                                            animationSpec = tween(600, easing = FastOutSlowInEasing)
-                                        )
-                                        delay(150)
-                                        onLogout()
+                                        showLogoutDialog = true
                                     }
                                 },
                             color = MaterialTheme.colorScheme.error.copy(alpha = 0.08f),
@@ -632,76 +731,6 @@ fun HomeScreen(
                                 tonalElevation = 3.dp
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    // Quick Filters
-                                    Column(
-                                        modifier = Modifier
-                                            .widthIn(max = 1200.dp)
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                                    ) {
-                                        TextField(
-                                            value = nameFilter,
-                                            onValueChange = { viewModel.setNameFilter(it) },
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(44.dp)
-                                                .clip(RoundedCornerShape(12.dp)),
-                                            placeholder = {
-                                                Text(
-                                                    stringResource(R.string.search_placeholder),
-                                                    fontSize = 12.sp,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                                )
-                                            },
-                                            leadingIcon = {
-                                                Icon(
-                                                    Icons.Default.FilterList,
-                                                    null,
-                                                    modifier = Modifier.size(16.dp),
-                                                    tint = MaterialTheme.colorScheme.primary
-                                                )
-                                            },
-                                            trailingIcon = {
-                                                if (nameFilter.isNotEmpty()) {
-                                                    IconButton(onClick = { viewModel.setNameFilter("") }) {
-                                                        Icon(Icons.Default.Close, null, modifier = Modifier.size(14.dp))
-                                                    }
-                                                }
-                                            },
-                                            colors = TextFieldDefaults.colors(
-                                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                                focusedIndicatorColor = Color.Transparent,
-                                                unfocusedIndicatorColor = Color.Transparent,
-                                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-                                            ),
-                                            singleLine = true,
-                                            textStyle = MaterialTheme.typography.bodySmall
-                                        )
-
-                                        Spacer(modifier = Modifier.height(8.dp))
-
-                                        val categories = listOf(
-                                            null to stringResource(R.string.group_all),
-                                            "live" to stringResource(R.string.filter_live),
-                                            "movies" to stringResource(R.string.filter_movies),
-                                            "sport" to stringResource(R.string.filter_sport)
-                                        )
-
-                                        LazyRow(
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                        ) {
-                                            items(categories) { (code, label) ->
-                                                FilterChip(
-                                                    text = label,
-                                                    isSelected = categoryFilter == code,
-                                                    onClick = { viewModel.setCategoryFilter(code) }
-                                                )
-                                            }
-                                        }
-                                    }
-
                                     if (selectedGroup == null) {
                                         if (randomCarousel.isNotEmpty()) {
                                             EnhancedHeroCarousel(
@@ -767,15 +796,13 @@ fun HomeScreen(
                             state = lazyListState,
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            if (selectedGroup != null || searchQuery.isNotEmpty() || nameFilter.isNotEmpty() || categoryFilter != null) {
+                            if (selectedGroup != null || searchQuery.isNotEmpty()) {
                                 item {
                                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                                         val title = when (selectedGroup) {
                                             favGroup -> stringResource(R.string.row_favorite)
                                             historyGroup -> stringResource(R.string.row_history)
                                             else -> if (searchQuery.isNotEmpty()) stringResource(R.string.search_results)
-                                                    else if (nameFilter.isNotEmpty()) "Filtered: $nameFilter"
-                                                    else if (categoryFilter != null) categoryFilter?.uppercase() ?: ""
                                                     else try { 
                                                         java.net.URLDecoder.decode(selectedGroup ?: "", "UTF-8") 
                                                     } catch(_: Exception) { 
@@ -1383,17 +1410,25 @@ fun HeaderSection(
 ) {
     var isSearchExpanded by remember { mutableStateOf(searchQuery.isNotEmpty()) }
     var localSearchQuery by remember { mutableStateOf(searchQuery) }
+    val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(searchQuery) {
         localSearchQuery = searchQuery
+        if (searchQuery.isNotEmpty()) isSearchExpanded = true
+    }
+
+    LaunchedEffect(isSearchExpanded) {
+        if (isSearchExpanded) {
+            focusRequester.requestFocus()
+        }
     }
 
     Surface(
-        color = if (isSearchExpanded) MaterialTheme.colorScheme.surface
+        color = if (isSearchExpanded) MaterialTheme.colorScheme.surface.copy(alpha = 0.98f)
                 else MaterialTheme.colorScheme.surface.copy(alpha = if (isSystemInDarkTheme()) alpha.coerceIn(0f, 0.95f) else (alpha * 0.9f).coerceIn(0f, 0.98f)),
         modifier = modifier.fillMaxWidth(),
-        tonalElevation = if (isSystemInDarkTheme()) 4.dp else 1.dp,
-        shadowElevation = if (alpha > 0.5f) 2.dp else 0.dp
+        tonalElevation = if (isSearchExpanded) 8.dp else (if (isSystemInDarkTheme()) 4.dp else 1.dp),
+        shadowElevation = if (alpha > 0.5f || isSearchExpanded) 4.dp else 0.dp
     ) {
         Box(
             modifier = Modifier
@@ -1406,107 +1441,155 @@ fun HeaderSection(
                     .widthIn(max = 1200.dp)
                     .fillMaxWidth()
                     .padding(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                if (!isSearchExpanded) {
-                    IconButton(
-                        onClick = onMenuClick,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
-                            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), CircleShape)
-                    ) {
-                        Icon(Icons.Default.Menu, stringResource(R.string.content_desc_menu), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
-                    }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Image(
-                        painter = painterResource(id = R.drawable.app_icon_android),
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp)
-                    )
-
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.brand_name),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.primary,
-                            letterSpacing = 1.sp
-                        )
-                        Text(
-                            stringResource(R.string.brand_slogan),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 8.sp
-                        )
-                    }
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        HeaderActionButton(Icons.Default.Search, stringResource(R.string.content_desc_search)) { isSearchExpanded = true }
-                        HeaderActionButton(Icons.Default.Refresh, stringResource(R.string.content_desc_refresh)) { onRefresh() }
-                    }
-                } else {
-                    TextField(
-                        value = localSearchQuery,
-                        onValueChange = {
-                            localSearchQuery = it
-                            onSearchQueryChange(it)
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp)
-                            .clip(RoundedCornerShape(24.dp)),
-                        placeholder = {
-                            Text(
-                                stringResource(R.string.search_placeholder),
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                AnimatedContent(
+                    targetState = isSearchExpanded,
+                    transitionSpec = {
+                        if (targetState) {
+                            (slideInHorizontally { width -> width } + fadeIn()).togetherWith(
+                                slideOutHorizontally { width -> -width } + fadeOut()
                             )
-                        },
-                        trailingIcon = {
+                        } else {
+                            (slideInHorizontally { width -> -width } + fadeIn()).togetherWith(
+                                slideOutHorizontally { width -> width } + fadeOut()
+                            )
+                        }.using(SizeTransform(clip = false))
+                    },
+                    label = "HeaderSearchAnimation",
+                    modifier = Modifier.weight(1f)
+                ) { expanded ->
+                    if (!expanded) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             IconButton(
-                                onClick = {
-                                    if (localSearchQuery.isNotEmpty()) {
-                                        localSearchQuery = ""
-                                        onSearchQueryChange("")
-                                    } else {
-                                        isSearchExpanded = false
-                                    }
-                                },
-                                modifier = Modifier.size(32.dp)
+                                onClick = onMenuClick,
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
+                                    .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), CircleShape)
                             ) {
                                 Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = if (localSearchQuery.isNotEmpty())
-                                        stringResource(R.string.content_desc_close_search)
-                                    else stringResource(R.string.content_desc_close_search),
+                                    Icons.Default.Menu,
+                                    stringResource(R.string.content_desc_menu),
                                     tint = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
-                        },
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        singleLine = true,
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        keyboardActions = KeyboardActions(
-                            onSearch = {
-                                onSearchQueryChange(localSearchQuery)
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Image(
+                                painter = painterResource(id = R.drawable.app_icon_android),
+                                contentDescription = null,
+                                modifier = Modifier.size(32.dp)
+                            )
+
+                            Spacer(modifier = Modifier.width(10.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    stringResource(R.string.brand_name),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    letterSpacing = 1.sp
+                                )
+                                Text(
+                                    stringResource(R.string.brand_slogan),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 8.sp
+                                )
                             }
+
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                HeaderActionButton(
+                                    Icons.Default.Search,
+                                    stringResource(R.string.content_desc_search)
+                                ) { isSearchExpanded = true }
+                                HeaderActionButton(
+                                    Icons.Default.Refresh,
+                                    stringResource(R.string.content_desc_refresh)
+                                ) { onRefresh() }
+                            }
+                        }
+                    } else {
+                        OutlinedTextField(
+                            value = localSearchQuery,
+                            onValueChange = {
+                                localSearchQuery = it
+                                onSearchQueryChange(it)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp)
+                                .focusRequester(focusRequester),
+                            placeholder = {
+                                Text(
+                                    stringResource(R.string.search_placeholder),
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Search,
+                                    null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            trailingIcon = {
+                                IconButton(
+                                    onClick = {
+                                        if (localSearchQuery.isNotEmpty()) {
+                                            localSearchQuery = ""
+                                            onSearchQueryChange("")
+                                        } else {
+                                            isSearchExpanded = false
+                                        }
+                                    },
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = stringResource(R.string.content_desc_close_search),
+                                        tint = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = Color.Transparent,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                            ),
+                            shape = RoundedCornerShape(26.dp),
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Search,
+                                keyboardType = KeyboardType.Text
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onSearch = {
+                                    onSearchQueryChange(localSearchQuery)
+                                }
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
@@ -1811,34 +1894,6 @@ fun ChannelModernItem(
             fontWeight = if (currentProgram != null) FontWeight.Bold else FontWeight.Normal,
             modifier = Modifier.padding(horizontal = 2.dp)
         )
-    }
-}
-
-@Composable
-fun FilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(8.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) 
-                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-        border = BorderStroke(
-            1.dp, 
-            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) 
-            else Color.Transparent
-        ),
-        modifier = Modifier.height(28.dp)
-    ) {
-        Box(
-            modifier = Modifier.padding(horizontal = 12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
-            )
-        }
     }
 }
 
