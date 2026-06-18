@@ -115,6 +115,9 @@ fun HomeScreen(
     val randomCarousel by viewModel.randomCarouselChannels.collectAsState()
     val channelsByGroup by viewModel.channelsByGroup.collectAsState()
 
+    val categoryFilter by viewModel.categoryFilter.collectAsState()
+    val nameFilter by viewModel.nameFilter.collectAsState()
+
     val backgroundType by viewModel.backgroundType.collectAsState()
     val backgroundColorInt by viewModel.backgroundColor.collectAsState()
     val backgroundImageUri by viewModel.backgroundImageUri.collectAsState()
@@ -629,6 +632,76 @@ fun HomeScreen(
                                 tonalElevation = 3.dp
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    // Quick Filters
+                                    Column(
+                                        modifier = Modifier
+                                            .widthIn(max = 1200.dp)
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    ) {
+                                        TextField(
+                                            value = nameFilter,
+                                            onValueChange = { viewModel.setNameFilter(it) },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(44.dp)
+                                                .clip(RoundedCornerShape(12.dp)),
+                                            placeholder = {
+                                                Text(
+                                                    stringResource(R.string.search_placeholder),
+                                                    fontSize = 12.sp,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                                )
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.FilterList,
+                                                    null,
+                                                    modifier = Modifier.size(16.dp),
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            },
+                                            trailingIcon = {
+                                                if (nameFilter.isNotEmpty()) {
+                                                    IconButton(onClick = { viewModel.setNameFilter("") }) {
+                                                        Icon(Icons.Default.Close, null, modifier = Modifier.size(14.dp))
+                                                    }
+                                                }
+                                            },
+                                            colors = TextFieldDefaults.colors(
+                                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                                focusedIndicatorColor = Color.Transparent,
+                                                unfocusedIndicatorColor = Color.Transparent,
+                                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                                            ),
+                                            singleLine = true,
+                                            textStyle = MaterialTheme.typography.bodySmall
+                                        )
+
+                                        Spacer(modifier = Modifier.height(8.dp))
+
+                                        val categories = listOf(
+                                            null to stringResource(R.string.group_all),
+                                            "live" to stringResource(R.string.filter_live),
+                                            "movies" to stringResource(R.string.filter_movies),
+                                            "sport" to stringResource(R.string.filter_sport)
+                                        )
+
+                                        LazyRow(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            items(categories) { (code, label) ->
+                                                FilterChip(
+                                                    text = label,
+                                                    isSelected = categoryFilter == code,
+                                                    onClick = { viewModel.setCategoryFilter(code) }
+                                                )
+                                            }
+                                        }
+                                    }
+
                                     if (selectedGroup == null) {
                                         if (randomCarousel.isNotEmpty()) {
                                             EnhancedHeroCarousel(
@@ -694,13 +767,15 @@ fun HomeScreen(
                             state = lazyListState,
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            if (selectedGroup != null || searchQuery.isNotEmpty()) {
+                            if (selectedGroup != null || searchQuery.isNotEmpty() || nameFilter.isNotEmpty() || categoryFilter != null) {
                                 item {
                                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                                         val title = when (selectedGroup) {
                                             favGroup -> stringResource(R.string.row_favorite)
                                             historyGroup -> stringResource(R.string.row_history)
-                                            else -> if (searchQuery.isNotEmpty()) stringResource(R.string.search_results) 
+                                            else -> if (searchQuery.isNotEmpty()) stringResource(R.string.search_results)
+                                                    else if (nameFilter.isNotEmpty()) "Filtered: $nameFilter"
+                                                    else if (categoryFilter != null) categoryFilter?.uppercase() ?: ""
                                                     else try { 
                                                         java.net.URLDecoder.decode(selectedGroup ?: "", "UTF-8") 
                                                     } catch(_: Exception) { 
@@ -1736,6 +1811,34 @@ fun ChannelModernItem(
             fontWeight = if (currentProgram != null) FontWeight.Bold else FontWeight.Normal,
             modifier = Modifier.padding(horizontal = 2.dp)
         )
+    }
+}
+
+@Composable
+fun FilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(8.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) 
+                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        border = BorderStroke(
+            1.dp, 
+            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) 
+            else Color.Transparent
+        ),
+        modifier = Modifier.height(28.dp)
+    ) {
+        Box(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
+            )
+        }
     }
 }
 

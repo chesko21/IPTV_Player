@@ -80,6 +80,9 @@
     <string name="carousel_rec">REKOMENDASI</string>
     <string name="carousel_watch_now">TONTON SEKARANG</string>
     <string name="group_all">Semua</string>
+    <string name="filter_live">Live TV</string>
+    <string name="filter_movies">Film</string>
+    <string name="filter_sport">Olahraga</string>
     <string name="search_results">Hasil Pencarian</string>
     <string name="search_not_found_title">Oops! Saluran tidak ditemukan</string>
     <string name="search_not_found_msg">Coba kata kunci lain atau periksa koneksi Anda</string>

@@ -74,6 +74,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _categoryFilter = MutableStateFlow<String?>(null)
     val categoryFilter: StateFlow<String?> = _categoryFilter
 
+    private val _nameFilter = MutableStateFlow("")
+    val nameFilter: StateFlow<String> = _nameFilter
+
     private val _selectedChannel = MutableStateFlow<IptvChannel?>(null)
     val selectedChannel: StateFlow<IptvChannel?> = _selectedChannel
 
@@ -532,7 +535,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         favoriteChannels,
         recentlyPlayed,
         _categoryFilter,
-        _appLanguage
+        _appLanguage,
+        _nameFilter
     ) { array ->
         @Suppress("UNCHECKED_CAST")
         val channels = array[0] as List<IptvChannel>
@@ -545,6 +549,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val history = array[5] as List<IptvChannel>
         val category = array[6] as String?
         val lang = array[7] as String
+        val nameFilt = array[8] as String
 
         val context = getApplication<Application>()
         val localizedContext = LocaleHelper.applyLocale(context, lang)
@@ -588,6 +593,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         channel.group?.contains(query, ignoreCase = true) == true
             }
 
+            val matchesNameFilter = if (nameFilt.isBlank()) {
+                true
+            } else {
+                channel.name.contains(nameFilt, ignoreCase = true)
+            }
+
             val matchesGroup = when (group) {
                 null, favLabel, historyLabel -> true
                 otherLabel -> channel.group.isNullOrBlank()
@@ -601,7 +612,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
             
-            matchesSearch && matchesGroup
+            matchesSearch && matchesNameFilter && matchesGroup
         }
     }.stateIn(
         viewModelScope,
@@ -911,6 +922,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setCategoryFilter(category: String?) {
         _categoryFilter.value = category
+    }
+
+    fun setNameFilter(query: String) {
+        _nameFilter.value = query
     }
 
     fun setSelectedPlaylistId(id: Int?) {
