@@ -31,11 +31,11 @@ object M3uParser {
 
         content.lineSequence().forEach { line ->
             val trimmedLine = line.trim()
-            if (trimmedLine.isEmpty()) return@forEach
+            if (trimmedLine.isEmpty() || trimmedLine.startsWith("<") || trimmedLine.startsWith("<html>")) return@forEach
 
             when {
                 trimmedLine.startsWith("#EXTM3U") -> {
-
+                    // Reset if we see a new header in the same file
                 }
 
                 trimmedLine.startsWith("#EXTINF:") -> {
@@ -60,22 +60,30 @@ object M3uParser {
                     currentGroup = trimmedLine.substringAfter(":").trim()
                 }
 
+                trimmedLine.startsWith("#EXTVLCOPT:") -> {
+                    val opt = trimmedLine.substringAfter(":").trim()
+                    if (opt.startsWith("http-user-agent=")) {
+                        currentUserAgent = opt.substringAfter("=").trim()
+                    } else if (opt.startsWith("http-referrer=")) {
+                        currentReferrer = opt.substringAfter("=").trim()
+                    } else if (opt.startsWith("http-origin=")) {
+                        currentDrmConfig = appendConfig(currentDrmConfig, "Origin=" + opt.substringAfter("=").trim())
+                    }
+                }
+
                 trimmedLine.startsWith("#KODIPROP:") -> {
                     val prop = trimmedLine.substringAfter(":").trim()
                     currentDrmConfig = appendConfig(currentDrmConfig, prop)
                 }
 
-                !trimmedLine.startsWith("#") -> {
+                !trimmedLine.startsWith("#") && (trimmedLine.startsWith("http") || trimmedLine.startsWith("rtsp")) -> {
                     val name = currentName ?: ""
-                    val isBlocked = name.contains("001 TRAKTIR KOPI", ignoreCase = true) ||
-                                    name.contains("! 01 TV GEULIS PISAN", ignoreCase = true)||
-                                    name.contains("! 01 JOIN GROUP" , ignoreCase = true)||
-                                    name.contains("! 02 JOIN GROUP" , ignoreCase = true)||
-                                    name.contains("! 03 JANGAN DIBUKA" , ignoreCase = true)||
-                                    name.contains("! 02 TRAKTIR NGOPI" , ignoreCase = true)||
-                                    name.contains("KBTRTV", ignoreCase = true)
+                    val isAd = name.contains("TRAKTIR KOPI", ignoreCase = true) ||
+                               name.contains("Cara Menonton", ignoreCase = true) ||
+                               name.contains("JOIN GROUP", ignoreCase = true) ||
+                               name.contains("JANGAN DIBUKA", ignoreCase = true)
 
-                    if (!name.isBlank() && !isBlocked && !isSeparator(name, trimmedLine)) {
+                    if (!name.isBlank() && !isAd && !isSeparator(name, trimmedLine)) {
                         var finalUrl = trimmedLine.trim()
                         var finalUserAgent = currentUserAgent
                         var finalReferrer = currentReferrer

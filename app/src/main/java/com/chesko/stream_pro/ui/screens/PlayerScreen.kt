@@ -1871,7 +1871,7 @@ fun ControlOverlay(
                 .fillMaxWidth()
                 .statusBarsPadding()
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal))
-                .padding(horizontal = 20.dp, vertical = 20.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             PlayerControlAction(icon = Icons.AutoMirrored.Filled.ArrowBack, onClick = onBack)
@@ -1883,7 +1883,7 @@ fun ControlOverlay(
                 onClick = onEnterPip
             )
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(10.dp))
 
             PlayerControlAction(
                 icon = if (isCasting) Icons.Default.CastConnected else Icons.Default.Cast,
@@ -1891,14 +1891,14 @@ fun ControlOverlay(
                 onClick = onShowCast
             )
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(10.dp))
             PlayerControlAction(icon = Icons.AutoMirrored.Filled.FormatListBulleted, onClick = onShowChannels)
         }
 
         Row(
             modifier = Modifier
                 .align(Alignment.Center)
-                .widthIn(max = if (isFullscreen) 400.dp else 320.dp)
+                .widthIn(max = if (isFullscreen) 360.dp else 280.dp)
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -1907,15 +1907,15 @@ fun ControlOverlay(
             IconButton(
                 onClick = onPrev,
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(36.dp)
                     .background(Color.Black.copy(0.3f), CircleShape)
                     .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.05f), CircleShape)
             ) {
-                Icon(Icons.Default.SkipPrevious, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(22.dp))
+                Icon(Icons.Default.SkipPrevious, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
             }
 
             Box(
-                modifier = Modifier.height(110.dp),
+                modifier = Modifier.height(90.dp),
                 contentAlignment = Alignment.Center
             ) {
                 val isError = isPlaybackStuck ||
@@ -1927,7 +1927,7 @@ fun ControlOverlay(
                     if (isPlayingState && !isBuffering) {
                         Box(
                             modifier = Modifier
-                                .size(72.dp)
+                                .size(60.dp)
                                 .background(
                                     Brush.radialGradient(
                                         listOf(MaterialTheme.colorScheme.primary.copy(0.2f), Color.Transparent)
@@ -1944,25 +1944,25 @@ fun ControlOverlay(
                                 exoPlayer?.let { if (it.isPlaying) it.pause() else it.play() }
                             }
                         },
-                        modifier = Modifier.size(64.dp),
+                        modifier = Modifier.size(54.dp),
                         shape = CircleShape,
                         color = Color.Black.copy(alpha = 0.6f),
                         border = BorderStroke(1.dp, Brush.linearGradient(listOf(MaterialTheme.colorScheme.onSurface.copy(0.2f), Color.Transparent))),
-                        shadowElevation = 8.dp
+                        shadowElevation = 6.dp
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = if (isError) Icons.Default.Refresh else if (isPlayingState) Icons.Default.Pause else Icons.Default.PlayArrow,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(32.dp)
+                                modifier = Modifier.size(28.dp)
                             )
                         }
                     }
 
                     if (isBuffering) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(80.dp),
+                            modifier = Modifier.size(68.dp),
                             color = MaterialTheme.colorScheme.primary,
                             strokeWidth = 2.dp,
                             trackColor = MaterialTheme.colorScheme.onSurface.copy(0.05f)
@@ -1981,7 +1981,7 @@ fun ControlOverlay(
                         fontWeight = FontWeight.Black,
                         letterSpacing = 1.sp,
                         textAlign = TextAlign.Center,
-                        fontSize = 9.sp
+                        fontSize = 8.sp
                     )
                 }
             }
@@ -1989,11 +1989,11 @@ fun ControlOverlay(
             IconButton(
                 onClick = onNext,
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(36.dp)
                     .background(Color.Black.copy(0.3f), CircleShape)
                     .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.05f), CircleShape)
             ) {
-                Icon(Icons.Default.SkipNext, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(22.dp))
+                Icon(Icons.Default.SkipNext, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
             }
         }
 
@@ -2012,11 +2012,11 @@ fun ControlOverlay(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         PlayerControlAction(
                             icon = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
                             tint = if (isFavorite) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurface,
@@ -2028,7 +2028,7 @@ fun ControlOverlay(
                         )
                     }
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         PlayerControlAction(
                             icon = Icons.Default.HighQuality,
                             onClick = onShowResolution
@@ -2062,7 +2062,7 @@ fun PlayerControlAction(icon: ImageVector, tint: Color = MaterialTheme.colorSche
 
     Surface(
         modifier = Modifier
-            .size(38.dp)
+            .size(34.dp)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
@@ -2074,7 +2074,7 @@ fun PlayerControlAction(icon: ImageVector, tint: Color = MaterialTheme.colorSche
         shadowElevation = 2.dp
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp))
+            Icon(icon, null, tint = tint, modifier = Modifier.size(18.dp))
         }
     }
 }

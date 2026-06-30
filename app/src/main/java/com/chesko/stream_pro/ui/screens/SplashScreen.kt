@@ -91,7 +91,6 @@ fun RotatingRing(
 
 @Composable
 fun CinematicBackground(
-    primaryColor: Color,
     intensity: Float,
     time: Float
 ) {
@@ -113,22 +112,11 @@ fun CinematicBackground(
         val h = size.height
         drawRect(Color(0xFF000208))
 
-        val animX = w * 0.5f + cos(time * 0.5f) * w * 0.1f
-        val animY = h * 0.4f + sin(time * 0.3f) * h * 0.05f
-        
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(primaryColor.copy(alpha = 0.15f * intensity), Color.Transparent),
-                center = Offset(animX, animY),
-                radius = w * 1.5f
-            )
-        )
-
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color(0xFF1E1B4B).copy(alpha = 0.1f * intensity), Color.Transparent),
+                colors = listOf(Color(0xFF1E1B4B).copy(alpha = 0.08f * intensity), Color.Transparent),
                 center = Offset(w * 0.8f, h * 0.2f),
-                radius = w * 1.0f
+                radius = w * 0.8f
             )
         )
 
@@ -206,7 +194,7 @@ fun SplashScreen(
             .background(Color(0xFF000208)),
         contentAlignment = Alignment.Center
     ) {
-        CinematicBackground(primaryColor, contentAlpha.value, time.value)
+        CinematicBackground(contentAlpha.value, time.value)
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

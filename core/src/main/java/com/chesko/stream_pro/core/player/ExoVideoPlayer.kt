@@ -272,8 +272,10 @@ fun VideoPlayer(
 
         val mediaItem = PlayerUtils.buildMediaItem(channel)
         val allHeaders = PlayerUtils.getHeadersFromChannel(channel)
+        val cleanUrl = PlayerUtils.getCleanUrl(channel.url)
 
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+            .setUserAgent(allHeaders["User-Agent"])
             .setAllowCrossProtocolRedirects(true)
             .setDefaultRequestProperties(allHeaders)
             .setConnectTimeoutMs(20000)
@@ -298,9 +300,9 @@ fun VideoPlayer(
             .setDataSourceFactory(dataSourceFactory)
             .setDrmSessionManagerProvider(drmSessionManagerProvider)
 
-        val urlLower = channel.url.lowercase()
+        val urlLower = cleanUrl.lowercase()
         val mediaSource = when {
-            urlLower.contains(".m3u8") || urlLower.contains("format=m3u8") -> {
+            urlLower.contains(".m3u8") || urlLower.contains(".m3u") || urlLower.contains("format=m3u8") -> {
                 hlsMediaSourceFactory.createMediaSource(mediaItem)
             }
             urlLower.contains(".mpd") || urlLower.contains("format=mpd") -> {

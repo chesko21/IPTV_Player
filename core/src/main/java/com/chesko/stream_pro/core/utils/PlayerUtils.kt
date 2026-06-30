@@ -18,9 +18,10 @@ object PlayerUtils {
 
     @OptIn(UnstableApi::class)
     fun buildMediaItem(channel: IptvChannel): MediaItem {
+        val cleanUrl = getCleanUrl(channel.url)
         val mediaItemBuilder = MediaItem.Builder()
-            .setUri(channel.url)
-            .setMediaId(channel.url)
+            .setUri(cleanUrl)
+            .setMediaId(cleanUrl)
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(channel.name)
@@ -32,7 +33,7 @@ object PlayerUtils {
             )
             .setTag(channel)
 
-        val urlLower = channel.url.lowercase()
+        val urlLower = cleanUrl.lowercase()
         when {
             urlLower.contains(".mpd") || urlLower.contains("format=mpd") -> {
                 mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_MPD)
@@ -42,7 +43,7 @@ object PlayerUtils {
                         .build()
                 )
             }
-            urlLower.contains(".m3u8") || urlLower.contains("format=m3u8") || urlLower.contains("/hls/") -> {
+            urlLower.contains(".m3u8") || urlLower.contains(".m3u") || urlLower.contains("format=m3u8") || urlLower.contains("/hls/") -> {
                 mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_M3U8)
                 mediaItemBuilder.setLiveConfiguration(
                     MediaItem.LiveConfiguration.Builder()
@@ -62,12 +63,14 @@ object PlayerUtils {
             urlLower.contains(".mkv") -> {
                 mediaItemBuilder.setMimeType(MimeTypes.VIDEO_MATROSKA)
             }
+            urlLower.contains("drive.google.com") || urlLower.contains("googleusercontent.com") -> {
+                mediaItemBuilder.setMimeType(MimeTypes.VIDEO_UNKNOWN) // Let ExoPlayer sniff the stream
+            }
             urlLower.startsWith("rtsp://") -> {
                 mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_RTSP)
             }
             else -> {
-                // Default to HLS for many IPTV links if unknown
-                mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_M3U8)
+
             }
         }
 
@@ -103,8 +106,6 @@ object PlayerUtils {
                 licenseUri = formatClearKeyLicense(licenseUri!!)
                 drmType = C.CLEARKEY_UUID
             }
-
-            // Fallback to separate DRM fields if licenseUri is still null
             if (licenseUri == null && !channel.drmKey.isNullOrBlank() && !channel.drmKeyId.isNullOrBlank()) {
                 licenseUri = formatClearKeyLicense("${channel.drmKeyId}:${channel.drmKey}")
                 drmType = C.CLEARKEY_UUID
@@ -141,20 +142,25 @@ object PlayerUtils {
         return mediaItemBuilder.build()
     }
 
+    fun getCleanUrl(url: String): String {
+        return if (url.contains("|")) {
+            url.substringBefore("|").trim()
+        } else {
+            url.trim()
+        }
+    }
+
     fun getHeadersFromChannel(channel: IptvChannel): Map<String, String> {
         val headers = mutableMapOf<String, String>()
-        
-        // Base Headers
-        headers["User-Agent"] = if (!channel.userAgent.isNullOrBlank()) {
+
+        headers["User-Agent"] = if (!channel.userAgent.isNullOrBlank() && !channel.userAgent.lowercase().contains("default")) {
             channel.userAgent
         } else {
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
         }
         channel.referrer?.let { headers["Referer"] = it }
         channel.cookie?.let { headers["Cookie"] = it }
 
-        // Extra parsing for URL pipes (Common in many IPTV playlists)
-        // Format: http://url.com/playlist.m3u8|User-Agent=Mozilla&Referer=...
         if (channel.url.contains("|")) {
             val parts = channel.url.split("|")
             if (parts.size > 1) {
@@ -181,6 +187,67 @@ object PlayerUtils {
             headers["X-Requested-With"] = "com.indihome.itv"
             headers["Origin"] = "https://www.indihometv.com"
             headers["Referer"] = "https://www.indihometv.com/"
+            headers["Accept"] = "*/*"
+        }
+
+        if (url.contains("dens.tv")) {
+            if (!headers.containsKey("Origin")) headers["Origin"] = "https://www.dens.tv"
+            if (!headers.containsKey("Referer")) headers["Referer"] = "https://www.dens.tv/"
+            headers["X-Requested-With"] = "com.dens.tv"
+        }
+
+        if (url.contains("visionplus.id") || url.contains("cloudfront.net")) {
+            if (!headers.containsKey("Origin")) headers["Origin"] = "https://www.visionplus.id"
+            if (!headers.containsKey("Referer")) headers["Referer"] = "https://www.visionplus.id/"
+            headers["X-Requested-With"] = "com.visionplus"
+        }
+
+        if (url.contains("izzigo.tv")) {
+            if (!headers.containsKey("Referer")) headers["Referer"] = "https://www.izzigo.tv/"
+            if (!headers.containsKey("Origin")) headers["Origin"] = "https://www.izzigo.tv"
+        }
+
+        if (url.contains("beeline.tv")) {
+            headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
+        }
+
+        if (url.contains("100ycdn.com")) {
+            headers["Accept"] = "*/*"
+            if (!headers.containsKey("Referer")) headers["Referer"] = "https://100ycdn.com/"
+        }
+
+        if (url.contains("rtm.gov.my") || url.contains("rtmklik")) {
+            headers["Referer"] = "https://rtmklik.rtm.gov.my/"
+            headers["Origin"] = "https://rtmklik.rtm.gov.my"
+        }
+
+        if (url.contains("antik.sk")) {
+            if (!headers.containsKey("Referer")) headers["Referer"] = "https://webtv.sk/"
+        }
+
+        if (url.contains("sedotcw3.workers.dev") || url.contains("r-plus")) {
+            headers["Origin"] = "https://r-plus.top"
+            headers["Referer"] = if (headers.containsKey("Referer")) headers["Referer"]!! else "https://www.rctiplus.com/"
+            headers["User-Agent"] = if (headers.containsKey("User-Agent") && headers["User-Agent"] != "android-R+") headers["User-Agent"]!! else "android-R+"
+            headers["Accept"] = "*/*"
+        } else if (url.contains("bintangstreaming.my.id") || url.contains("dailymotion.php")) {
+            headers["Referer"] = "https://bintangstreaming.my.id/"
+            headers["Origin"] = "https://bintangstreaming.my.id"
+            headers["Accept"] = "*/*"
+        } else if (url.contains("turboviplay.com")) {
+            headers["Referer"] = "https://turboviplay.com/"
+            headers["Origin"] = "https://turboviplay.com"
+            headers["Accept"] = "*/*"
+        } else if (url.contains("workers.dev")) {
+            try {
+                val cleanUrl = getCleanUrl(channel.url)
+                val uri = URI(cleanUrl)
+                val domain = uri.host
+                if (domain != null) {
+                    headers["Origin"] = "https://$domain"
+                    headers["Referer"] = "https://$domain/"
+                }
+            } catch (e: Exception) {}
             headers["Accept"] = "*/*"
         }
 
@@ -215,7 +282,11 @@ object PlayerUtils {
                         "user-agent" to "User-Agent",
                         "x-requested-with" to "X-Requested-With",
                         "http-user-agent" to "User-Agent",
-                        "http-referrer" to "Referer"
+                        "http-referrer" to "Referer",
+                        "http-origin" to "Origin",
+                        "referrer" to "Referer",
+                        "ua" to "User-Agent",
+                        "ref" to "Referer"
                     )
                     headerMap[lowerKey]?.let { headers[it] = value }
                 }
