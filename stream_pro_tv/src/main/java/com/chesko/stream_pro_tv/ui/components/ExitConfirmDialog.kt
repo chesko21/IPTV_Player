@@ -2,6 +2,8 @@ package com.chesko.stream_pro_tv.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -31,11 +33,16 @@ fun ExitConfirmDialog(
     onDismiss: () -> Unit
 ) {
     val cancelFocusRequester = remember { FocusRequester() }
+    val confirmFocusRequester = remember { FocusRequester() }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.8f)),
+            .background(Color.Black.copy(alpha = 0.8f))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { onDismiss() },
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -60,10 +67,10 @@ fun ExitConfirmDialog(
                     ), 
                     RoundedCornerShape(20.dp)
                 )
-                .padding(24.dp),
+                .padding(24.dp)
+                .clickable(enabled = false) { }, // Stop propagation
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Icon Section with Cosmic Glow
             Box(contentAlignment = Alignment.Center) {
                 Surface(
                     onClick = {},
@@ -109,12 +116,24 @@ fun ExitConfirmDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                val cancelInteractionSource = remember { MutableInteractionSource() }
                 Surface(
-                    onClick = onDismiss,
+                    onClick = {
+                        cancelFocusRequester.requestFocus()
+                        onDismiss()
+                    },
                     modifier = Modifier
                         .weight(1f)
                         .height(42.dp)
-                        .focusRequester(cancelFocusRequester),
+                        .focusRequester(cancelFocusRequester)
+                        .clickable(
+                            interactionSource = cancelInteractionSource,
+                            indication = null
+                        ) {
+                            cancelFocusRequester.requestFocus()
+                            onDismiss()
+                        },
+                    interactionSource = cancelInteractionSource,
                     shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
                     scale = ClickableSurfaceDefaults.scale(focusedScale = 1.08f),
                     colors = ClickableSurfaceDefaults.colors(
@@ -129,11 +148,24 @@ fun ExitConfirmDialog(
                     }
                 }
 
+                val confirmInteractionSource = remember { MutableInteractionSource() }
                 Surface(
-                    onClick = onConfirm,
+                    onClick = {
+                        confirmFocusRequester.requestFocus()
+                        onConfirm()
+                    },
                     modifier = Modifier
                         .weight(1f)
-                        .height(42.dp),
+                        .height(42.dp)
+                        .focusRequester(confirmFocusRequester)
+                        .clickable(
+                            interactionSource = confirmInteractionSource,
+                            indication = null
+                        ) {
+                            confirmFocusRequester.requestFocus()
+                            onConfirm()
+                        },
+                    interactionSource = confirmInteractionSource,
                     shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
                     scale = ClickableSurfaceDefaults.scale(focusedScale = 1.08f),
                     colors = ClickableSurfaceDefaults.colors(
@@ -143,7 +175,8 @@ fun ExitConfirmDialog(
                         focusedContentColor = Color.White
                     ),
                     border = ClickableSurfaceDefaults.border(
-                        border = Border(androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)))
+                        border = Border(androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))),
+                        focusedBorder = Border(androidx.compose.foundation.BorderStroke(2.dp, Color.White))
                     )
                 ) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

@@ -5,6 +5,7 @@ import androidx.compose.animation.core.*
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -12,6 +13,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +40,7 @@ fun TvNavigationWrapper(
     var isExpanded by remember { mutableStateOf(false) }
 
     val sidebarWidth by animateDpAsState(
-        targetValue = if (!showSidebar) 0.dp else if (isExpanded) 220.dp else 70.dp,
+        targetValue = if (!showSidebar) 0.dp else if (isExpanded) 180.dp else 64.dp,
         animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
         label = "sidebarWidth"
     )
@@ -76,7 +78,7 @@ fun TvNavigationWrapper(
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    BrandingSection(isExpanded)
+                    BrandingSection(isExpanded, onToggle = { isExpanded = !isExpanded })
 
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -146,12 +148,18 @@ fun TvNavigationWrapper(
 }
 
 @Composable
-private fun BrandingSection(isExpanded: Boolean) {
+private fun BrandingSection(isExpanded: Boolean, onToggle: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(if (isExpanded) 70.dp else 60.dp)
-            .padding(start = 16.dp, end = 16.dp),
+            .padding(start = 12.dp, end = 8.dp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onToggle
+            ),
         contentAlignment = Alignment.CenterStart
     ) {
         AnimatedContent(
@@ -209,15 +217,27 @@ fun SidebarItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var isFocused by remember { mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val focusRequester = remember { FocusRequester() }
 
     Surface(
-        onClick = onClick,
+        onClick = {
+            focusRequester.requestFocus()
+            onClick()
+        },
         modifier = modifier
             .fillMaxWidth()
             .height(48.dp)
             .padding(vertical = 1.dp)
-            .onFocusChanged { isFocused = it.isFocused },
+            .focusRequester(focusRequester)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                focusRequester.requestFocus()
+                onClick()
+            },
+        interactionSource = interactionSource,
         shape = ClickableSurfaceDefaults.shape(RectangleShape),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else Color.Transparent,
@@ -233,7 +253,7 @@ fun SidebarItem(
             horizontalArrangement = Arrangement.Start
         ) {
             Box(
-                modifier = Modifier.width(56.dp),
+                modifier = Modifier.width(52.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(

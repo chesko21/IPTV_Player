@@ -174,28 +174,45 @@ fun VideoPlayer(
 
     DisposableEffect(exoPlayer, lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
+            val activity = context as? android.app.Activity
+            val isFinishing = activity?.isFinishing == true
+
             when (event) {
                 Lifecycle.Event.ON_PAUSE -> {
-                    val activity = context as? android.app.Activity
                     val inPip = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                         activity?.isInPictureInPictureMode == true
                     } else false
 
-                    if (!inPip && !exoPlayer.isCurrentMediaItemLive) {
+                    if (isFinishing) {
+                        exoPlayer.playWhenReady = false
+                        exoPlayer.stop()
+                    } else if (!inPip && !exoPlayer.isCurrentMediaItemLive) {
                         exoPlayer.pause()
                     }
                 }
                 Lifecycle.Event.ON_STOP -> {
-                    val activity = context as? android.app.Activity
                     val inPip = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                         activity?.isInPictureInPictureMode == true
                     } else false
 
-                    if (!inPip || activity?.isFinishing == true) {
+                    if (!inPip || isFinishing) {
+                        exoPlayer.playWhenReady = false
                         exoPlayer.stop()
                     }
                 }
-                Lifecycle.Event.ON_RESUME -> exoPlayer.play()
+                Lifecycle.Event.ON_DESTROY -> {
+                    exoPlayer.playWhenReady = false
+                    exoPlayer.stop()
+                    exoPlayer.release()
+                }
+                Lifecycle.Event.ON_RESUME -> {
+                    val inPip = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                        activity?.isInPictureInPictureMode == true
+                    } else false
+                    if (!inPip && !isFinishing) {
+                        exoPlayer.play()
+                    }
+                }
                 else -> {}
             }
         }
@@ -204,10 +221,11 @@ fun VideoPlayer(
 
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-            loudnessEnhancer?.release()
-            loudnessEnhancer = null
+            exoPlayer.playWhenReady = false
             exoPlayer.stop()
             exoPlayer.release()
+            loudnessEnhancer?.release()
+            loudnessEnhancer = null
             currentOnPlayerInit?.invoke(null)
         }
     }
@@ -242,6 +260,12 @@ fun VideoPlayer(
     }
 
     LaunchedEffect(channel.url, exoPlayer) {
+        val activity = context as? android.app.Activity
+        if (activity?.isFinishing == true) {
+            exoPlayer.stop()
+            return@LaunchedEffect
+        }
+
         retryCount = 0
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
@@ -260,7 +284,6 @@ fun VideoPlayer(
         val drmSessionManagerProvider = DefaultDrmSessionManagerProvider()
         drmSessionManagerProvider.setDrmHttpDataSourceFactory(dataSourceFactory)
 
-        // HLS Specific Optimization with non-idr frames allowed
         val hlsMediaSourceFactory = HlsMediaSource.Factory(dataSourceFactory)
             .setExtractorFactory(DefaultHlsExtractorFactory(DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES, true))
             .setAllowChunklessPreparation(true)
@@ -324,9 +347,9 @@ fun VideoPlayer(
         if (!isInPipMode) {
             Row(
                 modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(start = 24.dp, top = 120.dp)
-                    .alpha(0.5f),
+                    .align(Alignment.BottomStart)
+                    .padding(start = 24.dp, bottom = 80.dp)
+                    .alpha(0.4f),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(

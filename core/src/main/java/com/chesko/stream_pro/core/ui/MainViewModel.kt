@@ -130,7 +130,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _memberSince = MutableStateFlow(getSavedMemberSince())
     val memberSince: StateFlow<String> = _memberSince
 
-    // Cast Discovery Logic
 
     private val _castPlayer = MutableStateFlow<CastPlayer?>(null)
     val castPlayer: StateFlow<CastPlayer?> = _castPlayer
@@ -229,7 +228,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
-        // Initialize MediaSession if not already done
         if (mediaSession == null) {
             val intent = getApplication<Application>().packageManager.getLaunchIntentForPackage(getApplication<Application>().packageName)
             val pendingIntent = PendingIntent.getActivity(
@@ -243,7 +241,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 .build()
         }
 
-        // Check if already playing this item to avoid double-loading
         val currentMediaId = try { player.currentMediaItem?.mediaId } catch(_: Exception) { null }
         if (currentMediaId == channel.url && player.playbackState != Player.STATE_IDLE) {
             Log.d("MainViewModel", "Already playing ${channel.name} on Cast, skipping transfer")
@@ -305,7 +302,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                         Log.e("MainViewModel", "Cast Player Error: ${error.message}")
                         if (_isCasting.value) {
-                            // Attempt auto-recovery for cast if disconnected
                             viewModelScope.launch {
                                 delay(2000)
                                 if (_isCasting.value) transferCurrentMediaToCast()
@@ -328,7 +324,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 })
 
-                // Initial state check
                 _isCasting.value = cp.isCastSessionAvailable
                 if (_isCasting.value) {
                     transferCurrentMediaToCast()
@@ -421,8 +416,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         repository = ChannelRepository(channelDao, epgDao, playlistDao)
 
         _lastUrl.value = prefs.getString("last_m3u_url", "") ?: ""
-        
-        // RESTORE: Ambil ID playlist terakhir yang dipilih
+
         val savedPlaylistId = prefs.getInt("last_selected_playlist_id", -1)
         _selectedPlaylistId.value = if (savedPlaylistId != -1) savedPlaylistId else null
 
@@ -552,9 +546,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val historyLabel = localizedContext.getString(R.string.group_recently_played)
         val otherLabel = localizedContext.getString(R.string.group_other)
 
-        var baseList = when (group) {
-            favLabel -> favorites
-            historyLabel -> history
+        val isSearching = query.isNotBlank()
+
+        var baseList = when {
+            isSearching -> {
+                channels
+            }
+            group == favLabel -> favorites
+            group == historyLabel -> history
             else -> {
                 if (playlistId != null) {
                     channels.filter { it.playlistId == playlistId }
@@ -568,7 +567,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
-        if (category != null) {
+        if (category != null && !isSearching) {
             baseList = baseList.filter { ch ->
                 val g = ch.group?.lowercase() ?: ""
                 when (category.lowercase()) {
@@ -581,16 +580,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         baseList.filter { channel ->
-            val matchesSearch = if (query.isBlank()) {
+            val matchesSearch = if (!isSearching) {
                 true
             } else {
                 channel.name.contains(query, ignoreCase = true) ||
                         channel.group?.contains(query, ignoreCase = true) == true
             }
 
-            val matchesGroup = when (group) {
-                null, favLabel, historyLabel -> true
-                otherLabel -> channel.group.isNullOrBlank()
+            val matchesGroup = when {
+                isSearching -> true // Ignore group filter while searching
+                group == null || group == favLabel || group == historyLabel -> true
+                group == otherLabel -> channel.group.isNullOrBlank()
                 else -> {
                     val target = group.lowercase().trim()
                     val current = (channel.group ?: "").lowercase().trim()

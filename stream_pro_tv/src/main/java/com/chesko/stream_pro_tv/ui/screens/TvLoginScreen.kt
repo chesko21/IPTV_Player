@@ -9,6 +9,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -95,6 +97,7 @@ fun TvLoginScreen(
     val firstServerFocusRequester = remember { FocusRequester() }
     val urlSurfaceFocusRequester = remember { FocusRequester() }
     var isEditingUrl by remember { mutableStateOf(false) }
+    val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
 
     val glowAlpha = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
@@ -111,11 +114,15 @@ fun TvLoginScreen(
     }
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null
+        ) { 
+            keyboardController?.hide()
+            isEditingUrl = false 
+        },
         contentAlignment = Alignment.Center
     ) {
-        UniverseBackground(MaterialTheme.colorScheme.primary, glowAlpha.value)
-
         errorMessage?.let { message ->
             LaunchedEffect(message) {
                 delay(3000)
@@ -190,7 +197,7 @@ fun TvLoginScreen(
                     }
                 },
                 lastUrl = lastUrl,
-                modifier = Modifier.width(if (isSmallHeight) 380.dp else 440.dp),
+                modifier = Modifier.width(if (isSmallHeight) 360.dp else 420.dp),
                 dynamicDemoUrls = dynamicDemoUrls,
                 isSmallHeight = isSmallHeight
             )
@@ -231,24 +238,13 @@ fun BrandingSection(isSmallHeight: Boolean = false) {
             label = "glow"
         )
 
-        val logoBoxSize = if (isSmallHeight) 100.dp else 140.dp
-        val logoSize = if (isSmallHeight) 80.dp else 110.dp
+        val logoBoxSize = if (isSmallHeight) 80.dp else 110.dp
+        val logoSize = if (isSmallHeight) 60.dp else 85.dp
 
         Box(
             modifier = Modifier.size(logoBoxSize),
             contentAlignment = Alignment.Center
         ) {
-            Canvas(modifier = Modifier.size(logoBoxSize * glowScale)) {
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            Color(0xFFBB86FC).copy(alpha = 0.15f),
-                            Color.Transparent
-                        )
-                    )
-                )
-            }
-            
             Image(
                 painter = painterResource(com.chesko.stream_pro_tv.R.drawable.app_icon_androidtv),
                 contentDescription = "Logo",
@@ -337,7 +333,7 @@ fun LoginFormSection(
                 Brush.linearGradient(listOf(Color.White.copy(alpha = 0.2f), Color(0xFFBB86FC).copy(alpha = 0.1f))), 
                 RoundedCornerShape(24.dp)
             )
-            .padding(if (isSmallHeight) 20.dp else 36.dp)
+            .padding(if (isSmallHeight) 16.dp else 28.dp)
             .verticalScroll(rememberScrollState())
     ) {
         Row(
@@ -404,11 +400,25 @@ fun LoginFormSection(
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun RowScope.TabItem(text: String, isSelected: Boolean, onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val focusRequester = remember { FocusRequester() }
     Surface(
-        onClick = onClick,
+        onClick = {
+            focusRequester.requestFocus()
+            onClick()
+        },
         modifier = Modifier
             .weight(1f)
-            .height(44.dp),
+            .height(36.dp)
+            .focusRequester(focusRequester)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                focusRequester.requestFocus()
+                onClick()
+            },
+        interactionSource = interactionSource,
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(10.dp)),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.8f) else Color.Transparent,
@@ -423,60 +433,6 @@ fun RowScope.TabItem(text: String, isSelected: Boolean, onClick: () -> Unit) {
                 fontWeight = FontWeight.ExtraBold,
                 color = if (isSelected) Color.White else Color.White.copy(alpha = 0.5f)
             )
-        }
-    }
-}
-
-@Composable
-fun MovingPosterWall() {
-    val posters = listOf(
-        "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400",
-        "https://images.unsplash.com/photo-1542204113-e935100c31e7?w=400",
-        "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=400",
-        "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400",
-        "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=400",
-        "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=400",
-        "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=400",
-        "https://images.unsplash.com/photo-1535016120720-40c646bebbdc?w=400"
-    )
-    val infiniteTransition = rememberInfiniteTransition(label = "wall")
-    val scrollOffset by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = -3000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(60000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "scroll"
-    )
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .rotate(-5f)
-        .scale(1.4f)) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(5),
-            modifier = Modifier
-                .requiredHeight(4000.dp)
-                .fillMaxWidth()
-                .graphicsLayer { translationY = scrollOffset },
-            userScrollEnabled = false,
-            contentPadding = PaddingValues(8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(200) { index ->
-                AsyncImage(
-                    model = posters[index % posters.size],
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(0.7f)
-                        .alpha(0.12f)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFF222222)),
-                    contentScale = ContentScale.Crop
-                )
-            }
         }
     }
 }
@@ -497,9 +453,9 @@ fun UrlInputSection(
     dynamicDemoUrls: List<String> = emptyList(),
     isSmallHeight: Boolean = false
 ) {
-    val inputHeight = if (isSmallHeight) 56.dp else 68.dp
-    val buttonHeight = if (isSmallHeight) 48.dp else 56.dp
-    val spacerHeight = if (isSmallHeight) 24.dp else 32.dp
+    val inputHeight = if (isSmallHeight) 48.dp else 56.dp
+    val buttonHeight = if (isSmallHeight) 44.dp else 50.dp
+    val spacerHeight = if (isSmallHeight) 20.dp else 28.dp
 
     Column(modifier = Modifier.fillMaxWidth()) {
         TvText(
@@ -521,22 +477,35 @@ fun UrlInputSection(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 dynamicDemoUrls.forEachIndexed { index, demoUrl ->
                     val label = stringResource(R.string.login_server_label, index + 1)
                     val isSelected = url == demoUrl
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val itemFocusRequester = if (index == 0) firstServerFocusRequester else remember { FocusRequester() }
                     
                     Surface(
                         onClick = { 
+                            itemFocusRequester.requestFocus()
                             onUrlChange(demoUrl)
                             onEditingChange(false)
                             buttonFocusRequester.requestFocus()
                         },
                         modifier = Modifier
                             .weight(1f)
-                            .height(if (isSmallHeight) 34.dp else 38.dp)
-                            .then(if (index == 0) Modifier.focusRequester(firstServerFocusRequester) else Modifier),
+                            .height(if (isSmallHeight) 38.dp else 44.dp)
+                            .focusRequester(itemFocusRequester)
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = null
+                            ) {
+                                itemFocusRequester.requestFocus()
+                                onUrlChange(demoUrl)
+                                onEditingChange(false)
+                                buttonFocusRequester.requestFocus()
+                            },
+                        interactionSource = interactionSource,
                         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(10.dp)),
                         colors = ClickableSurfaceDefaults.colors(
                             containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.05f),
@@ -564,12 +533,24 @@ fun UrlInputSection(
         }
 
         if (!isEditingUrl) {
+            val interactionSource = remember { MutableInteractionSource() }
             Surface(
-                onClick = { onEditingChange(true) },
+                onClick = { 
+                    urlSurfaceFocusRequester.requestFocus()
+                    onEditingChange(true) 
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(inputHeight)
-                    .focusRequester(urlSurfaceFocusRequester),
+                    .focusRequester(urlSurfaceFocusRequester)
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null
+                    ) { 
+                        urlSurfaceFocusRequester.requestFocus()
+                        onEditingChange(true) 
+                    },
+                interactionSource = interactionSource,
                 shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
                 colors = ClickableSurfaceDefaults.colors(
                     containerColor = Color.White.copy(alpha = 0.03f),
@@ -634,13 +615,26 @@ fun UrlInputSection(
 
         Spacer(modifier = Modifier.height(spacerHeight))
 
+        val interactionSource = remember { MutableInteractionSource() }
         Surface(
-            onClick = onConnect,
+            onClick = {
+                buttonFocusRequester.requestFocus()
+                onConnect()
+            },
             enabled = !isLoading && url.isNotBlank(),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(buttonHeight)
-                .focusRequester(buttonFocusRequester),
+                .focusRequester(buttonFocusRequester)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    enabled = !isLoading && url.isNotBlank()
+                ) { 
+                    buttonFocusRequester.requestFocus()
+                    onConnect() 
+                },
+            interactionSource = interactionSource,
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = MaterialTheme.colorScheme.primary,
@@ -655,7 +649,7 @@ fun UrlInputSection(
                 if (isLoading && url.isNotBlank()) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = if (dynamicDemoUrls.contains(url)) Color.White else Color.White,
+                        color = Color.White,
                         strokeWidth = 3.dp
                     )
                 } else {
@@ -676,9 +670,14 @@ fun FileInputSection(
     onConnect: () -> Unit,
     isSmallHeight: Boolean = false
 ) {
-    val inputHeight = if (isSmallHeight) 56.dp else 68.dp
-    val buttonHeight = if (isSmallHeight) 48.dp else 56.dp
-    val spacerHeight = if (isSmallHeight) 24.dp else 32.dp
+    val inputHeight = if (isSmallHeight) 48.dp else 56.dp
+    val buttonHeight = if (isSmallHeight) 44.dp else 50.dp
+    val spacerHeight = if (isSmallHeight) 20.dp else 28.dp
+
+    val pickFileInteractionSource = remember { MutableInteractionSource() }
+    val pickFileFocusRequester = remember { FocusRequester() }
+    val connectInteractionSource = remember { MutableInteractionSource() }
+    val connectFocusRequester = remember { FocusRequester() }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         TvText(
@@ -690,8 +689,20 @@ fun FileInputSection(
         )
 
         Surface(
-            onClick = onPickFile,
-            modifier = Modifier.fillMaxWidth().height(inputHeight),
+            onClick = {
+                pickFileFocusRequester.requestFocus()
+                onPickFile()
+            },
+            modifier = Modifier.fillMaxWidth().height(inputHeight)
+                .focusRequester(pickFileFocusRequester)
+                .clickable(
+                    interactionSource = pickFileInteractionSource,
+                    indication = null
+                ) { 
+                    pickFileFocusRequester.requestFocus()
+                    onPickFile() 
+                },
+            interactionSource = pickFileInteractionSource,
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = Color.White.copy(alpha = 0.03f),
@@ -730,9 +741,22 @@ fun FileInputSection(
         Spacer(modifier = Modifier.height(spacerHeight))
 
         Surface(
-            onClick = onConnect,
+            onClick = {
+                connectFocusRequester.requestFocus()
+                onConnect()
+            },
             enabled = hasSelectedFile && !isLoading,
-            modifier = Modifier.fillMaxWidth().height(buttonHeight),
+            modifier = Modifier.fillMaxWidth().height(buttonHeight)
+                .focusRequester(connectFocusRequester)
+                .clickable(
+                    interactionSource = connectInteractionSource,
+                    indication = null,
+                    enabled = hasSelectedFile && !isLoading
+                ) { 
+                    connectFocusRequester.requestFocus()
+                    onConnect() 
+                },
+            interactionSource = connectInteractionSource,
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = MaterialTheme.colorScheme.primary,

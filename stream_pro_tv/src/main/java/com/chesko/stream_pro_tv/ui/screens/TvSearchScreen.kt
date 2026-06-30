@@ -6,6 +6,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -35,7 +37,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.chesko.stream_pro_tv.R
 import androidx.tv.material3.*
@@ -74,6 +75,10 @@ fun TvSearchScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF00020A))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { keyboardController?.hide() }
             .onKeyEvent {
                 if (it.key == Key.Back && it.type == KeyEventType.KeyDown) {
                     onBack()
@@ -99,6 +104,11 @@ fun TvSearchScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
                     onClick = onBack,
+                    modifier = Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onBack
+                    ),
                     shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(12.dp)),
                     colors = ClickableSurfaceDefaults.colors(
                         containerColor = Color.White.copy(alpha = 0.05f),
@@ -196,14 +206,22 @@ fun TvSearchScreen(
                             viewModel.setSearchQuery("") 
                             focusRequester.requestFocus()
                         },
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { 
+                                viewModel.setSearchQuery("") 
+                                focusRequester.requestFocus()
+                            },
                         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
                         colors = ClickableSurfaceDefaults.colors(
                             containerColor = Color.White.copy(alpha = 0.05f),
                             focusedContainerColor = MaterialTheme.colorScheme.primary,
                             contentColor = Color.White,
                             focusedContentColor = Color.White
-                        ),
-                        modifier = Modifier.size(60.dp)
+                        )
                     ) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Icon(

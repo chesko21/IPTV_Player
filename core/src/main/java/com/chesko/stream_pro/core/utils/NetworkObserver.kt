@@ -16,25 +16,30 @@ class NetworkObserver(context: Context) {
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     val networkStatus: Flow<NetworkStatus> = callbackFlow {
+        fun updateStatus() {
+            val activeNetwork = connectivityManager.activeNetwork
+            val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
+            val hasInternet = capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+            
+            launch {
+                send(if (hasInternet) NetworkStatus.Available else NetworkStatus.Lost)
+            }
+        }
+
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
-                launch { send(NetworkStatus.Available) }
+                updateStatus()
             }
 
             override fun onLost(network: Network) {
-                launch { send(NetworkStatus.Lost) }
+                updateStatus()
             }
 
             override fun onCapabilitiesChanged(
                 network: Network,
                 networkCapabilities: NetworkCapabilities
             ) {
-                val hasInternet = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                if (hasInternet) {
-                    launch { send(NetworkStatus.Available) }
-                } else {
-                    launch { send(NetworkStatus.Lost) }
-                }
+                updateStatus()
             }
         }
 
@@ -44,10 +49,7 @@ class NetworkObserver(context: Context) {
         connectivityManager.registerNetworkCallback(request, callback)
 
         // Initial state
-        val activeNetwork = connectivityManager.activeNetwork
-        val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
-        val isInitialAvailable = capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
-        launch { send(if (isInitialAvailable) NetworkStatus.Available else NetworkStatus.Lost) }
+        updateStatus()
 
         awaitClose {
             connectivityManager.unregisterNetworkCallback(callback)

@@ -49,7 +49,7 @@ fun HomeScreen(
 ) {
     val configuration = LocalConfiguration.current
     val isSmallHeight = configuration.screenHeightDp < 580
-    val columns = if (isSmallHeight) 7 else 6
+    val columns = 6
 
     val channels by viewModel.filteredChannels.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()

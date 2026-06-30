@@ -8,6 +8,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -28,6 +31,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -54,6 +58,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.*
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -432,6 +437,40 @@ fun TvPlayerScreenContent(
                 } else false
             }
             .clickable { onToggleOverlay() }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { 
+                        onToggleOverlay()
+                        onInteraction()
+                    }
+                )
+            }
+            .pointerInput(Unit) {
+                var totalDragX = 0f
+                var totalDragY = 0f
+                detectDragGestures(
+                    onDragStart = { totalDragX = 0f; totalDragY = 0f },
+                    onDragEnd = {
+                        if (abs(totalDragX) > abs(totalDragY)) {
+                            if (abs(totalDragX) > 100f) {
+                                if (totalDragX > 0) onSeek(10000L) else onSeek(-10000L)
+                                if (!showOverlay) onToggleOverlay()
+                                onInteraction()
+                            }
+                        } else {
+                            if (abs(totalDragY) > 100f) {
+                                if (totalDragY > 0) onChangeChannel(-1) else onChangeChannel(1)
+                                onInteraction()
+                            }
+                        }
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        totalDragX += dragAmount.x
+                        totalDragY += dragAmount.y
+                    }
+                )
+            }
             .focusable()
     ) {
         TvVideoPlayer(
@@ -1147,13 +1186,25 @@ fun ChannelListSidebar(
                 val channel = channels[index]
                 val isCurrent = index == currentIndex
                 val itemFocusRequester = remember { FocusRequester() }
+                val interactionSource = remember { MutableInteractionSource() }
 
                 Surface(
-                    onClick = { onChannelSelected(channel) },
+                    onClick = { 
+                        itemFocusRequester.requestFocus()
+                        onChannelSelected(channel) 
+                    },
                     modifier = Modifier
                         .focusRequester(itemFocusRequester)
                         .fillMaxWidth()
-                        .height(36.dp),
+                        .height(36.dp)
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null
+                        ) {
+                            itemFocusRequester.requestFocus()
+                            onChannelSelected(channel)
+                        },
+                    interactionSource = interactionSource,
                     shape = ClickableSurfaceDefaults.shape(CircleShape),
                     scale = ClickableSurfaceDefaults.scale(focusedScale = 1.04f),
                     colors = ClickableSurfaceDefaults.colors(
@@ -1217,11 +1268,25 @@ fun SidebarItem(
     onClick: () -> Unit,
     isFavorite: Boolean = false
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val focusRequester = remember { FocusRequester() }
     Surface(
-        onClick = onClick,
+        onClick = {
+            focusRequester.requestFocus()
+            onClick()
+        },
         modifier = modifier
             .fillMaxWidth()
-            .height(38.dp),
+            .height(38.dp)
+            .focusRequester(focusRequester)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                focusRequester.requestFocus()
+                onClick()
+            },
+        interactionSource = interactionSource,
         shape = ClickableSurfaceDefaults.shape(CircleShape),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.04f),
         colors = ClickableSurfaceDefaults.colors(
@@ -1370,6 +1435,7 @@ fun TrackItem(
     autoFocus: Boolean = false
 ) {
     val focusRequester = remember { FocusRequester() }
+    val interactionSource = remember { MutableInteractionSource() }
     if (autoFocus) {
         LaunchedEffect(Unit) {
             focusRequester.requestFocus()
@@ -1377,8 +1443,22 @@ fun TrackItem(
     }
 
     Surface(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth().height(36.dp).focusRequester(focusRequester),
+        onClick = {
+            focusRequester.requestFocus()
+            onClick()
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .height(36.dp)
+            .focusRequester(focusRequester)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                focusRequester.requestFocus()
+                onClick()
+            },
+        interactionSource = interactionSource,
         shape = ClickableSurfaceDefaults.shape(CircleShape),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.04f),
         colors = ClickableSurfaceDefaults.colors(
@@ -1505,9 +1585,12 @@ fun TvHeaderButton(
 ) {
     val configuration = LocalConfiguration.current
     val isSmallScreen = configuration.screenWidthDp < 600
+    val focusRequester = remember { FocusRequester() }
+    val interactionSource = remember { MutableInteractionSource() }
 
     Surface(
         onClick = {
+            focusRequester.requestFocus()
             onInteraction()
             onClick()
         },
@@ -1520,7 +1603,17 @@ fun TvHeaderButton(
         ),
         shape = ClickableSurfaceDefaults.shape(CircleShape),
         modifier = Modifier
+            .focusRequester(focusRequester)
             .onFocusChanged { if (it.isFocused) onInteraction() }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                focusRequester.requestFocus()
+                onInteraction()
+                onClick()
+            },
+        interactionSource = interactionSource
     ) {
         Box(modifier = Modifier.size(if (isSmallScreen) 28.dp else 36.dp), contentAlignment = Alignment.Center) {
             Icon(icon, contentDescription = label, modifier = Modifier.size(if (isSmallScreen) 14.dp else 16.dp))
@@ -1539,8 +1632,11 @@ fun TvPlayerCenterAction(
     size: androidx.compose.ui.unit.Dp = 40.dp,
     iconSize: androidx.compose.ui.unit.Dp = 18.dp
 ) {
+    val focusRequester = remember { FocusRequester() }
+    val interactionSource = remember { MutableInteractionSource() }
     Surface(
         onClick = {
+            focusRequester.requestFocus()
             onInteraction()
             onClick()
         },
@@ -1560,7 +1656,17 @@ fun TvPlayerCenterAction(
         ),
         modifier = modifier
             .size(size)
+            .focusRequester(focusRequester)
             .onFocusChanged { if (it.isFocused) onInteraction() }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                focusRequester.requestFocus()
+                onInteraction()
+                onClick()
+            },
+        interactionSource = interactionSource
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
             Icon(icon, contentDescription = label, modifier = Modifier.size(iconSize))

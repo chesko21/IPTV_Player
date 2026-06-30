@@ -4,7 +4,6 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
@@ -12,84 +11,191 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.chesko.stream_pro.R
-import com.chesko.stream_pro.ui.components.shimmerEffect
+import com.chesko.stream_pro.core.ui.MainViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.cos
-import kotlin.math.sin
+import kotlin.math.*
 import kotlin.random.Random
+
+data class PremiumParticle(
+    var x: Float,
+    var y: Float,
+    var speed: Float,
+    var radius: Float,
+    var alpha: Float,
+    var phase: Float
+)
+
+@Composable
+fun RotatingRing(
+    primaryColor: Color,
+    progress: Float,
+    modifier: Modifier = Modifier
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "ring")
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(5000, easing = LinearEasing)
+        ),
+        label = "rotation"
+    )
+
+    Canvas(modifier = modifier) {
+        val strokeWidth = 1.5.dp.toPx()
+
+        drawCircle(
+            color = primaryColor.copy(alpha = 0.1f),
+            style = Stroke(width = 0.5.dp.toPx())
+        )
+
+        rotate(rotation) {
+            drawArc(
+                brush = Brush.sweepGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        primaryColor.copy(alpha = 0.8f * progress),
+                        Color.White.copy(alpha = 0.9f * progress),
+                        primaryColor.copy(alpha = 0.8f * progress),
+                        Color.Transparent
+                    )
+                ),
+                startAngle = -90f,
+                sweepAngle = 180f * progress,
+                useCenter = false,
+                style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+            )
+
+            val angleRad = Math.toRadians(-90.0 + 180.0 * progress).toFloat()
+            val r = size.width / 2
+            drawCircle(
+                color = Color.White,
+                radius = 2.dp.toPx(),
+                center = Offset(center.x + r * cos(angleRad), center.y + r * sin(angleRad))
+            )
+        }
+    }
+}
+
+@Composable
+fun CinematicBackground(
+    primaryColor: Color,
+    intensity: Float,
+    time: Float
+) {
+    val particles = remember {
+        List(40) {
+            PremiumParticle(
+                x = Random.nextFloat(),
+                y = Random.nextFloat(),
+                speed = Random.nextFloat() * 0.0015f + 0.0005f,
+                radius = Random.nextFloat() * 2f + 0.5f,
+                alpha = Random.nextFloat() * 0.4f + 0.1f,
+                phase = Random.nextFloat() * PI.toFloat() * 2f
+            )
+        }
+    }
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val w = size.width
+        val h = size.height
+        drawRect(Color(0xFF000208))
+
+        val animX = w * 0.5f + cos(time * 0.5f) * w * 0.1f
+        val animY = h * 0.4f + sin(time * 0.3f) * h * 0.05f
+        
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(primaryColor.copy(alpha = 0.15f * intensity), Color.Transparent),
+                center = Offset(animX, animY),
+                radius = w * 1.5f
+            )
+        )
+
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xFF1E1B4B).copy(alpha = 0.1f * intensity), Color.Transparent),
+                center = Offset(w * 0.8f, h * 0.2f),
+                radius = w * 1.0f
+            )
+        )
+
+        particles.forEach { p ->
+            p.y -= p.speed
+            if (p.y < -0.05f) p.y = 1.05f
+            
+            val pAlpha = p.alpha * intensity * (0.5f + 0.5f * sin(time * 1.5f + p.phase))
+            if (pAlpha > 0.02f) {
+                drawCircle(
+                    color = Color.White.copy(alpha = pAlpha),
+                    radius = p.radius,
+                    center = Offset(
+                        (p.x + sin(time + p.phase) * 0.01f) * w,
+                        p.y * h
+                    )
+                )
+            }
+        }
+        drawRect(
+            brush = Brush.radialGradient(
+                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f * intensity)),
+                center = center,
+                radius = w * 1.0f
+            )
+        )
+    }
+}
 
 @Composable
 fun SplashScreen(
-    viewModel: com.chesko.stream_pro.core.ui.MainViewModel,
+    viewModel: MainViewModel,
     onNextScreen: (String) -> Unit
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
-    val infiniteTransition = rememberInfiniteTransition(label = "cosmic")
 
-    // Background animation
-    val nebulaRotate by infiniteTransition.animateFloat(
-        0f, 360f,
-        infiniteRepeatable(tween(20000, easing = LinearEasing)),
-        label = "nebula"
-    )
-
-    val cosmicPulse by infiniteTransition.animateFloat(
-        0.8f, 1.2f,
-        infiniteRepeatable(
-            tween(4000, easing = FastOutSlowInEasing),
-            RepeatMode.Reverse
-        ),
-        label = "pulse"
-    )
-
-    val starOffset by infiniteTransition.animateFloat(
-        0f, 1f,
-        infiniteRepeatable(tween(12000, easing = LinearEasing)),
-        label = "starMove"
-    )
-
-    val logoScale = remember { Animatable(0.5f) }
+    val logoScale = remember { Animatable(0.4f) }
     val logoAlpha = remember { Animatable(0f) }
-    val logoRotation = remember { Animatable(-10f) }
     val contentAlpha = remember { Animatable(0f) }
-    val loadingProgress = remember { Animatable(0.0f) }
+    val barProgress = remember { Animatable(0f) }
+    val titleY = remember { Animatable(30f) }
+    val time = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
         launch {
-            delay(300)
-            logoScale.animateTo(1f, spring(dampingRatio = 0.6f))
-        }
-        launch {
-            delay(300)
-            logoRotation.animateTo(0f, spring(stiffness = 200f))
-        }
-        launch { delay(300); logoAlpha.animateTo(1f, tween(800)) }
-
-        launch {
-            delay(900)
-            contentAlpha.animateTo(1f, tween(800))
+            time.animateTo(100f, infiniteRepeatable(tween(100000, easing = LinearEasing)))
         }
 
         launch {
-            delay(1200)
-            loadingProgress.animateTo(1f, tween(2000))
+            logoAlpha.animateTo(1f, tween(1200, easing = EaseOutExpo))
+        }
+        launch {
+            logoScale.animateTo(1.1f, tween(1000, easing = EaseOutBack))
+            logoScale.animateTo(1f, tween(400, easing = EaseInOutSine))
+        }
+        
+        delay(800)
+        
+        launch {
+            contentAlpha.animateTo(1f, tween(1500, easing = EaseOutQuart))
+            titleY.animateTo(0f, tween(1000, easing = EaseOutCubic))
         }
 
-        delay(3000)
+        delay(500)
+        barProgress.animateTo(1f, tween(4500, easing = EaseInOutQuart))
+
+        delay(4000)
         val currentPlaylist = viewModel.lastUrl.value
         onNextScreen(if (currentPlaylist.isNotEmpty()) "home" else "login")
     }
@@ -97,214 +203,143 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(Color(0xFF000208)),
         contentAlignment = Alignment.Center
     ) {
-
-        Canvas(modifier = Modifier.fillMaxSize().blur(60.dp)) {
-            val angleRad = Math.toRadians(nebulaRotate.toDouble())
-
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(primaryColor.copy(alpha = 0.15f), Color.Transparent)
-                ),
-                radius = size.maxDimension * 0.5f * cosmicPulse,
-                center = Offset(
-                    size.width / 2 + (cos(angleRad) * 150).toFloat(),
-                    size.height / 2 + (sin(angleRad) * 100).toFloat()
-                )
-            )
-        }
-
-        MinimalStarField(starOffset)
+        CinematicBackground(primaryColor, contentAlpha.value, time.value)
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxSize()
+            verticalArrangement = Arrangement.Center
         ) {
-
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.graphicsLayer {
-                    scaleX = logoScale.value
-                    scaleY = logoScale.value
-                    alpha = logoAlpha.value
-                    rotationZ = logoRotation.value
-                }
+                modifier = Modifier.size(180.dp)
             ) {
-
-                Box(
-                    modifier = Modifier
-                        .size(110.dp * cosmicPulse)
-                        .background(
-                            Brush.radialGradient(
-                                listOf(primaryColor.copy(alpha = 0.25f), Color.Transparent)
-                            ),
-                            CircleShape
-                        )
+                RotatingRing(
+                    primaryColor = primaryColor,
+                    progress = contentAlpha.value,
+                    modifier = Modifier.size(160.dp)
                 )
 
-                Box(
+                Image(
+                    painter = painterResource(id = R.drawable.app_icon_android),
+                    contentDescription = null,
                     modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                        .background(Color.Black)
-                        .border(1.5.dp, primaryColor.copy(alpha = 0.6f), CircleShape)
-                        .padding(18.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.app_icon_android),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+                        .size(90.dp)
+                        .graphicsLayer {
+                            scaleX = logoScale.value
+                            scaleY = logoScale.value
+                            alpha = logoAlpha.value
+                            rotationZ = sin(time.value * 2f) * 2f
+                        }
+                )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.graphicsLayer { alpha = contentAlpha.value }
+                modifier = Modifier.graphicsLayer { 
+                    alpha = contentAlpha.value
+                    translationY = titleY.value
+                }
             ) {
-                Row(verticalAlignment = Alignment.Bottom) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = stringResource(R.string.brand_name).substringBefore("PRO"),
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
+                        text = "STREAM",
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 6.sp,
+                            fontSize = 32.sp
+                        ),
+                        color = Color.White
                     )
+                    Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         text = "PRO",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = primaryColor,
-                        modifier = Modifier.shimmerEffect()
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 6.sp,
+                            fontSize = 32.sp
+                        ),
+                        color = primaryColor
                     )
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
+                
                 Text(
-                    text = stringResource(R.string.splash_universe_subtitle),
-                    fontSize = 8.sp,
-                    letterSpacing = 4.sp,
-                    color = Color.White.copy(alpha = 0.3f)
+                    text = stringResource(R.string.splash_universe_subtitle).uppercase(),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        letterSpacing = 12.sp,
+                        fontWeight = FontWeight.Light,
+                        fontSize = 10.sp
+                    ),
+                    color = Color.White.copy(alpha = 0.8f),
+                    modifier = Modifier.padding(top = 12.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(100.dp))
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
+                    .width(200.dp)
                     .graphicsLayer { alpha = contentAlpha.value }
-                    .width(160.dp)
             ) {
-
-                Text(
-                    text = "${(loadingProgress.value * 100).toInt()}%",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.9f)
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(3.dp)
-                        .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f), CircleShape)
+                        .height(1.5.dp)
+                        .background(Color.White.copy(alpha = 0.05f))
                 ) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(loadingProgress.value)
+                            .fillMaxWidth(barProgress.value)
                             .fillMaxHeight()
                             .background(
                                 Brush.horizontalGradient(
-                                    listOf(
-                                        primaryColor,
-                                        primaryColor.copy(alpha = 0.5f)
-                                    )
-                                ),
-                                CircleShape
+                                    listOf(Color.Transparent, primaryColor, Color.White)
+                                )
                             )
                     )
+
+                    if (barProgress.value > 0.01f && barProgress.value < 1f) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .offset(x = (200.dp * barProgress.value) - 2.dp)
+                                .size(4.dp)
+                                .background(Color.White, CircleShape)
+                        )
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
                 Text(
-                    text = stringResource(R.string.splash_initializing),
-                    fontSize = 9.sp,
-                    letterSpacing = 2.sp,
-                    color = primaryColor.copy(alpha = 0.7f)
+                    text = "${(barProgress.value * 100).toInt()}%",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp
+                    ),
+                    color = primaryColor.copy(alpha = 0.6f)
                 )
             }
         }
 
         Text(
-            text = stringResource(R.string.splash_designed_by),
+            text = stringResource(R.string.splash_designed_by).uppercase(),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 30.dp)
-                .graphicsLayer { alpha = contentAlpha.value * 0.3f },
-            fontSize = 7.sp,
-            letterSpacing = 4.sp,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-    }
-}
-
-@Composable
-fun MinimalStarField(offset: Float) {
-    val density = LocalDensity.current
-    val infiniteTransition = rememberInfiniteTransition(label = "twinkle")
-
-    val stars = remember {
-        List(80) {
-            StarMinimal(
-                x = Random.nextFloat(),
-                y = Random.nextFloat(),
-                size = Random.nextFloat() * 1.5f + 0.5f,
-                alpha = Random.nextFloat() * 0.5f + 0.2f
-            )
-        }
-    }
-
-    val twinkles = stars.map { star ->
-        infiniteTransition.animateFloat(
-            initialValue = star.alpha,
-            targetValue = star.alpha + 0.3f,
-            animationSpec = infiniteRepeatable(
-                tween(2000, easing = LinearEasing),
-                RepeatMode.Reverse
+                .padding(bottom = 40.dp)
+                .graphicsLayer { alpha = contentAlpha.value * 0.8f },
+            style = MaterialTheme.typography.labelSmall.copy(
+                letterSpacing = 4.sp,
+                fontWeight = FontWeight.ExtraLight,
+                fontSize = 9.sp
             ),
-            label = "twinkle"
+            color = Color.White
         )
     }
-
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        stars.forEachIndexed { index, star ->
-            val twinkle = twinkles[index].value
-
-            drawCircle(
-                color = Color.White.copy(alpha = twinkle),
-                radius = with(density) { star.size.dp.toPx() },
-                center = Offset(
-                    star.x * size.width,
-                    ((star.y + offset * 0.05f) % 1f) * size.height
-                )
-            )
-        }
-    }
 }
-
-data class StarMinimal(
-    val x: Float,
-    val y: Float,
-    val size: Float,
-    val alpha: Float
-)

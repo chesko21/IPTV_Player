@@ -421,6 +421,10 @@ fun PlayerScreenContent(
     val scope = rememberCoroutineScope()
     val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
 
+    LaunchedEffect(Unit) {
+        viewModel.setSearchQuery("")
+    }
+
     DisposableEffect(Unit) {
         activity?.window?.let { window ->
             val controller = WindowCompat.getInsetsController(window, window.decorView)
@@ -560,10 +564,6 @@ fun PlayerScreenContent(
         activity?.window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         onDispose {
             activity?.window?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            exoPlayer?.let {
-                it.stop()
-                it.release()
-            }
         }
     }
 
@@ -617,6 +617,10 @@ fun PlayerScreenContent(
         zappingJob?.cancel()
         currentChannel = nextChan
         viewModel.markAsPlayed(nextChan)
+
+        if (isClosing) {
+            exoPlayer?.stop()
+        }
 
         zappingJob = scope.launch {
             delay(1500)
@@ -705,11 +709,10 @@ fun PlayerScreenContent(
                     Player.STATE_ENDED -> {
                         isBuffering = false
                         if (player.isCurrentMediaItemLive) {
-                            // If live, treat 'Ended' as a temporary loss of stream and try to recover
                             scope.launch {
                                 isBuffering = true
                                 loadingStatus = playerLoadingStream
-                                delay(3000) // Give it a few seconds to see if it's just a momentary gap
+                                delay(3000)
                                 reloadVideo()
                             }
                         } else {
@@ -752,10 +755,10 @@ fun PlayerScreenContent(
                 delay(2000)
                 if (player.playbackState == Player.STATE_BUFFERING) {
                     bufferCount++
-                    if (bufferCount >= 5) { // After 10 seconds of buffering (2s * 5)
+                    if (bufferCount >= 5) {
                         isPlaybackStuck = true
                     }
-                    if (bufferCount >= 10) { // After 20 seconds of buffering (2s * 10)
+                    if (bufferCount >= 10) {
                         reloadVideo()
                         bufferCount = 0
                     }
@@ -794,7 +797,12 @@ fun PlayerScreenContent(
                 activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             } else {
                 isClosing = true
-                exoPlayer?.stop()
+                exoPlayer?.let {
+                    it.playWhenReady = false
+                    it.stop()
+                    it.release()
+                }
+                exoPlayer = null
                 viewModel.clearError()
                 onBack()
             }
@@ -838,13 +846,8 @@ fun PlayerScreenContent(
 
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0A0A0A))) {
         if (!isClosing) {
-            AnimatedContent(
-                targetState = currentChannel,
-                transitionSpec = { fadeIn(tween(500)) togetherWith fadeOut(tween(500)) },
-                label = "VideoTransition"
-            ) { targetChannel ->
             VideoPlayer(
-                channel = targetChannel,
+                channel = currentChannel,
                 modifier = Modifier.fillMaxSize(),
                 resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT,
                 audioBoost = audioBoost,
@@ -857,7 +860,7 @@ fun PlayerScreenContent(
                 },
                 onSuccess = {
                     loadingStatus = ""
-                    android.util.Log.d("PlayerAnalytics", "Exo Success: ${targetChannel.name}")
+                    android.util.Log.d("PlayerAnalytics", "Exo Success: ${currentChannel.name}")
                 },
                 onError = {
                     errorMessage = it
@@ -910,10 +913,8 @@ fun PlayerScreenContent(
                 }
             }
         }
-    }
 
-
-    if (!isInPipMode) {
+        if (!isInPipMode) {
 
         Box(
             modifier = Modifier
@@ -968,7 +969,6 @@ fun PlayerScreenContent(
                     )
                 }
         ) {
-            // Overlay logic...
         }
 
 
@@ -1125,8 +1125,10 @@ fun PlayerScreenContent(
                             } ?: builder.setAspectRatio(android.util.Rational(16, 9))
                             activity?.enterPictureInPictureMode(builder.build())
                         } else {
-                            @Suppress("DEPRECATION")
-                            activity?.enterPictureInPictureMode()
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                                @Suppress("DEPRECATION")
+                                activity?.enterPictureInPictureMode()
+                            }
                         }
                     }
                 )

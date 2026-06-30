@@ -7,6 +7,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -277,14 +279,16 @@ fun TvSettingsScreen(
             UniverseAlertDialog(
                 onDismiss = { showBufferDialog = false },
                 title = stringResource(R.string.dialog_buffer_title),
-                icon = Icons.Default.Timer
+                icon = Icons.Default.Timer,
+                isSmall = isSmall
             ) {
                 val bufferOptions = listOf(5, 10, 15, 30, 45, 60)
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     bufferOptions.forEach { seconds ->
                         UniverseDialogItem(
                             label = "$seconds ${stringResource(R.string.dialog_unit_seconds)}",
                             isSelected = bufferSize == seconds,
+                            isSmall = isSmall,
                             onClick = {
                                 viewModel.setBufferSize(seconds)
                                 showBufferDialog = false
@@ -299,14 +303,16 @@ fun TvSettingsScreen(
             UniverseAlertDialog(
                 onDismiss = { showQualityDialog = false },
                 title = stringResource(R.string.dialog_quality_title),
-                icon = Icons.Default.HighQuality
+                icon = Icons.Default.HighQuality,
+                isSmall = isSmall
             ) {
                 val qualityOptions = listOf(0, 240, 360, 480, 720, 1080)
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     qualityOptions.forEach { height ->
                         UniverseDialogItem(
                             label = if (height == 0) stringResource(R.string.dialog_auto_adaptive) else stringResource(R.string.dialog_resolution_p, height),
                             isSelected = maxVideoHeight == height,
+                            isSmall = isSmall,
                             onClick = {
                                 viewModel.setMaxVideoHeight(height)
                                 showQualityDialog = false
@@ -321,7 +327,8 @@ fun TvSettingsScreen(
             UniverseAlertDialog(
                 onDismiss = { showLanguageDialog = false },
                 title = stringResource(R.string.dialog_language_title),
-                icon = Icons.Default.Language
+                icon = Icons.Default.Language,
+                isSmall = isSmall
             ) {
                 val languages = listOf(
                     "en" to stringResource(R.string.language_en),
@@ -337,11 +344,12 @@ fun TvSettingsScreen(
                     "th" to stringResource(R.string.language_th),
                     "vi" to stringResource(R.string.language_vi)
                 )
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     languages.forEach { (code, label) ->
                         UniverseDialogItem(
                             label = label,
                             isSelected = appLanguage == code,
+                            isSmall = isSmall,
                             onClick = {
                                 viewModel.setAppLanguage(code)
                                 showLanguageDialog = false
@@ -357,39 +365,42 @@ fun TvSettingsScreen(
             UniverseAlertDialog(
                 onDismiss = { showAboutDialog = false },
                 title = stringResource(R.string.dialog_about_title),
-                icon = Icons.Default.Info
+                icon = Icons.Default.Info,
+                isSmall = isSmall
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.app_icon_androidtv),
                         contentDescription = null,
-                        modifier = Modifier.size(80.dp).clip(RoundedCornerShape(16.dp))
+                        modifier = Modifier.size(if (isSmall) 44.dp else 56.dp).clip(RoundedCornerShape(12.dp))
                     )
                     TvText(
                         stringResource(R.string.app_name),
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Black,
                         color = Color.White
                     )
                     TvText(
                         "${stringResource(R.string.branding_premium)} • v$versionName",
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
-                        letterSpacing = 2.sp
+                        letterSpacing = 1.sp
                     )
                     TvText(
                         stringResource(R.string.branding_description),
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.6f),
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        fontSize = if (isSmall) 8.sp else 10.sp,
+                        lineHeight = 14.sp
                     )
                     
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     
                     Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.1f)))
                     
@@ -397,7 +408,8 @@ fun TvSettingsScreen(
                         stringResource(R.string.branding_developed),
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.White.copy(alpha = 0.4f),
-                        letterSpacing = 4.sp
+                        letterSpacing = 2.sp,
+                        fontSize = 8.sp
                     )
                 }
             }
@@ -411,39 +423,92 @@ fun UniverseAlertDialog(
     onDismiss: () -> Unit,
     title: String,
     icon: ImageVector,
+    isSmall: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF0A0A0A),
-        shape = RoundedCornerShape(32.dp),
-        modifier = Modifier.width(420.dp).border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(32.dp)),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .width(if (isSmall) 200.dp else 240.dp)
+            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp)),
         confirmButton = {
+            val interactionSource = remember { MutableInteractionSource() }
+            val focusRequester = remember { FocusRequester() }
             Surface(
-                onClick = onDismiss,
-                shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
+                onClick = {
+                    focusRequester.requestFocus()
+                    onDismiss()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(if (isSmall) 28.dp else 32.dp)
+                    .focusRequester(focusRequester)
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null
+                    ) {
+                        focusRequester.requestFocus()
+                        onDismiss()
+                    },
+                interactionSource = interactionSource,
+                shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
                 colors = ClickableSurfaceDefaults.colors(
                     containerColor = Color.White.copy(alpha = 0.05f),
                     focusedContainerColor = Color.White,
                     contentColor = Color.White,
                     focusedContentColor = Color.Black
-                ),
-                modifier = Modifier.fillMaxWidth().height(48.dp)
+                )
             ) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    TvText(stringResource(R.string.dialog_dismiss), fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+                    TvText(
+                        stringResource(R.string.dialog_dismiss), 
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black, 
+                        letterSpacing = 0.5.sp,
+                        fontSize = if (isSmall) 9.sp else 10.sp
+                    )
                 }
             }
         },
         title = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
-                Spacer(Modifier.height(16.dp))
-                TvText(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally, 
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(if (isSmall) 18.dp else 22.dp)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        icon, 
+                        null, 
+                        tint = MaterialTheme.colorScheme.primary, 
+                        modifier = Modifier.size(if (isSmall) 10.dp else 12.dp)
+                    )
+                }
+                Spacer(Modifier.height(4.dp))
+                TvText(
+                    title.uppercase(), 
+                    style = MaterialTheme.typography.labelSmall, 
+                    fontWeight = FontWeight.Black, 
+                    letterSpacing = 0.5.sp,
+                    textAlign = TextAlign.Center,
+                    color = Color.White.copy(alpha = 0.4f)
+                )
             }
         },
         text = {
-            Column(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = if (isSmall) 160.dp else 220.dp)
+                    .padding(top = 2.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
                 content()
             }
         }
@@ -452,11 +517,32 @@ fun UniverseAlertDialog(
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun UniverseDialogItem(label: String, isSelected: Boolean, onClick: () -> Unit) {
+fun UniverseDialogItem(
+    label: String, 
+    isSelected: Boolean, 
+    isSmall: Boolean = false,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val focusRequester = remember { FocusRequester() }
     Surface(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth().height(52.dp),
-        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
+        onClick = {
+            focusRequester.requestFocus()
+            onClick()
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(if (isSmall) 28.dp else 32.dp)
+            .focusRequester(focusRequester)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                focusRequester.requestFocus()
+                onClick()
+            },
+        interactionSource = interactionSource,
+        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.03f),
             focusedContainerColor = MaterialTheme.colorScheme.primary,
@@ -465,12 +551,26 @@ fun UniverseDialogItem(label: String, isSelected: Boolean, onClick: () -> Unit) 
         )
     ) {
         Row(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            TvText(label, fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold, letterSpacing = 1.sp)
-            if (isSelected) Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(20.dp))
+            TvText(
+                label, 
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold, 
+                letterSpacing = 0.2.sp,
+                fontSize = if (isSmall) 9.sp else 10.sp
+            )
+            if (isSelected) {
+                Icon(
+                    Icons.Default.CheckCircle, 
+                    null, 
+                    modifier = Modifier.size(if (isSmall) 10.dp else 12.dp)
+                )
+            }
         }
     }
 }
@@ -511,9 +611,24 @@ fun TvSettingsToggleItem(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val focusRequester = remember { FocusRequester() }
     Surface(
-        onClick = { onCheckedChange(!checked) },
-        modifier = modifier.fillMaxWidth(),
+        onClick = { 
+            focusRequester.requestFocus()
+            onCheckedChange(!checked) 
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .focusRequester(focusRequester)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                focusRequester.requestFocus()
+                onCheckedChange(!checked)
+            },
+        interactionSource = interactionSource,
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.02f),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = Color.Transparent,
@@ -563,9 +678,24 @@ fun TvSettingsActionItem(
     modifier: Modifier = Modifier,
     contentColor: Color = Color.White
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val focusRequester = remember { FocusRequester() }
     Surface(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        onClick = { 
+            focusRequester.requestFocus()
+            onClick() 
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .focusRequester(focusRequester)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                focusRequester.requestFocus()
+                onClick()
+            },
+        interactionSource = interactionSource,
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.02f),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = Color.Transparent,

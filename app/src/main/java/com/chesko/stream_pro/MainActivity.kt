@@ -138,9 +138,20 @@ class MainActivity : FragmentActivity() {
                 setPictureInPictureParams(params)
             }
         } else {
-            // When exiting PiP, we don't necessarily want to finish the task.
-            // Only finish if the activity was already finishing or if it's in a state where it shouldn't be resumed.
-            if (isFinishing) {
+            if (isFinishing || lifecycle.currentState == androidx.lifecycle.Lifecycle.State.CREATED || lifecycle.currentState == androidx.lifecycle.Lifecycle.State.DESTROYED) {
+                if (viewModel.isCasting.value) {
+                    viewModel.stopCasting()
+                }
+
+                viewModel.setSelectedChannel(null)
+
+                val pid = android.os.Process.myPid()
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    if (isFinishing || lifecycle.currentState == androidx.lifecycle.Lifecycle.State.DESTROYED) {
+                        android.os.Process.killProcess(pid)
+                    }
+                }, 800)
+
                 finishAndRemoveTask()
             }
         }
@@ -219,6 +230,7 @@ class MainActivity : FragmentActivity() {
                 LaunchedEffect(networkStatus) {
                     when (networkStatus) {
                         is NetworkObserver.NetworkStatus.Lost -> {
+                            delay(2000) // Debounce: wait 2 seconds before showing "Lost"
                             topNotifMessage = context.getString(R.string.net_lost)
                             topNotifIcon = Icons.Default.CloudOff
                             topNotifColor = Color(0xFFE53935)
@@ -233,6 +245,7 @@ class MainActivity : FragmentActivity() {
                                 isTopNotifVisible = true
                                 delay(3000)
                                 isTopNotifVisible = false
+                                topNotifMessage = null // Reset message
                             }
                         }
                     }
@@ -284,9 +297,11 @@ class MainActivity : FragmentActivity() {
                         snackbarHost = { SnackbarHost(snackbarHostState) },
                         containerColor = Color.Transparent,
                         contentWindowInsets = WindowInsets(0, 0, 0, 0)
-                    ) { _ ->
+                    ) { innerPadding ->
                         Box(
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(innerPadding)
                         ) {
                             NavHost(
                                 navController = navController,

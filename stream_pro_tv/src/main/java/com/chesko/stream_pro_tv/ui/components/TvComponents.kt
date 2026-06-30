@@ -3,16 +3,14 @@ package com.chesko.stream_pro_tv.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.BringIntoViewSpec
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,73 +25,52 @@ import androidx.compose.ui.unit.sp
 import androidx.tv.material3.*
 import coil.compose.AsyncImage
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import com.chesko.stream_pro.core.data.model.IptvChannel
 import com.chesko.stream_pro_tv.R
-
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
-import androidx.compose.ui.draw.blur
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
-fun PremiumTvBackground() {
+fun PremiumTvBackground(primaryColor: Color = Color(0xFFE50914)) {
     val infiniteTransition = rememberInfiniteTransition(label = "bg")
-    val bgOffsetState = infiniteTransition.animateFloat(
+    val phase by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = 2000f,
+        targetValue = 2f * Math.PI.toFloat(),
         animationSpec = infiniteRepeatable(
-            animation = tween(40000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
+            animation = tween(40000, easing = LinearEasing)
         ),
-        label = "bgOffset"
+        label = "phase"
     )
-    val bgOffset = bgOffsetState.value
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF050505))
-    ) {
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .blur(100.dp)
-        ) {
-            val offset1X = bgOffset % 1000f - 500f
-            val offset1Y = bgOffset % 800f - 400f
-            
-            drawRect(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color(0xFFE50914).copy(alpha = 0.15f),
-                        Color.Transparent
-                    ),
-                    center = center.copy(
-                        x = center.x + offset1X,
-                        y = center.y + offset1Y
-                    ),
-                    radius = size.minDimension * 1.5f
-                )
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val w = size.width
+        val h = size.height
+        
+        drawRect(Color(0xFF02040C))
+
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(primaryColor.copy(alpha = 0.12f), Color.Transparent),
+                center = Offset(w * 0.5f + cos(phase) * w * 0.1f, h * 0.4f + sin(phase) * h * 0.05f),
+                radius = w * 0.9f
             )
-            
-            val offset2X = bgOffset % 1200f - 600f
-            val offset2Y = bgOffset % 600f - 300f
-            
-            drawRect(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color(0xFF2979FF).copy(alpha = 0.12f),
-                        Color.Transparent
-                    ),
-                    center = center.copy(
-                        x = center.x - offset2X,
-                        y = center.y - offset2Y
-                    ),
-                    radius = size.minDimension * 1.2f
-                )
+        )
+
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xFF1A237E).copy(alpha = 0.08f), Color.Transparent),
+                center = Offset(w * 0.2f + sin(phase * 0.5f) * w * 0.1f, h * 0.8f),
+                radius = w * 0.7f
             )
-        }
+        )
     }
 }
 
@@ -136,13 +113,28 @@ fun ChannelTvGridItem(
     channel: IptvChannel,
     onClick: (IptvChannel) -> Unit,
     modifier: Modifier = Modifier,
-    focusRequester: androidx.compose.ui.focus.FocusRequester? = null
+    focusRequester: FocusRequester? = null
 ) {
+    val internalFocusRequester = remember { FocusRequester() }
+    val interactionSource = remember { MutableInteractionSource() }
+    
     Surface(
-        onClick = { onClick(channel) },
+        onClick = { 
+            internalFocusRequester.requestFocus()
+            onClick(channel) 
+        },
         modifier = modifier
             .aspectRatio(1f)
-            .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier),
+            .focusRequester(focusRequester ?: internalFocusRequester)
+            .onFocusChanged { /* Trigger visual states */ }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                (focusRequester ?: internalFocusRequester).requestFocus()
+                onClick(channel)
+            },
+        interactionSource = interactionSource,
         shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(12.dp)),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.1f),
         colors = ClickableSurfaceDefaults.colors(
@@ -160,12 +152,6 @@ fun ChannelTvGridItem(
                 border = BorderStroke(2.dp, Color.White),
                 shape = RoundedCornerShape(12.dp)
             )
-        ),
-        glow = ClickableSurfaceDefaults.glow(
-            focusedGlow = Glow(
-                elevationColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                elevation = 20.dp
-            )
         )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -175,10 +161,7 @@ fun ChannelTvGridItem(
                 verticalArrangement = Arrangement.Center
             ) {
                 Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .padding(12.dp),
+                    modifier = Modifier.weight(1f).fillMaxWidth().padding(12.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     AsyncImage(
@@ -192,12 +175,7 @@ fun ChannelTvGridItem(
                 }
                 
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            Color.Black.copy(alpha = 0.4f)
-                        )
-                        .padding(vertical = 6.dp, horizontal = 8.dp)
+                    modifier = Modifier.fillMaxWidth().background(Color.Black.copy(alpha = 0.4f)).padding(vertical = 6.dp, horizontal = 8.dp)
                 ) {
                     Text(
                         text = channel.name,
@@ -217,12 +195,7 @@ fun ChannelTvGridItem(
                     imageVector = Icons.Default.Lock,
                     contentDescription = stringResource(R.string.content_desc_drm),
                     tint = Color.Black,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(6.dp)
-                        .size(16.dp)
-                        .background(Color(0xFFFFD600), CircleShape)
-                        .padding(3.dp)
+                    modifier = Modifier.align(Alignment.TopEnd).padding(6.dp).size(16.dp).background(Color(0xFFFFD600), CircleShape).padding(3.dp)
                 )
             }
         }
@@ -236,8 +209,24 @@ fun GroupTvItem(
     isSelected: Boolean, 
     onClick: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val focusRequester = remember { FocusRequester() }
+
     Surface(
-        onClick = onClick,
+        onClick = {
+            focusRequester.requestFocus()
+            onClick()
+        },
+        modifier = Modifier
+            .focusRequester(focusRequester)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                focusRequester.requestFocus()
+                onClick()
+            },
+        interactionSource = interactionSource,
         shape = ClickableSurfaceDefaults.shape(shape = CircleShape),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.1f),
         colors = ClickableSurfaceDefaults.colors(
@@ -247,20 +236,12 @@ fun GroupTvItem(
             focusedContentColor = Color.Black
         ),
         border = ClickableSurfaceDefaults.border(
-            focusedBorder = Border(
-                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                shape = CircleShape
-            ),
-            border = Border(
-                border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.1f)),
-                shape = CircleShape
-            )
+            focusedBorder = Border(border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary), shape = CircleShape),
+            border = Border(border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.1f)), shape = CircleShape)
         )
     ) {
         Box(
-            modifier = Modifier
-                .height(40.dp)
-                .padding(horizontal = 20.dp),
+            modifier = Modifier.height(40.dp).padding(horizontal = 20.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
